@@ -1,0 +1,50 @@
+/* gdc com erro semantico - declaração dupla de variável */
+
+/* teste de função com parâmetros e corpo sem declarações */
+int gdc (int u, int v)
+{
+    /* teste de seleção, expressões, return e chamada de função */
+    if (v == 0) return u; 
+    else return gdc(v,u-u/v*v);
+}
+
+/* teste de função sem parâmetros e sem corpo */
+int input(void)
+{
+}
+
+/* teste de função com parâmetro e sem corpo */
+void output(int x)
+{
+}
+
+/* teste de função sem parâmetro e com corpo completo */
+void main(void)
+{
+
+   /* teste de diferentes tipos de variáveis, incluindo vetor */
+   int x;
+   int y;
+   int u;
+   int v[10];
+   int u; /* erro semântico - declaração dupla*/	
+
+   /* chamadas de funções */
+   x = input();
+   y = input();
+   output(gdc(x,y));
+
+   /* teste atribuição e repetição */
+   u = 0;
+   x = 1;
+   while (x <= 10)
+   {
+      u = u + 1;  
+      v[i] = u;
+      x = x + 1; 
+   }
+
+   /* teste return simples */   
+   return;
+
+}
