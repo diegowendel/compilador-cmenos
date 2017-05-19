@@ -17,6 +17,11 @@
  */
 #define NO_CODE FALSE
 
+/* NO_TARGET_CODE igual a FALSE não gera código objeto,
+ * caso contrário gera código objeto
+ */
+#define NO_TARGET_CODE FALSE
+
 #include "util.h"
 #if NO_PARSE
 #include "scan.h"
@@ -26,6 +31,9 @@
 #include "analyze.h"
 #if !NO_CODE
 #include "cgen.h"
+#if !NO_TARGET_CODE
+#include "target.h"
+#endif
 #endif
 #endif
 #endif
@@ -42,8 +50,10 @@ int TraceScan = FALSE;
 int TraceParse = TRUE;
 int TraceAnalyze = TRUE;
 int TraceCode = TRUE;
+int TraceTarget = TRUE;
 
 int Error = FALSE;
+int CodigoIntermediarioGerarado = FALSE;
 
 int main( int argc, char * argv[] ) {
     TreeNode * syntaxTree;
@@ -92,10 +102,27 @@ int main( int argc, char * argv[] ) {
             exit(1);
         }
         if (TraceCode) fprintf(listing, "\nGerando código intermediário...\n");
-        codeGen(syntaxTree,codefile);
+        codeGen(syntaxTree, codefile);
         fclose(code);
         if (TraceCode) fprintf(listing, "\nGeração de código intermediário concluída!\n\n");
+        // Código intermediário gerado com sucesso
+        CodigoIntermediarioGerarado = TRUE;
     }
+#if !NO_TARGET_CODE
+    if(CodigoIntermediarioGerarado) {
+        char * codefile;
+        int fnlen = strcspn(pgm, ".");
+        codefile = (char *) calloc(fnlen + 4, sizeof(char));
+        strncpy(codefile, pgm, fnlen);
+        strcat(codefile, ".cm");
+        code = fopen(codefile, "a+");
+        Quadruple codigoIntermediario = getCodigoIntermediario();
+        if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
+        geraCodigoObjeto(codigoIntermediario, codefile);
+        fclose(code);
+        if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n\n");
+    }
+#endif
 #endif
 #endif
 #endif

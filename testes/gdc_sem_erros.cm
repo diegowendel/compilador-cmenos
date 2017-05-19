@@ -324,3 +324,7 @@
 41: (label, L3, _, _)
 42: (return, _, _, _)
 43: (halt, _, _, _)
+
+
+********** Código objeto **********
+teste escrita targetcode

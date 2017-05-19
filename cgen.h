@@ -67,6 +67,8 @@ void preparaVazio();
 
 void printIntermediateCode();
 
+Quadruple getCodigoIntermediario(void);
+
 /* Procedure codeGen generates code to a code
  * file by traversal of the syntax tree. The
  * second parameter (codefile) is the file name

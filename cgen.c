@@ -686,3 +686,7 @@ void preparaVazio() {
     vazio.contents.variable.name = NULL;
     vazio.contents.variable.scope = NULL;
 }
+
+Quadruple getCodigoIntermediario(void) {
+    return head;
+}
