@@ -56,14 +56,12 @@ var_declaracao     	: tipo_especificador id SEMI
 			{
 				$$ = $1;
 				$$->child[0] = $2;
-				$$->child[0]->typeVar = "Variável";
 				$$->child[0]->type = $$->type;
 			}
             		| tipo_especificador id LBRACKET num RBRACKET SEMI
 			{
 				$$ = $1;
 				$$->child[0] = $2;
-				$$->child[0]->typeVar = "Vetor";
 				$$->child[0]->kind.exp = VectorK;
 				$$->child[0]->type = $$->type;
 				$$->child[0]->child[0] = $4;
@@ -87,7 +85,6 @@ fun_declaracao		: tipo_especificador id LPAREN params RPAREN composto_decl
 			{
 				$$ = $1;
 				$$->child[0] = $2;
-				$$->child[0]->typeVar = "Função";
 				$$->child[0]->type = $$->type;
 				$$->child[0]->kind.exp = FunctionK;
 				$$->child[0]->child[0] = $4;
@@ -116,14 +113,12 @@ param 			: tipo_especificador id
 			{
 				$$ = $1;
 				$$->child[0] = $2;
-				$$->child[0]->typeVar = "Variável";
 				$$->child[0]->type = $$->type;
 			}
 			| tipo_especificador id LBRACKET RBRACKET
 			{
 				$$ = $1;
 				$$->child[0] = $2;
-				$$->child[0]->typeVar = "Vetor";
 				$$->child[0]->type = $$->type;
 			}
 			;
@@ -216,13 +211,15 @@ expressao 		: var ATRIBUICAO expressao
 var 			: id
 			{
 				$$ = $1;
-			    $$->typeVar = "idOnly";
+                $$->type = Integer;
+                $$->varAccess = ACESSANDO;
 			}
 			| id LBRACKET expressao RBRACKET
 			{
 				$$ = $1;
 				$$->kind.exp = VectorK;
-				$$->typeVar = "idOnly";
+                $$->type = Integer;
+                $$->varAccess = ACESSANDO;
 				$$->child[0] = $3;
 			}
 			;
@@ -315,7 +312,6 @@ ativacao 		: id LPAREN args RPAREN
 			{
 				$$ = $1;
 				$$->kind.exp = CallK;
-				$$->typeVar = "Função";
 				$$->child[0] = $3;
 			}
 			;

@@ -36,12 +36,7 @@ static int indent = 0;
 /* main function location
  * in the intermediate code instruction list
  */
-static int mainLoc;
-
-/* location number for current
- * intermediate code instruction emission
- */
-static int emitLoc = 0;
+// static int mainLoc;
 
 /* Numero para geração de nomes de variáveis temporárias */
 static int temporario = 1;
@@ -75,11 +70,11 @@ static char * createTemporaryOperandName() {
     return temp;
 }
 
-static Operand createTemporaryOperand(Scope scope) {
+static Operand createTemporaryOperand() {
     Operand temp;
     char * tempName =  createTemporaryOperandName();
     temp.kind = String;
-    temp.contents.variable.scope = scope;
+    temp.contents.variable.scope = NULL;
     temp.contents.variable.name = tempName;
     return temp;
 }
@@ -134,7 +129,6 @@ static void genStmt(TreeNode * tree) {
             q = insertQuad(createQuad(instrucaoAtual, op1, vazio, vazio));
             /* Salva a IR do if para atualizar com o label que representa o fim do bloco then */
             pushLocation(createLocation(q));
-            ++emitLoc;
             emitComment("<- if: test expression", indent);
 
             emitComment("-> if: if block", indent);
@@ -157,8 +151,6 @@ static void genStmt(TreeNode * tree) {
 
             /* Label usado para marcar o fim do bloco then */
             insertQuad(createQuad(LBL, op2, vazio, vazio));
-            /* Incrementa emitLoc */
-            ++emitLoc;
             emitComment("-> if: else/end block", indent);
 
             cGen(p3);
@@ -174,8 +166,6 @@ static void genStmt(TreeNode * tree) {
                 /* Label usado para marcar o fim do bloco else */
                 insertQuad(createQuad(LBL, op1, vazio, vazio));
             }
-            /* Incrementa emitLoc */
-            ++emitLoc;
             emitComment("<- if: else/end block", indent);
             emitComment("<- if", indent);
             break;
@@ -205,8 +195,6 @@ static void genStmt(TreeNode * tree) {
             /* Salva a IR do if para atualizar com o label que representa o fim do bloco then */
             pushLocation(createLocation(q));
 
-            /* update emitLoc */
-            ++emitLoc;
             emitComment("<- while: test expression", indent);
 
             emitComment("-> while: while block", indent);
@@ -217,8 +205,6 @@ static void genStmt(TreeNode * tree) {
             instrucaoAtual = GOTO;
             /* Cria e insere uma nova representação em código intermediário */
             insertQuad(createQuad(instrucaoAtual, op1, vazio, vazio));
-            /* update emitLoc */
-            ++emitLoc;
             emitComment("<- while: while block", indent);
 
             op3.kind = String;
@@ -247,8 +233,6 @@ static void genStmt(TreeNode * tree) {
             instrucaoAtual = RTN;
             /* Cria e insere uma nova representação em código intermediário */
             insertQuad(createQuad(instrucaoAtual, op1, vazio, vazio));
-            /* Incrementa emitLoc */
-            ++emitLoc;
             emitComment("<- return: expression", indent);
             emitComment("<- return", indent);
             break;
@@ -281,37 +265,35 @@ static void genExp(TreeNode * tree) {
             operandoAtual.kind = String;
             operandoAtual.contents.variable.name = tree->attr.name;
             operandoAtual.contents.variable.scope = tree->scope;
+            fprintf(listing, "\n\n%s\n", tree->attr.name);
+            fprintf(listing, "%s\n", tree->scope->funcName);
             emitComment("<- identifier", indent);
             break; /* IdK */
 
         case VectorK:
-            if(strcmp(tree->typeVar, "Vetor") != 0) {
-                emitComment("-> vector", indent);
-                emitComment(tree->attr.name, indent);
-                p1 = tree->child[0];
-                /* Atualiza o operando atual como o id do vetor e seta como op1 */
-                operandoAtual.kind = String;
-                operandoAtual.contents.variable.name = tree->attr.name;
-                operandoAtual.contents.variable.scope = tree->scope;
-                op1 = operandoAtual;
-                /* Gera código para a posição do vetor */
-                emitComment("-> vector: position", indent);
-                cGen(p1);
-                /* Indice do vetor */
-                op2 = operandoAtual;
-                emitComment("<- vector: position", indent);
-                /* Atribui a instrução atual */
-                instrucaoAtual = VEC;
-                /*Temporário */
-                op3 = createTemporaryOperand(tree->scope);
-                /* Atualiza o operando atual */
-                operandoAtual = op3;
-                /* Cria e insere uma nova representação em código intermediário */
-                insertQuad(createQuad(instrucaoAtual, op1, op2, op3));
-                /* Atualiza emitLoc */
-                ++emitLoc;
-                emitComment("<- vector", indent);
-            }
+            emitComment("-> vector", indent);
+            emitComment(tree->attr.name, indent);
+            p1 = tree->child[0];
+            /* Atualiza o operando atual como o id do vetor e seta como op1 */
+            operandoAtual.kind = String;
+            operandoAtual.contents.variable.name = tree->attr.name;
+            operandoAtual.contents.variable.scope = tree->scope;
+            op1 = operandoAtual;
+            /* Gera código para a posição do vetor */
+            emitComment("-> vector: position", indent);
+            cGen(p1);
+            /* Indice do vetor */
+            op2 = operandoAtual;
+            emitComment("<- vector: position", indent);
+            /* Atribui a instrução atual */
+            instrucaoAtual = VEC;
+            /*Temporário */
+            op3 = createTemporaryOperand();
+            /* Atualiza o operando atual */
+            operandoAtual = op3;
+            /* Cria e insere uma nova representação em código intermediário */
+            insertQuad(createQuad(instrucaoAtual, op1, op2, op3));
+            emitComment("<- vector", indent);
             break; /* VectorK */
 
         case FunctionK:
@@ -319,12 +301,14 @@ static void genExp(TreeNode * tree) {
             emitComment(tree->attr.name, indent);
             /* save location of function main */
             if((!strcmp(tree->attr.name, "main")) && (!strcmp(tree->scope->funcName, "ESCOPO_GLOBAL"))) {
-                mainLoc = emitLoc;
+                // mainLoc = emitLoc;
             }
             op1.kind = String;
             op1.contents.variable.name = tree->attr.name;
             op1.contents.variable.scope = tree->scope;
             insertQuad(createQuad(FUNC, op1, vazio, vazio));
+            fprintf(listing, "%s\n", tree->attr.name);
+            fprintf(listing, "%s\n", tree->scope->funcName);
             /* ignore list of parameters (already saved at symbol table with memloc defined) */
             p1 = tree->child[0];
             /* build code for function block */
@@ -355,8 +339,6 @@ static void genExp(TreeNode * tree) {
             /* build code for function call */
             instrucaoAtual = ARGS;
             insertQuad(createQuad(instrucaoAtual, vazio, vazio, vazio));
-            /* Incrementa emitLoc */
-            ++emitLoc;
             emitComment("-> function call: arguments", indent);
             while(p1 != NULL) {
                 cGen(p1);
@@ -364,8 +346,6 @@ static void genExp(TreeNode * tree) {
                 instrucaoAtual = PARAM;
                 /* Cria e insere uma nova representação em código intermediário */
                 insertQuad(createQuad(instrucaoAtual, operandoAtual, vazio, vazio));
-                /* Incrementa emitLoc */
-                ++emitLoc;
                 /* Decrementa qtdParams */
                 --qtdParams;
                 p1 = p1->sibling;
@@ -375,11 +355,9 @@ static void genExp(TreeNode * tree) {
             /* Atribui o tipo de instrução */
             instrucaoAtual = CALL;
             /* Atualiza o operando atual */
-            operandoAtual = createTemporaryOperand(tree->scope);
+            operandoAtual = createTemporaryOperand();
             /* Cria e insere uma nova representação em código intermediário */
             insertQuad(createQuad(instrucaoAtual, op1, op2, operandoAtual));
-            /* Incrementa emitLoc */
-            ++emitLoc;
             emitComment("<- function call", indent);
             break;
 
@@ -405,8 +383,6 @@ static void genExp(TreeNode * tree) {
                 instrucaoAtual = ASN;
                 /* Cria e insere uma nova representação em código intermediário */
                 insertQuad(createQuad(instrucaoAtual, op1, op2, vazio));
-                /* Incrementa emitLoc */
-                ++emitLoc;
                 emitComment("<- assign", indent);
 
             } else {
@@ -484,10 +460,8 @@ static void genExp(TreeNode * tree) {
                 } /* case op */
 
                 /* Atualiza o operando atual */
-                operandoAtual = createTemporaryOperand(tree->scope);
+                operandoAtual = createTemporaryOperand();
                 insertQuad(createQuad(instrucaoAtual, op1, op2, operandoAtual));
-                /* Incrementa emitLoc */
-                ++emitLoc;
                 emitComment("<- Operator", indent);
 
             }
@@ -562,6 +536,10 @@ void printIntermediateCode() {
         if(q->op1.kind == String) {
             strcat(quad, ", ");
             strcat(quad, q->op1.contents.variable.name);
+            if(q->op1.contents.variable.scope != NULL) {
+                strcat(quad, "  ");
+                strcat(quad, q->op1.contents.variable.scope->funcName);
+            }
         } else if(q->op1.kind == IntConst) {
             sprintf(tempString, ", %d", q->op1.contents.val);
             strcat(quad,tempString);
@@ -644,7 +622,7 @@ void pushParam(int * count) {
     }
 }
 
-void popParam() {
+void popParam(void) {
     if(paramHead != NULL) {
         ParamStack ps = paramHead;
         paramHead = paramHead->next;
@@ -681,7 +659,7 @@ Quadruple * insertQuad(Quadruple q) {
     return ptr;
 }
 
-void preparaVazio() {
+void preparaVazio(void) {
     vazio.kind = Empty;
     vazio.contents.variable.name = NULL;
     vazio.contents.variable.scope = NULL;

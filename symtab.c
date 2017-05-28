@@ -44,6 +44,16 @@ const char * expTypeToString(enum exp e) {
     return strings[e];
 }
 
+const char * dataTypeToString(ExpKind k) {
+    if(k == IdK) {
+        return "Variável";
+    } else if(k == VectorK) {
+        return "Vetor";
+    } else {
+        return "Função";
+    }
+}
+
 Scope sc_top(void) {
     return scopeStack[nScopeStack - 1];
 }
@@ -54,64 +64,64 @@ void sc_pop(void) {
 }
 
 void sc_push(Scope scope) {
-    /* Se scope não for o escopo global,
-     * adiciona o último escopo como escopo pai do mesmo
-     */
-    if(nScopeStack) {
-        scope->parent = sc_top();
-    }
     scopeStack[nScopeStack++] = scope;
 }
 
 Scope sc_create(char * funcName) {
-    Scope newScope;
-
-    newScope = (Scope) malloc(sizeof(struct ScopeRec));
+    Scope newScope = (Scope) malloc(sizeof(struct ScopeRec));
     newScope->funcName = funcName;
-    newScope->nestedLevel = nScopeStack;
-    newScope->parent = sc_top();
-
+    if(!strcmp(funcName, "ESCOPO_GLOBAL")) {
+        newScope->parent = NULL;
+    } else {
+        newScope->parent = globalScope;
+    }
     scopes[nScope++] = newScope;
-
     return newScope;
 }
 
 BucketList st_bucket(char * name) {
     int h = hash(name);
     Scope sc = sc_top();
-    while(sc) {
-        BucketList l = sc->hashTable[h];
-        while ((l != NULL) && (strcmp(name,l->name) != 0)) {
-            l = l->next;
-        }
-        if (l != NULL) return l;
-        sc = sc->parent;
+    BucketList l = sc->hashTable[h];
+    while ((l != NULL) && (strcmp(name,l->name))) {
+        l = l->next;
     }
-    return NULL;
+    if (l != NULL) {
+        return l;
+    } else {
+        return NULL;
+    }
 }
 
-int getMemoryLocation(TreeNode * treeNode) {
-    Scope escopo = treeNode->scope;
-    int h = hash(treeNode->attr.name);
+/**
+ *  Procura por uma função no escopo global
+ */
+BucketList st_bucket_func (char * name) {
+	int h = hash(name);
+	Scope sc = globalScope;
+	BucketList l = sc->hashTable[h];
+	while ((l != NULL) && (strcmp(name,l->name))) {
+        l = l->next;
+    }
+    if (l != NULL) {
+        return l;
+    } else {
+        return NULL;
+    }
+}
 
-    while (escopo != NULL) {
-        BucketList l = escopo->hashTable[h];
-
-        while (l != NULL) {
-            /* !strcmp(const char *s1, const char *s2) verifica se as duas
-             * strings passadas como parâmetro são iguais. Retorna 0 em caso
-             * verdadeiro, por isso o símbolo '!' antes da função
-             */
-             // Verifica primeiro se o escopo é igual
-            if(!strcmp(escopo->funcName, treeNode->scope->funcName)) {
-                // Se o escopo for igual verifica o nome da variável
-                if(!strcmp(l->name, treeNode->attr.name)) {
-                    return l->memloc;
-                }
-            }
-            l = l->next;
+int getMemoryLocation(char * nome, Scope escopo) {
+    int h = hash(nome);
+    BucketList l = escopo->hashTable[h];
+    while (l != NULL) {
+        /* !strcmp(const char *s1, const char *s2) verifica se as duas
+         * strings passadas como parâmetro são iguais. Retorna 0 em caso
+         * verdadeiro, por isso o símbolo '!' antes da função
+         */
+        if(!strcmp(l->name, nome)) {
+            return l->memloc;
         }
-        escopo = escopo->parent;
+        l = l->next;
     }
     return -1;
 }
@@ -124,6 +134,49 @@ int getMemoryLocation(TreeNode * treeNode) {
 void st_insert(char * name, int lineno, int loc, TreeNode * treeNode) {
 	int h = hash(name);
 	Scope top = sc_top();
+
+    if(top->hashTable[h] == NULL) {
+        // Adiciona o escopo ao nó da árvore sintática
+        treeNode->scope = top;
+        top->hashTable[h] = st_create(name, lineno, loc, treeNode);
+        return;
+    } else {
+        BucketList l = top->hashTable[h];
+        while ((l->next != NULL) && (strcmp(name,l->name))) {
+            l = l->next;
+        }
+        if (l->next == NULL) { /* Variável ainda não existente na tabela */
+            // Adiciona o escopo ao nó da árvore sintática
+            treeNode->scope = top;
+            // Adiciona um novo item na tabela de símbolos
+            l->next = st_create(name, lineno, loc, treeNode);
+        } else { /* Variável encontrada na tabela, só adiciona o número da linha */
+            LineList ll = l->lines;
+            while(ll->next != NULL) {
+                ll = ll->next;
+            }
+            ll->next = (LineList) malloc(sizeof(struct LineListRec));
+            ll->next->lineno = lineno;
+            ll->next->next = NULL;
+        }
+    }
+} /* st_insert */
+
+BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode) {
+    BucketList l = (BucketList) malloc(sizeof(struct BucketListRec));
+    l->name = name;
+    l->lines = (LineList) malloc(sizeof(struct LineListRec));
+    l->lines->lineno = lineno;
+    l->lines->next = NULL;
+    l->memloc = loc;
+    l->treeNode = treeNode;
+    l->next = NULL;
+    return l;
+} /* st_create */
+
+void st_insert_func(char * name, int lineno, TreeNode * treeNode) {
+    int h = hash(name);
+	Scope top = globalScope;
   	BucketList l = top->hashTable[h];
 
   	while ((l != NULL) && (strcmp(name,l->name) != 0)) {
@@ -138,20 +191,12 @@ void st_insert(char * name, int lineno, int loc, TreeNode * treeNode) {
     	l->lines = (LineList) malloc(sizeof(struct LineListRec));
 	    l->lines->lineno = lineno;
         l->lines->next = NULL;
-        l->memloc = loc;
+        l->memloc = -1;
         l->treeNode = treeNode;
 	    l->next = top->hashTable[h];
 	   	top->hashTable[h] = l;
-	} else { /* Variável encontrada na tabela, só adiciona o número da linha */
-        LineList ll = l->lines;
-        while(ll->next != NULL) {
-            ll = ll->next;
-        }
-        ll->next = (LineList) malloc(sizeof(struct LineListRec));
-        ll->next->lineno = lineno;
-        ll->next->next = NULL;
-    }
-} /* st_insert */
+	}
+}
 
 /* Function st_lookup returns the memory
  * location of a variable or -1 if not found
@@ -162,42 +207,35 @@ int st_lookup (char * name) {
     return -1;
 }
 
+/**
+ *  Procura por uma função no escopo global
+ */
 int st_lookup_func (char * name ) {
 	int h = hash(name);
-	Scope sc = scopes[ESCOPO_GLOBAL];
+	Scope sc = globalScope;
 	BucketList l = sc->hashTable[h];
-	while ((l != NULL) && (strcmp(name,l->name) != 0)) {
+	while ((l != NULL) && (strcmp(name,l->name))) {
         l = l->next;
     }
-    if (l != NULL)  return TRUE;
-	else   return FALSE;
+    if (l != NULL) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
 
 int st_lookup_top (char * name) {
     int h = hash(name);
     Scope sc = sc_top();
-    while(sc) {
-        BucketList l = sc->hashTable[h];
-        while ((l != NULL) && (strcmp(name,l->name) != 0)) {
-            l = l->next;
-        }
-        if (l != NULL) return l->memloc;
-        break;
+    BucketList l = sc->hashTable[h];
+    while ((l != NULL) && (strcmp(name,l->name))) {
+        l = l->next;
     }
-    return -1;
-}
-
-void st_add_lineno(char * name, int lineno) {
-	BucketList l = st_bucket(name);
-  	LineList ll = l->lines;
-  	while (ll->next != NULL) {
-		ll = ll->next;
+    if (l != NULL) {
+        return l->memloc;
+    } else {
+        return -1;
     }
-	if (ll->lineno != lineno) {
-	 	ll->next = (LineList) malloc(sizeof(struct LineListRec));
-	  	ll->next->lineno = lineno;
-	  	ll->next->next = NULL;
-	}
 }
 
 void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
@@ -210,11 +248,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
 				LineList t = l->lines;
         		fprintf(listing, "%-18s", l->name);
 				fprintf(listing, "%-10s", expTypeToString(l->treeNode->type));
-                if(strcmp(l->treeNode->typeVar, "Vetor") == 0) {
-                    fprintf(listing, "%-12s", l->treeNode->typeVar);
-                } else {
-                    fprintf(listing, "%-13s", l->treeNode->typeVar);
-                }
+                fprintf(listing, "%-13s", dataTypeToString(l->treeNode->kind.exp));
 
                 /*
                  * Verifica se o item armazenado nessa posição da tabela de
@@ -222,7 +256,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                  * parâmetros
                  */
                 if(escopo == ESCOPO_GLOBAL) {
-                    if(strcmp("Função", l->treeNode->typeVar) == 0) {
+                    if(strcmp("Função", dataTypeToString(l->treeNode->kind.exp)) == 0) {
                         int numParams = getQuantidadeParams(l->treeNode->child[0]);
                         fprintf(listing, " %-15d", numParams);
 
@@ -257,31 +291,6 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
   	}
 }
 
-int getQuantidadeParams(TreeNode * treeNode) {
-    int qtd = 0;
-    if(treeNode != NULL) {
-        ++qtd;
-        while(treeNode->sibling != NULL) {
-            treeNode = treeNode->sibling;
-            ++qtd;
-        }
-    }
-    return qtd;
-}
-
-int getQuantidadeArgumentos(TreeNode * treeNode) {
-    int qtd = 0;
-    TreeNode * temp = treeNode->child[0];
-    if(temp != NULL) {
-        ++qtd;
-        while(temp->sibling != NULL) {
-            temp = temp->sibling;
-            ++qtd;
-        }
-    }
-    return qtd;
-}
-
 /* Procedure printSymTab prints a formatted
  * listing of the symbol table contents
  * to the listing file
@@ -307,3 +316,28 @@ void printSymTab(FILE * listing) {
 		fputc('\n', listing);
 	}
 } /* printSymTab */
+
+int getQuantidadeParams(TreeNode * treeNode) {
+    int qtd = 0;
+    if(treeNode != NULL) {
+        ++qtd;
+        while(treeNode->sibling != NULL) {
+            treeNode = treeNode->sibling;
+            ++qtd;
+        }
+    }
+    return qtd;
+}
+
+int getQuantidadeArgumentos(TreeNode * treeNode) {
+    int qtd = 0;
+    TreeNode * temp = treeNode->child[0];
+    if(temp != NULL) {
+        ++qtd;
+        while(temp->sibling != NULL) {
+            temp = temp->sibling;
+            ++qtd;
+        }
+    }
+    return qtd;
+}

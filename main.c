@@ -118,7 +118,7 @@ int main( int argc, char * argv[] ) {
         code = fopen(codefile, "a+");
         Quadruple codigoIntermediario = getCodigoIntermediario();
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
-        geraCodigoObjeto(codigoIntermediario, codefile);
+        geraCodigoObjeto(codigoIntermediario);
         fclose(code);
         if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n\n");
     }

@@ -1,3 +1,5 @@
+int globalVar;
+
 /* teste de função sem parâmetros e sem corpo */
 int input(void) {}
 
@@ -19,6 +21,9 @@ void main(void) {
    int u;
    int i;
    int v[10];
+   int teste;
+
+   teste = 1 + 2;
 
    /* chamadas de funções */
    x = input();

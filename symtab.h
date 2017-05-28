@@ -37,7 +37,6 @@ typedef struct BucketListRec {
 
 typedef struct ScopeRec {
     char * funcName;
-    int nestedLevel;
     struct ScopeRec * parent;
     BucketList hashTable[SIZE]; /* the hash table */
 } * Scope;
@@ -51,18 +50,22 @@ Scope globalScope;
  */
 void st_insert(char * name, int lineno, int loc, TreeNode * treeNode);
 
+BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode);
+
+void st_insert_func(char * name, int lineno, TreeNode * treeNode);
+
 /* Function st_lookup returns the memory
  * location of a variable or -1 if not found
  */
 int st_lookup (char * name);
 
-void st_add_lineno(char * name, int lineno);
-
 BucketList st_bucket(char * name);
+
+BucketList st_bucket_func (char * name);
 
 int st_lookup_top (char * name);
 
-Scope sc_create(char *funcName);
+Scope sc_create(char * funcName);
 
 Scope sc_top(void);
 
@@ -72,7 +75,7 @@ void sc_push(Scope scope);
 
 int st_lookup_func (char * name);
 
-int getMemoryLocation(TreeNode * treeNode);
+int getMemoryLocation(char * nome, Scope escopo);
 
 /* Procedure printSymTab prints a formatted
  * listing of the symbol table contents

@@ -65,6 +65,7 @@ extern int lineno; /* source line number for listing */
 typedef enum {StmtK, ExpK} NodeKind;
 typedef enum {IntegerK, VoidK, IfK, ElseK, ReturnK, WhileK, CompK} StmtKind;
 typedef enum {OpK, ConstK, IdK, VectorK, FunctionK, CallK, IndexK} ExpKind;
+typedef enum {DECLARANDO, ACESSANDO} VarAccessK;
 
 /* ExpType é usado para checagem de tipos */
 typedef enum exp {Void,Integer} ExpType;
@@ -77,8 +78,8 @@ typedef struct treeNode {
     struct treeNode * child[MAXCHILDREN];
     struct treeNode * sibling;
     int lineno;
+    VarAccessK varAccess = DECLARANDO;
     NodeKind nodekind;
-    char * typeVar;
     union {
         StmtKind stmt;
 	    ExpKind exp;

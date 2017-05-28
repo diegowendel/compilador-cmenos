@@ -22,7 +22,7 @@ typedef struct  {
     union {
         int val;
         struct {
-            const char * name;
+            char * name;
             struct ScopeRec * scope;
         } variable;
     } contents;
