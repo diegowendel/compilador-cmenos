@@ -59,8 +59,11 @@ Scope sc_top(void) {
 }
 
 void sc_pop(void) {
-    //printf("pop %s\n", sc_top()->funcName);
     --nScopeStack;
+}
+
+void incScope() {
+    ++nScopeStack;
 }
 
 void sc_push(Scope scope) {
@@ -82,15 +85,30 @@ Scope sc_create(char * funcName) {
 BucketList st_bucket(char * name) {
     int h = hash(name);
     Scope sc = sc_top();
+    while(sc != NULL) {
+        BucketList l = sc->hashTable[h];
+        while ((l != NULL) && (strcmp(name,l->name))) {
+            l = l->next;
+        }
+        if (l != NULL) return l;
+        sc = sc->parent;
+    }
+    return NULL;
+}
+
+int verifyGlobalScope(TreeNode * treeNode) {
+    int h = hash(treeNode->attr.name);
+    Scope sc = globalScope;
     BucketList l = sc->hashTable[h];
-    while ((l != NULL) && (strcmp(name,l->name))) {
+    while ((l != NULL) && (strcmp(treeNode->attr.name, l->name))) {
         l = l->next;
     }
     if (l != NULL) {
-        return l;
+        return TRUE;
     } else {
-        return NULL;
+        return FALSE;
     }
+    return 0;
 }
 
 /**
@@ -142,22 +160,14 @@ void st_insert(char * name, int lineno, int loc, TreeNode * treeNode) {
         return;
     } else {
         BucketList l = top->hashTable[h];
-        while ((l->next != NULL) && (strcmp(name,l->name))) {
+        while ((l->next != NULL) && (strcmp(name, l->name))) {
             l = l->next;
         }
-        if (l->next == NULL) { /* Variável ainda não existente na tabela */
+        if (l->next == NULL && (strcmp(name, l->name))) { /* Variável ainda não existente na tabela */
             // Adiciona o escopo ao nó da árvore sintática
             treeNode->scope = top;
             // Adiciona um novo item na tabela de símbolos
             l->next = st_create(name, lineno, loc, treeNode);
-        } else { /* Variável encontrada na tabela, só adiciona o número da linha */
-            LineList ll = l->lines;
-            while(ll->next != NULL) {
-                ll = ll->next;
-            }
-            ll->next = (LineList) malloc(sizeof(struct LineListRec));
-            ll->next->lineno = lineno;
-            ll->next->next = NULL;
         }
     }
 } /* st_insert */
@@ -173,6 +183,23 @@ BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode) {
     l->next = NULL;
     return l;
 } /* st_create */
+
+void st_add_lineno(TreeNode * treeNode) {
+	Scope top = sc_top();
+    // Adiciona o escopo ao nó da árvore sintática
+    treeNode->scope = top;
+    int lineno = treeNode->lineno;
+	BucketList l = st_bucket(treeNode->attr.name);
+  	LineList ll = l->lines;
+  	while (ll->next != NULL) {
+		ll = ll->next;
+    }
+	if (ll->lineno != lineno) {
+	 	ll->next = (LineList) malloc(sizeof(struct LineListRec));
+	  	ll->next->lineno = lineno;
+	  	ll->next->next = NULL;
+	}
+}
 
 void st_insert_func(char * name, int lineno, TreeNode * treeNode) {
     int h = hash(name);
@@ -248,7 +275,10 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
 				LineList t = l->lines;
         		fprintf(listing, "%-18s", l->name);
 				fprintf(listing, "%-10s", expTypeToString(l->treeNode->type));
-                fprintf(listing, "%-13s", dataTypeToString(l->treeNode->kind.exp));
+                if(l->treeNode->kind.exp == VectorK)
+                    fprintf(listing, "%-12s", dataTypeToString(l->treeNode->kind.exp));
+                else
+                    fprintf(listing, "%-13s", dataTypeToString(l->treeNode->kind.exp));
 
                 /*
                  * Verifica se o item armazenado nessa posição da tabela de

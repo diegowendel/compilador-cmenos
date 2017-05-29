@@ -265,8 +265,6 @@ static void genExp(TreeNode * tree) {
             operandoAtual.kind = String;
             operandoAtual.contents.variable.name = tree->attr.name;
             operandoAtual.contents.variable.scope = tree->scope;
-            fprintf(listing, "\n\n%s\n", tree->attr.name);
-            fprintf(listing, "%s\n", tree->scope->funcName);
             emitComment("<- identifier", indent);
             break; /* IdK */
 
@@ -307,8 +305,6 @@ static void genExp(TreeNode * tree) {
             op1.contents.variable.name = tree->attr.name;
             op1.contents.variable.scope = tree->scope;
             insertQuad(createQuad(FUNC, op1, vazio, vazio));
-            fprintf(listing, "%s\n", tree->attr.name);
-            fprintf(listing, "%s\n", tree->scope->funcName);
             /* ignore list of parameters (already saved at symbol table with memloc defined) */
             p1 = tree->child[0];
             /* build code for function block */

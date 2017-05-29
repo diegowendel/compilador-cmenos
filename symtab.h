@@ -54,6 +54,8 @@ BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode);
 
 void st_insert_func(char * name, int lineno, TreeNode * treeNode);
 
+int verifyGlobalScope(TreeNode * treeNode);
+
 /* Function st_lookup returns the memory
  * location of a variable or -1 if not found
  */
@@ -62,6 +64,10 @@ int st_lookup (char * name);
 BucketList st_bucket(char * name);
 
 BucketList st_bucket_func (char * name);
+
+void st_add_lineno(TreeNode * treeNode);
+
+void incScope();
 
 int st_lookup_top (char * name);
 

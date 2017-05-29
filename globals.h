@@ -72,13 +72,11 @@ typedef enum exp {Void,Integer} ExpType;
 
 #define MAXCHILDREN 3
 
-struct ScopeRec;
-
 typedef struct treeNode {
     struct treeNode * child[MAXCHILDREN];
     struct treeNode * sibling;
     int lineno;
-    VarAccessK varAccess = DECLARANDO;
+    VarAccessK varAccess;
     NodeKind nodekind;
     union {
         StmtKind stmt;

@@ -308,7 +308,7 @@ fator 			: LPAREN expressao RPAREN { $$ = $2; }
 			| ativacao { $$ = $1; }
 			| num { $$ = $1; }
 			;
-ativacao 		: id LPAREN args RPAREN
+ativacao 		: var LPAREN args RPAREN
 			{
 				$$ = $1;
 				$$->kind.exp = CallK;
@@ -337,6 +337,7 @@ id			: ID
 			{
 				$$ = newExpNode(IdK);
 				$$->attr.name = copyString(tokenString);
+                $$->varAccess = DECLARANDO;
 			}
 			;
 num			: NUM

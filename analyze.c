@@ -56,83 +56,96 @@ static void insertNode(TreeNode * t) {
     if (t->nodekind == ExpK) {
         switch (t->kind.exp) {
             case IdK:
-					/* Verifica se existe alguma entrada com o respectivo nome da variável */
-					l = st_bucket(t->attr.name);
-					/* Se retornar algum resultado então existe */
-					if(l != NULL) {
-						if (l->treeNode != NULL) {
-							/* Se o resultado for do tipo FunctionK, já foi declarado como função */
-							if (l->treeNode->kind.exp == FunctionK) {
-								declError(t, "Nome da variável já é usado para declarar uma função");
-								break;
-							} /* Se o resultado for do tipo IdK, verifica se já foi declarado como variável */
-                            /* Verifica se o escopo da variável é igual ao escopo atual, se for igual
-                             * vai para o else e declara erro, caso contrário, não faz nada no if para
-                             * o procedimento st_insert() ser executado
-                             */
-                            if(strcmp(l->treeNode->scope->funcName, sc_top()->funcName)) {
-                                /* Se nenhum erro de declaração ocorrer e não existir o nome da variável,
-            					 * adiciona a variável na tabela de símbolos
-            					 */
-            					st_insert(t->attr.name, t->lineno, location++, t);
+                if(t->varAccess == ACESSANDO) {
+                    /* Verifica se existe alguma entrada com o respectivo nome da variável */
+                    l = st_bucket(t->attr.name);
+                    /* Se retornar algum resultado então existe */
+                    if (l != NULL) {
+                        if(l->treeNode->kind.exp == FunctionK) {
+                            varError(t, "Não é possível referenciar uma função como variável");
+                            break;
+                        } else {
+                            st_add_lineno(t);
+                            break;
+                        }
+                    }
+                    /* Se chegou até aqui a variável está sendo acessada sem ser declarada previamente */
+                    varError(t, "Variável não declarada no escopo");
+                } else {
+                    /* Verifica se existe alguma entrada com o respectivo nome da variável */
+                    BucketList l = st_bucket(t->attr.name);
+                    /* Se retornar algum resultado então existe */
+                    if(l != NULL) {
+                        if (l->treeNode != NULL) {
+                            /* Se o resultado for do tipo FunctionK, já foi declarado como função */
+                            if (l->treeNode->kind.exp == FunctionK) {
+                                declError(t, "Nome da variável já é usado para declarar uma função");
                                 break;
+                            } /* Se o resultado for do tipo IdK, verifica se já foi declarado como variável */
+                            /* Verifica se o escopo da variável é igual ao escopo atual, se for igual
+                            * vai para o else e declara erro, caso contrário, não faz nada no if para
+                            * o procedimento st_insert() ser executado
+                            */
+                            if(strcmp(l->treeNode->scope->funcName, sc_top()->funcName)) {
+                                /* Do nothing */
                             } else {
                                 declError(t, "Variável já declarada neste escopo");
                                 break;
                             }
-						}
-					} else {
-                        if(!t->declared) {
-                            st_insert(t->attr.name, t->lineno, location++, t);
-                        } else {
-                            varError(t, "Variável não declarada no escopo");
                         }
                     }
+                    /* Se nenhum erro de declaração ocorrer e não existir o nome da variável,
+                     * adiciona a variável na tabela de símbolos
+                     */
+                    st_insert(t->attr.name, t->lineno, location++, t);
+                }
 				break;
 			case VectorK:
                 if(t->varAccess == ACESSANDO) {
-
-                } else {
-
-                }
-
-                /* Verifica se existe alguma entrada com o respectivo nome da variável */
-				l = st_bucket(t->attr.name);
-				/* Se retornar algum resultado então existe */
-				if(l != NULL) {
-					if (l->treeNode != NULL) {
-                        TreeNode * node = l->treeNode;
-						/* Se o resultado for do tipo FunctionK, já foi declarado como função */
-						if (node->kind.exp == FunctionK) {
-							declError(t, "Nome da variável já é usado para declarar uma função");
-							break;
-						} /* Se o resultado for do tipo IdK, verifica se já foi declarado como variável */
-                        /* Verifica se o escopo da variável é igual ao escopo atual, se for igual
-                         * vai para o else e declara erro, caso contrário, não faz nada no if para
-                         * o procedimento st_insert() ser executado
-                         */
-                        if(t->declared) {
-
-                        }
-                        if(!strcmp(node->scope->funcName, sc_top()->funcName)) {
-                            /* Se nenhum erro de declaração ocorrer e não existir o nome da variável,
-        					 * adiciona a variável na tabela de símbolos
-        					 */
-        					st_insert(t->attr.name, t->lineno, location++, t);
-                            int tamanhoVetor = t->child[0]->attr.val;
-                            // Pula n posições na memória, onde n é o tamanhoVetor
-                            location += tamanhoVetor - 1;
+                    /* Verifica se existe alguma entrada com o respectivo nome da variável */
+                    l = st_bucket(t->attr.name);
+                    /* Se retornar algum resultado então existe */
+                    if (l != NULL) {
+                        if(l->treeNode->kind.exp == FunctionK) {
+                            varError(t, "Não é possível referenciar uma função como variável");
+                            break;
                         } else {
-                            declError(t, "Variável já declarada neste escopo");
+                            st_add_lineno(t);
                             break;
                         }
-					}
-				} else {
-                    if(!t->declared) {
-                        st_insert(t->attr.name, t->lineno, location++, t);
-                    } else {
-                        varError(t, "Variável não declarada no escopo");
                     }
+                    /* Se chegou até aqui a variável está sendo acessada sem ser declarada previamente */
+                    varError(t, "Variável não declarada no escopo");
+                } else {
+                    /* Verifica se existe alguma entrada com o respectivo nome da variável */
+                    BucketList l = st_bucket(t->attr.name);
+                    /* Se retornar algum resultado então existe */
+                    if(l != NULL) {
+                        if (l->treeNode != NULL) {
+                            /* Se o resultado for do tipo FunctionK, já foi declarado como função */
+                            if (l->treeNode->kind.exp == FunctionK) {
+                                declError(t, "Nome da variável já é usado para declarar uma função");
+                                break;
+                            } /* Se o resultado for do tipo IdK, verifica se já foi declarado como variável */
+                            /* Verifica se o escopo da variável é igual ao escopo atual, se for igual
+                            * vai para o else e declara erro, caso contrário, não faz nada no if para
+                            * o procedimento st_insert() ser executado
+                            */
+                            if(strcmp(l->treeNode->scope->funcName, sc_top()->funcName)) {
+                                /* Do nothing */
+                            } else {
+                                declError(t, "Variável já declarada neste escopo");
+                                break;
+                            }
+                        }
+                    }
+                    /* Se nenhum erro de declaração ocorrer e não existir o nome da variável,
+                     * adiciona a variável na tabela de símbolos
+                     */
+                    st_insert(t->attr.name, t->lineno, location++, t);
+                    int tamanhoVetor = t->child[0]->attr.val;
+                    // Pula n posições na memória, onde n é o tamanhoVetor
+                    location += tamanhoVetor - 1;
                 }
 				break;
 			case CallK:
@@ -167,10 +180,6 @@ static void afterInsertNode(TreeNode * t) {
 			sc_pop();
         }
 	}
-    if(t->kind.exp == IdK) {
-        if(t->scope != NULL) fprintf(listing, "sc : %s   ", t->scope->funcName);
-        fprintf(listing, "id : %s\n\n", t->attr.name);
-    }
 }
 
 /* Function buildSymtab constructs the symbol
@@ -200,7 +209,6 @@ static void beforeCheckNode(TreeNode * t) {
 	if (t->nodekind == ExpK) {
 		if (t->kind.exp == FunctionK) {
 			funcName = t->attr.name;
-			sc_push(t->scope);
 		}
   	}
 }
@@ -241,7 +249,6 @@ static void checkNode(TreeNode * t) {
 				case CallK:
           			break;
 				case FunctionK:
-					sc_pop();
 					break;
        			default:
        				break;
@@ -282,5 +289,5 @@ static void checkNode(TreeNode * t) {
  * by a postorder syntax tree traversal
  */
 void typeCheck(TreeNode * syntaxTree) {
-    traverse(syntaxTree, beforeCheckNode, checkNode);
+	traverse(syntaxTree, beforeCheckNode, checkNode);
 }
