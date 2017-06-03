@@ -38,3 +38,8 @@ void emitComment(const char * c, int indent) {
 void emitCode(const char * c) {
     fprintf(code, "%s\n", c);
 }
+
+void emitObjectCode(const char * c, int indent) {
+    emitSpaces(indent);
+    fprintf(code, "%s\n", c);
+}

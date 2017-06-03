@@ -27,4 +27,6 @@ void emitCode(const char * c);
  */
 const char * toString(enum instrucao i);
 
+void emitObjectCode(const char * c, int indent);
+
 #endif

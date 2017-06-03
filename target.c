@@ -9,17 +9,31 @@
 #include "cgen.h"
 #include "code.h"
 #include "symtab.h"
+#include "util.h"
+
+#define BIN 2
+#define DEC 10
 
 /* Cabeça da Lista de instruções objeto */
 Objeto objHead = NULL;
 
-/* Cabeça da Lista de instruções binárias */
-Binario binHead = NULL;
+/* Variable indentno is used by printTree to
+ * store current number of spaces to indent
+ */
+static int indent = 0;
 
-int topoStack = 0;
+/* macros to increase/decrease indentation */
+#define INDENT indent+=4
+#define UNINDENT indent-=4
+
 int R0 = 0, R1 = 1, R2 = 2, R3 = 3, R4 = 4;
 
-char auxString[20];
+static char str[32];
+
+// Vetor de char não inicializado
+static char temp[100];
+
+static int linha = 0;
 
 const char * toStringOpcode(enum opcode op) {
     const char * strings[] = {
@@ -28,18 +42,10 @@ const char * toStringOpcode(enum opcode op) {
         "AND", "ANDI", "OR", "ORI", "XOR", "XORI", "NOT",
         "SL", "SR",
         "MOV", "MOVI",
-        "LOAD", "LOADI", "LOADSTK", "STORE", "STORESTK",
+        "LOAD", "LOADI", "POP", "STORE", "PUSH",
         "BEQ", "BNE", "BLT", "BLET", "BGT", "BGET", "JUMP",
-        "NOP", "HALT", "RESET",
+        "FUNC", "CALL", "NOP", "HALT", "RESET",
         "IN", "OUT"
-    };
-    return strings[op];
-}
-
-const char * toStringOpcodeBinary(enum opcode op) {
-    const char * strings[] = {
-        "000001", "000010", "000011", "000100"
-        /* to be continued */
     };
     return strings[op];
 }
@@ -52,91 +58,122 @@ const char * getRegisterName(int n) {
     return strings[n];
 }
 
-const char * getRegisterBinary(int n) {
-    const char * strings[] = {
-        "00000", "00001", "00010", "00011", "00100",
-        "00101", "00110", "00111", "01000", "01001"
-    };
-    return strings[n];
-}
-
-char * numberToString(int num) {
-    sprintf(auxString, "%d", num);
-    return auxString;
-}
-
 void geraCodigoInstrucaoAritmetica(Quadruple q, enum opcode op) {
-    const char * op1, * op2;
+    char * op1, * op2;
     int loc;
 
     /* OP1 */
     if(q->op1.kind == String) {
         op1 = q->op1.contents.variable.name;
         if(q->op1.contents.variable.scope == NULL) { // Scope é nulo, então é um temporário
-            insertObjectInstruction(createObjectInstruction(toStringOpcode(_LOADSTK), getRegisterName(R1), op1, NULL));
-            insertBinarieInstruction(createBinarieInstructionTypeI(toStringOpcodeBinary(_LOADSTK), getRegisterBinary(R1), NULL, "numberToStringTemporario(op1)"));
+            printCode(createObjectInstruction(toStringOpcode(_POP), getRegisterName(R1), op1, NULL));
         } else { // Scope não é nulo, então é uma variável e deve ser lida da memória
             loc = getMemoryLocation(q->op1.contents.variable.name, q->op1.contents.variable.scope);
-            insertObjectInstruction(createObjectInstruction(toStringOpcode(_LOAD), getRegisterName(R1), op1, NULL));
-            insertBinarieInstruction(createBinarieInstructionTypeI(toStringOpcodeBinary(_LOAD), getRegisterBinary(R1), NULL, numberToString(loc)));
+            printCode(createObjectInstruction(toStringOpcode(_LOAD), getRegisterName(R1), op1, NULL));
         }
     } else { // Valor imediato
-        op1 = numberToString(q->op1.contents.val);
-        insertObjectInstruction(createObjectInstruction(toStringOpcode(_LOADI), getRegisterName(R1), op1, NULL));
-        insertBinarieInstruction(createBinarieInstructionTypeI(toStringOpcodeBinary(_LOADI), getRegisterBinary(R1), NULL, op1));
+        op1 = itoa(q->op1.contents.val, str, 10);
+        printCode(createObjectInstruction(toStringOpcode(_LOADI), getRegisterName(R1), op1, NULL));
     }
 
     /* OP2 */
     if(q->op2.kind == String) {
         op2 = q->op2.contents.variable.name;
         if(q->op2.contents.variable.scope == NULL) { // Scope é nulo, então é um temporário
-            insertObjectInstruction(createObjectInstruction(toStringOpcode(_LOADSTK), getRegisterName(R2), op2, NULL));
-            insertBinarieInstruction(createBinarieInstructionTypeI(toStringOpcodeBinary(_LOADSTK), getRegisterBinary(R2), NULL, "numberToStringTemporario(op2)"));
+            printCode(createObjectInstruction(toStringOpcode(_POP), getRegisterName(R2), op2, NULL));
         } else { // Scope não é nulo, então é uma variável e deve ser lida da memória
             loc = getMemoryLocation(q->op2.contents.variable.name, q->op2.contents.variable.scope);
-            insertObjectInstruction(createObjectInstruction(toStringOpcode(_LOAD), getRegisterName(R2), op2, NULL));
-            insertBinarieInstruction(createBinarieInstructionTypeI(toStringOpcodeBinary(_LOAD), getRegisterBinary(R2), NULL, numberToString(loc)));
+            printCode(createObjectInstruction(toStringOpcode(_LOAD), getRegisterName(R2), op2, NULL));
         }
     } else {
-        op2 = numberToString(q->op2.contents.val);
-        insertObjectInstruction(createObjectInstruction(toStringOpcode(_LOADI), getRegisterName(R2), op2, NULL));
-        insertBinarieInstruction(createBinarieInstructionTypeI(toStringOpcodeBinary(_LOADI), getRegisterBinary(R2), NULL, op2));
+        op2 = itoa(q->op2.contents.val, str, 10);
+        printCode(createObjectInstruction(toStringOpcode(_LOADI), getRegisterName(R2), op2, NULL));
     }
 
-    insertObjectInstruction(createObjectInstruction(toStringOpcode(op), getRegisterName(R3), getRegisterName(R1), getRegisterName(R2)));
-    insertBinarieInstruction(createBinarieInstructionTypeR(toStringOpcodeBinary(op), getRegisterBinary(R1), getRegisterBinary(R2), getRegisterBinary(R3), NULL, NULL));
+    printCode(createObjectInstruction(toStringOpcode(op), getRegisterName(R3), getRegisterName(R1), getRegisterName(R2)));
 
     /* OP3 */
-    insertObjectInstruction(createObjectInstruction(toStringOpcode(_STORESTK), getRegisterName(R3), "storeOnMemory", NULL));
-    insertBinarieInstruction(createBinarieInstructionTypeI(toStringOpcodeBinary(_STORESTK), getRegisterBinary(R3), NULL, "POSICAO DE MEMORIA"));
+    printCode(createObjectInstruction(toStringOpcode(_PUSH), getRegisterName(R3), NULL, NULL));
 }
 
-void printObjectCode() {
-    Objeto o = objHead;
-    int linha = 0;
-    char quad[100];
+void geraCodigoInstrucaoLogica(Quadruple q, enum opcode op) {
+    char * op1, * op2;
+    char str[32];
+    int loc;
 
-    emitCode("\n");
-    while(o != NULL) {
-        sprintf(quad, "%d:", linha++);
-        strcat(quad, o->opcode);
-        strcat(quad, " ");
-        if(o->op1 != NULL)
-        strcat(quad, o->op1);
-        strcat(quad, " ");
-        if(o->op2 != NULL)
-        strcat(quad, o->op2);
-        strcat(quad, " ");
-        if(o->op3 != NULL)
-        strcat(quad, o->op3);
-
-        emitCode(quad);
-        o = o->next;
+    /* OP1 */
+    if(q->op1.kind == String) {
+        op1 = q->op1.contents.variable.name;
+        if(q->op1.contents.variable.scope == NULL) { // Scope é nulo, então é um temporário
+            printCode(createObjectInstruction(toStringOpcode(_POP), getRegisterName(R1), op1, NULL));
+        } else { // Scope não é nulo, então é uma variável e deve ser lida da memória
+            loc = getMemoryLocation(q->op1.contents.variable.name, q->op1.contents.variable.scope);
+            printCode(createObjectInstruction(toStringOpcode(_LOAD), getRegisterName(R1), op1, NULL));
+        }
+    } else { // Valor imediato
+        op1 = itoa(q->op1.contents.val, str, 10);
+        printCode(createObjectInstruction(toStringOpcode(_LOADI), getRegisterName(R1), op1, NULL));
     }
+
+    /* OP2 */
+    if(q->op2.kind == String) {
+        op2 = q->op2.contents.variable.name;
+        if(q->op2.contents.variable.scope == NULL) { // Scope é nulo, então é um temporário
+            printCode(createObjectInstruction(toStringOpcode(_POP), getRegisterName(R2), op2, NULL));
+        } else { // Scope não é nulo, então é uma variável e deve ser lida da memória
+            loc = getMemoryLocation(q->op2.contents.variable.name, q->op2.contents.variable.scope);
+            printCode(createObjectInstruction(toStringOpcode(_LOAD), getRegisterName(R2), op2, NULL));
+        }
+    } else {
+        op2 = itoa(q->op2.contents.val, str, 10);
+        printCode(createObjectInstruction(toStringOpcode(_LOADI), getRegisterName(R2), op2, NULL));
+    }
+    printCode(createObjectInstruction(toStringOpcode(op), itoa(q->linha, str, 10), getRegisterName(R1), getRegisterName(R2)));
+}
+
+void geraCodigoInstrucaoChamada(Quadruple q, enum opcode op) {
+    printCode(createObjectInstruction(toStringOpcode(op), q->op1.contents.variable.name, NULL, NULL));
+}
+
+void geraCodigoInstrucaoFuncao(Quadruple q, enum opcode op) {
+    // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
+    // strcat só insere de forma correta strings inicializadas.
+    memset(temp, '\0', sizeof(temp));
+    strcat(temp, "\n");
+    strcat(temp, q->op1.contents.variable.name);
+    strcat(temp, ":");
+    emitCode(temp);
+}
+
+void geraCodigoInstrucaoLabel(Quadruple q) {
+    // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
+    // strcat só insere de forma correta strings inicializadas.
+    memset(temp, '\0', sizeof(temp));
+    strcat(temp, ".");
+    strcat(temp, q->op1.contents.variable.name);
+    emitCode(temp);
+}
+
+void printCode(Objeto instrucao) {
+    memset(temp, '\0', sizeof(temp));
+    sprintf(temp, "%d:\t", linha++);
+    strcat(temp, instrucao->opcode);
+    strcat(temp, " ");
+    if(instrucao->op1 != NULL)
+    strcat(temp, instrucao->op1);
+    strcat(temp, " ");
+    if(instrucao->op2 != NULL)
+    strcat(temp, instrucao->op2);
+    strcat(temp, " ");
+    if(instrucao->op3 != NULL)
+    strcat(temp, instrucao->op3);
+    emitObjectCode(temp, indent);
+    free(instrucao);
 }
 
 void geraCodigoObjeto(Quadruple q) {
-    fprintf(listing, "CODIGO OBJETOO");
+    INDENT;
+    emitCode("\n********** Código objeto **********\n");
     while(q != NULL) {
         switch (q->instruction) {
             case ADD:
@@ -155,9 +192,68 @@ void geraCodigoObjeto(Quadruple q) {
                 geraCodigoInstrucaoAritmetica(q, _DIV);
                 break; /* DIV */
 
+            case EQ:
+                geraCodigoInstrucaoLogica(q, _BEQ);
+                break; /* BEQ */
+
+            case NE:
+                geraCodigoInstrucaoLogica(q, _BNE);
+                break; /* BNE */
+
+            case LT:
+                geraCodigoInstrucaoLogica(q, _BLT);
+                break; /* BLT */
+
+            case LET:
+                geraCodigoInstrucaoLogica(q, _BLET);
+                break; /* BLET */
+
+            case GT:
+                geraCodigoInstrucaoLogica(q, _BGT);
+                break; /* BGT */
+
+            case GET:
+                geraCodigoInstrucaoLogica(q, _BGET);
+                break; /* BGET */
+
+            case ASN:
+                printCode(createObjectInstruction(toStringOpcode(_STORE), q->op1.contents.variable.name, NULL, NULL));
+                break; /* STORE */
+
+            case FUNC:
+                geraCodigoInstrucaoFuncao(q, _FUNC);
+                break; /* FUNC */
+
+            case RTN:
+
+                break; /* RTN */
+
+            case PARAM:
+                printCode(createObjectInstruction(toStringOpcode(_PUSH), q->op1.contents.variable.name, NULL, NULL));
+                break; /* PARAM */
+
+            case CALL:
+                geraCodigoInstrucaoChamada(q, _CALL);
+                break; /* CALL */
+
+            case ARGS:
+
+                break;
+
+            case JPF:
+
+                break;
+
+            case GOTO:
+                printCode(createObjectInstruction(toStringOpcode(_JUMP), q->op1.contents.variable.name, NULL, NULL));
+                break;
+
+            case LBL:
+                geraCodigoInstrucaoLabel(q);
+                break;
+
             case HALT:
-                createObjectInstruction(toStringOpcode(_HALT), NULL, NULL, NULL);
-                createBinarieInstructionTypeJ(toStringOpcodeBinary(_HALT), NULL);
+                printCode(createObjectInstruction(toStringOpcode(_HALT), NULL, NULL, NULL));
                 break; /* HALT */
 
             default:
@@ -165,10 +261,9 @@ void geraCodigoObjeto(Quadruple q) {
         }
         q = q->next;
     }
-    printObjectCode();
 }
 
-Binario createBinarieInstructionTypeJ(const char * opcode, const char * imediato) {
+/*Binario createBinarieInstructionTypeJ(const char * opcode, const char * imediato) {
     Binario bin = (Binario) malloc(sizeof(struct binario));
     bin->tipo = J_TYPE;
     bin->opcode = opcode;
@@ -213,7 +308,7 @@ void insertBinarieInstruction(Binario bin) {
         temp->next = bin;
         temp->next->next = NULL;
     }
-}
+}*/
 
 Objeto createObjectInstruction(const char * opcode, const char * op1, const char * op2, const char * op3) {
     Objeto obj = (Objeto) malloc(sizeof(struct objeto));

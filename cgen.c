@@ -33,11 +33,6 @@ static int indent = 0;
 #define INDENT indent+=4
 #define UNINDENT indent-=4
 
-/* main function location
- * in the intermediate code instruction list
- */
-// static int mainLoc;
-
 /* Numero para geração de nomes de variáveis temporárias */
 static int temporario = 1;
 
@@ -49,6 +44,7 @@ Operand operandoAtual;
 Operand vazio;
 InstructionKind instrucaoAtual;
 
+static int linha = 0;
 
 /* temporary string to help printing text */
 static char tempString[20];
@@ -297,10 +293,6 @@ static void genExp(TreeNode * tree) {
         case FunctionK:
             emitComment("-> function declaration", indent);
             emitComment(tree->attr.name, indent);
-            /* save location of function main */
-            if((!strcmp(tree->attr.name, "main")) && (!strcmp(tree->scope->funcName, "ESCOPO_GLOBAL"))) {
-                // mainLoc = emitLoc;
-            }
             op1.kind = String;
             op1.contents.variable.name = tree->attr.name;
             op1.contents.variable.scope = tree->scope;
@@ -522,20 +514,15 @@ void codeGen(TreeNode * syntaxTree, char * codefile) {
 
 void printIntermediateCode() {
     Quadruple q = head;
-    int linha = 0;
     char quad[100];
 
     while(q != NULL) {
-        sprintf(quad, "%d: (", linha++);
+        sprintf(quad, "%d: (", q->linha);
         strcat(quad, toString(q->instruction));
 
         if(q->op1.kind == String) {
             strcat(quad, ", ");
             strcat(quad, q->op1.contents.variable.name);
-            if(q->op1.contents.variable.scope != NULL) {
-                strcat(quad, "  ");
-                strcat(quad, q->op1.contents.variable.scope->funcName);
-            }
         } else if(q->op1.kind == IntConst) {
             sprintf(tempString, ", %d", q->op1.contents.val);
             strcat(quad,tempString);
@@ -633,6 +620,7 @@ Quadruple createQuad(InstructionKind instruction, Operand op1, Operand op2, Oper
     q->op1 = op1;
     q->op2 = op2;
     q->op3 = op3;
+    q->linha = ++linha;
     q->next = NULL;
     return q;
 }
