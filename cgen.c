@@ -135,7 +135,7 @@ static void genStmt(TreeNode * tree) {
             /* set second operand */
             op2.kind = String;
             op2.contents.variable.name = createLabel();
-            op2.contents.variable.scope = NULL;
+            op2.contents.variable.scope = tree->scope;
             /* update if intermediate code instruction */
             updateLocation(op2);
             popLocation();
@@ -154,7 +154,7 @@ static void genStmt(TreeNode * tree) {
             if(p3 != NULL && p3->nodekind == StmtK && p3->kind.stmt == CompK) {
                 op1.kind = String;
                 op1.contents.variable.name = createLabel();
-                op1.contents.variable.scope = NULL;
+                op1.contents.variable.scope = tree->scope;
                 /* update if intermediate code instruction */
                 updateLocation(op1);
                 popLocation();
@@ -178,7 +178,7 @@ static void genStmt(TreeNode * tree) {
 
             op1.kind = String;
             op1.contents.variable.name = createLabel();
-            op1.contents.variable.scope = NULL;
+            op1.contents.variable.scope = tree->scope;
             insertQuad(createQuad(LBL, op1, vazio, vazio));
             /* build code for test expression */
             cGen(p1);
@@ -205,7 +205,7 @@ static void genStmt(TreeNode * tree) {
 
             op3.kind = String;
             op3.contents.variable.name = createLabel();
-            op3.contents.variable.scope = NULL;
+            op3.contents.variable.scope = tree->scope;
             insertQuad(createQuad(LBL, op3, vazio, vazio));
             updateLocation(op3);
             popLocation();
@@ -297,8 +297,17 @@ static void genExp(TreeNode * tree) {
             op1.contents.variable.name = tree->attr.name;
             op1.contents.variable.scope = tree->scope;
             insertQuad(createQuad(FUNC, op1, vazio, vazio));
-            /* ignore list of parameters (already saved at symbol table with memloc defined) */
+
+            /* list of parameters */
             p1 = tree->child[0];
+            while(p1 != NULL) {
+                op2.kind = String;
+                op2.contents.variable.name = p1->child[0]->attr.name;
+                op2.contents.variable.scope = p1->child[0]->scope;
+                insertQuad(createQuad(GET_PARAM, op2, vazio, vazio));
+                p1 = p1->sibling;
+            }
+
             /* build code for function block */
             p2 = tree->child[1];
             cGen(p2);
@@ -325,13 +334,15 @@ static void genExp(TreeNode * tree) {
                 op2.contents.val = 0;
             }
             /* build code for function call */
-            instrucaoAtual = ARGS;
-            insertQuad(createQuad(instrucaoAtual, vazio, vazio, vazio));
+            instrucaoAtual = PARAM_LIST;
+            op3.kind = IntConst;
+            op3.contents.val = getQuantidadeArgumentos(tree);
+            insertQuad(createQuad(instrucaoAtual, op3, vazio, vazio));
             emitComment("-> function call: arguments", indent);
             while(p1 != NULL) {
                 cGen(p1);
                 /* Atribui o tipo de instrução */
-                instrucaoAtual = PARAM;
+                instrucaoAtual = SET_PARAM;
                 /* Cria e insere uma nova representação em código intermediário */
                 insertQuad(createQuad(instrucaoAtual, operandoAtual, vazio, vazio));
                 /* Decrementa qtdParams */

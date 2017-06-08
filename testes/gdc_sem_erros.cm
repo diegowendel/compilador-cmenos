@@ -323,113 +323,140 @@
 ********** Código intermediário **********
 
 1: (function, input, _, _)
-2: (function, output, _, _)
-3: (function, gdc, _, _)
-4: (equal, v, 0, t1)
-5: (jump_if_false, t1, L1, _)
-6: (return, u, _, _)
-7: (label, L1, _, _)
-8: (begin_args, _, _, _)
-9: (arg, v, _, _)
-10: (division, u, v, t2)
-11: (multiplication, t2, v, t3)
-12: (subtraction, u, t3, t4)
-13: (arg, t4, _, _)
-14: (call, gdc, 2, t5)
-15: (return, t5, _, _)
-16: (function, main, _, _)
-17: (vector, v, 10, t6)
-18: (addition, 1, 2, t7)
-19: (assign, teste, t7, _)
-20: (begin_args, _, _, _)
-21: (call, input, 0, t8)
-22: (assign, x, t8, _)
-23: (begin_args, _, _, _)
-24: (call, input, 0, t9)
-25: (assign, y, t9, _)
-26: (begin_args, _, _, _)
-27: (begin_args, _, _, _)
-28: (arg, x, _, _)
-29: (arg, y, _, _)
-30: (call, gdc, 2, t10)
-31: (arg, t10, _, _)
-32: (call, output, 1, t11)
-33: (assign, u, 0, _)
-34: (assign, x, 1, _)
-35: (label, L2, _, _)
-36: (less_than_equal_to, x, 10, t12)
-37: (jump_if_false, t12, L3, _)
-38: (addition, u, 1, t13)
-39: (assign, u, t13, _)
-40: (vector, v, i, t14)
-41: (assign, t14, u, _)
-42: (addition, x, 1, t15)
-43: (assign, x, t15, _)
-44: (goto, L2, _, _)
-45: (label, L3, _, _)
-46: (return, _, _, _)
-47: (halt, _, _, _)
+2: (get_param, a, _, _)
+3: (get_param, b, _, _)
+4: (get_param, c, _, _)
+5: (get_param, d, _, _)
+6: (get_param, e, _, _)
+7: (get_param, f, _, _)
+8: (get_param, g, _, _)
+9: (get_param, h, _, _)
+10: (function, output, _, _)
+11: (get_param, x, _, _)
+12: (get_param, y, _, _)
+13: (get_param, w, _, _)
+14: (get_param, z, _, _)
+15: (get_param, a, _, _)
+16: (get_param, b, _, _)
+17: (get_param, c, _, _)
+18: (function, gdc, _, _)
+19: (get_param, u, _, _)
+20: (get_param, v, _, _)
+21: (equal, v, 0, t1)
+22: (jump_if_false, t1, L1, _)
+23: (return, u, _, _)
+24: (label, L1, _, _)
+25: (param_list, 2, _, _)
+26: (set_param, v, _, _)
+27: (division, u, v, t2)
+28: (multiplication, t2, v, t3)
+29: (subtraction, u, t3, t4)
+30: (set_param, t4, _, _)
+31: (call, gdc, 2, t5)
+32: (return, t5, _, _)
+33: (function, main, _, _)
+34: (vector, v, 10, t6)
+35: (addition, 1, 2, t7)
+36: (assign, teste, t7, _)
+37: (param_list, 0, _, _)
+38: (call, input, 0, t8)
+39: (assign, x, t8, _)
+40: (param_list, 0, _, _)
+41: (call, input, 0, t9)
+42: (assign, y, t9, _)
+43: (param_list, 1, _, _)
+44: (param_list, 2, _, _)
+45: (set_param, x, _, _)
+46: (set_param, y, _, _)
+47: (call, gdc, 2, t10)
+48: (set_param, t10, _, _)
+49: (call, output, 1, t11)
+50: (assign, u, 0, _)
+51: (assign, x, 1, _)
+52: (label, L2, _, _)
+53: (less_than_equal_to, x, 10, t12)
+54: (jump_if_false, t12, L3, _)
+55: (addition, u, 1, t13)
+56: (assign, u, t13, _)
+57: (vector, v, i, t14)
+58: (assign, t14, u, _)
+59: (addition, x, 1, t15)
+60: (assign, x, t15, _)
+61: (goto, L2, _, _)
+62: (label, L3, _, _)
+63: (return, _, _, _)
+64: (halt, _, _, _)
 
 ********** Código objeto **********
 
 
 input:
+    0:	lw	$s0, 4($sp)
+    1:	lw	$s1, 5($sp)
+    2:	lw	$s2, 6($sp)
+    3:	lw	$s3, 7($sp)
 
 output:
+    4:	lw	$s0, 4($sp)
+    5:	lw	$s1, 5($sp)
+    6:	lw	$s2, 6($sp)
 
 gdc:
-    0:	LOAD R1 v 
-    1:	LOADI R2 0 
-    2:	BEQ 4 R1 R2
+    7:	lw	$t1, v
+    8:	li	$t2, 0
+    9:	beq	21, $t1, $t2
+    10:	mov	$v0, u
+    11:	jr	$ra
 .L1
-    3:	PUSH v  
-    4:	LOAD R1 u 
-    5:	LOAD R2 v 
-    6:	DIV R3 R1 R2
-    7:	PUSH R3  
-    8:	POP R1 t2 
-    9:	LOAD R2 v 
-    10:	MULT R3 R1 R2
-    11:	PUSH R3  
-    12:	LOAD R1 u 
-    13:	POP R2 t3 
-    14:	SUB R3 R1 R2
-    15:	PUSH R3  
-    16:	PUSH t4  
-    17:	CALL gdc  
+    12:	mov	$a0, v
+    13:	lw	$a0, u
+    14:	lw	$a1, v
+    15:	div	need fix, $a0, $a1
+    16:	PUSH	$t3
+    17:	POP	emp, t2
+    18:	lw	$a1, v
+    19:	mul	need fix, $a1
+    20:	PUSH	$t3
+    21:	lw	$a0, u
+    22:	POP	, t3
+    23:	sub	need fix, $a0
+    24:	PUSH	$t3
+    25:	mov	$a1, t4
+    26:	jal	gdc
+    27:	mov	$v0, t5
+    28:	jr	$ra
 
 main:
-    18:	LOADI R1 1 
-    19:	LOADI R2 2 
-    20:	ADD R3 R1 R2
-    21:	PUSH R3  
-    22:	STORE teste  
-    23:	CALL input  
-    24:	STORE x  
-    25:	CALL input  
-    26:	STORE y  
-    27:	PUSH x  
-    28:	PUSH y  
-    29:	CALL gdc  
-    30:	PUSH t10  
-    31:	CALL output  
-    32:	STORE u  
-    33:	STORE x  
+    29:	li	temp, 1
+    30:	addi	need fix, temp, 2
+    31:	PUSH	$t3
+    32:	sw	teste
+    33:	in	$in
+    34:	sw	$in, 0($sp)
+    35:	in	$in
+    36:	sw	$in, 1($sp)
+    37:	mov	$a0, x
+    38:	mov	$a1, y
+    39:	jal	gdc
+    40:	mov	$a0, t10
+    41:	out	t11
+    42:	sw	u
+    43:	sw	x
 .L2
-    34:	LOAD R1 x 
-    35:	LOADI R2 10 
-    36:	BLET 36 R1 R2
-    37:	LOAD R1 u 
-    38:	LOADI R2 1 
-    39:	ADD R3 R1 R2
-    40:	PUSH R3  
-    41:	STORE u  
-    42:	STORE t14  
-    43:	LOAD R1 x 
-    44:	LOADI R2 1 
-    45:	ADD R3 R1 R2
-    46:	PUSH R3  
-    47:	STORE x  
-    48:	JUMP L2  
+    44:	lw	$t1, x
+    45:	li	$t2, 10
+    46:	blet	53, $t1, $t2
+    47:	lw	, u
+    48:	addi	need fix, 1
+    49:	PUSH	$t3
+    50:	sw	u
+    51:	sw	t14
+    52:	lw	, x
+    53:	addi	need fix, 1
+    54:	PUSH	$t3
+    55:	sw	x
+    56:	j	L2
 .L3
-    49:	HALT   
+    57:	mov	$v0
+    58:	jr	$ra
+    59:	halt	

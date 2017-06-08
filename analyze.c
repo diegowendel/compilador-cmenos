@@ -165,6 +165,8 @@ static void insertNode(TreeNode * t) {
 					declError(t, "Função já declarada");
 					break;
         		}
+                // Zera o location
+                location = 0;
                 sc_push(sc_create(funcName));
 				st_insert_func(funcName, t->lineno, t);
 				break;

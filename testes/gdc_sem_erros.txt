@@ -1,10 +1,10 @@
 int globalVar;
 
 /* teste de função sem parâmetros e sem corpo */
-int input(void) {}
+int input(int a, int b, int c, int d, int e, int f, int g, int h) {}
 
 /* teste de função com parâmetro e sem corpo */
-void output(int x) {}
+void output(int x, int y, int w, int z, int a, int b, int c) {}
 
 /* teste de função com parâmetros e corpo sem declarações */
 int gdc (int u, int v) {

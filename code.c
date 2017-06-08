@@ -16,7 +16,7 @@ const char * toString(enum instrucao i) {
     const char * strings[] = {  "addition", "subtraction", "multiplication", "division", "vector",
                    "equal", "not_equal", "less_than", "less_than_equal_to",
                    "greater_than", "greater_than_equal_to", "assign",
-                   "function", "return", "arg", "call", "begin_args",
+                   "function", "return", "get_param", "set_param", "call", "param_list",
                    "jump_if_false", "goto", "label", "halt"};
     return strings[i];
 }
