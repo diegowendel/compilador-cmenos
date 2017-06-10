@@ -14,11 +14,13 @@
 #define BIN 2
 #define DEC 10
 
-/* Cabeça da Lista de instruções objeto */
+/* Cabeça da lista de instruções objeto */
 Objeto objHead = NULL;
 
+/* Cabeça da lista de registradores */
 Registrador pHead = NULL;
 
+/* Escopo atual */
 EscopoGerador escopoHead = NULL;
 
 /* Variable indentno is used by printTree to
@@ -55,7 +57,7 @@ const char * toStringOpcode(Opcode op) {
 const char * getTempReg(int i) {
     if(i > 9)   return "$inv"; /* Registrador que simboliza valor inválido */
     const char * strings[] = {
-        "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9" /* Temporários */
+        "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9" /* Registradores Temporários */
     };
     return strings[i];
 }
@@ -63,7 +65,7 @@ const char * getTempReg(int i) {
 const char * getSavedReg(int i) {
     if(i > 7)   return "$inv"; /* Registrador que simboliza valor inválido */
     const char * strings[] = {
-        "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7"
+        "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7" /* Registradores Salvos */
     };
     return strings[i];
 }
@@ -71,36 +73,33 @@ const char * getSavedReg(int i) {
 const char * getArgReg(int i) {
     if(i > 3)   return "$inv"; /* Registrador que simboliza valor inválido */
     const char * strings[] = {
-        "$a0", "$a1", "$a2", "$a3"
+        "$a0", "$a1", "$a2", "$a3" /* Registradores de argumentos de funções */
     };
     return strings[i];
 }
 
 const char * getReturnAddressReg() {
-    return "$ra";
+    return "$ra"; /* Endereço para retorno da função atual */
 }
 
 const char * getReturnValueReg() {
-    return "$v0";
+    return "$v0"; /* Valor de retorno da função */
 }
 
 const char * getStackReg() {
-    /* Ponteiro de pilhas */
-    return "$sp";
+    return "$sp"; /* Ponteiro de pilhas */
 }
 
-const char * getInputReg() {
-    /* Registrador para entrada de dados */
-    return "$in";
+const char * getOutputReg() {
+    return "$out"; /* Registrador para saída de dados */
 }
 
 const char * getVectorReg() {
-    /* Registrador auxiliar para vetores */
-    return "$vec";
+    return "$vec"; /* Registrador auxiliar para vetores */
 }
 
 const char * getRZero() {
-    return "$rz";
+    return "$rz"; /* Registrador com valor Zero */
 }
 
 const char * getStackLocation(Operand op) {
@@ -145,6 +144,14 @@ char * getOperandRegName(Operand op) {
 char * getOperandResultRegName(Operand op) {
     char * opRegName;
     // Cria registrador temporário para armazenar o resultado da expressão
+    opRegName = (char *) getTempReg(escopoHead->tempRegCount++);
+    Registrador r = createRegistrador(op, opRegName);
+    insertRegistrador(r);
+    return opRegName;
+}
+
+char * getTempRegName(Operand op) {
+    char * opRegName;
     opRegName = (char *) getTempReg(escopoHead->tempRegCount++);
     Registrador r = createRegistrador(op, opRegName);
     insertRegistrador(r);
@@ -197,10 +204,6 @@ void geraCodigoInstrucaoLogica(Quadruple q, Opcode op) {
     }
 }
 
-void geraCodigoInstrucaoChamada(Quadruple q, Opcode op) {
-    printCode(createObjectInstruction(toStringOpcode(op), q->op1.contents.variable.name, NULL, NULL));
-}
-
 void geraCodigoInstrucaoFuncao(Quadruple q, Opcode op) {
     // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
     // strcat só insere de forma correta strings inicializadas.
@@ -244,6 +247,7 @@ void geraCodigoObjeto(Quadruple q) {
     INDENT;
     char * regName;
     emitCode("\n********** Código objeto **********");
+
     while(q != NULL) {
         switch (q->instruction) {
             case ADD:
@@ -301,8 +305,18 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* FUNC */
 
             case RTN:
-                printCode(createObjectInstruction(toStringOpcode(_MOV), getReturnValueReg(), q->op1.contents.variable.name, NULL));
-                printCode(createObjectInstruction(toStringOpcode(_JUMPR), getReturnAddressReg(), NULL, NULL));
+                /* Verifica se há valor a ser retornado */
+                if(q->op1.contents.variable.name != NULL) {
+                    regName = getRegName(q->op1.contents.variable.name);
+                    if(regName == NULL) {
+                        regName = getOperandRegName(q->op1);
+                    }
+                    printCode(createObjectInstruction(toStringOpcode(_MOV), getReturnValueReg(), regName, NULL));
+                }
+                /* Só retorna valor se o escopo atual não for o escopo da main */
+                if(strcmp(escopoHead->nome, "main")) {
+                    printCode(createObjectInstruction(toStringOpcode(_JUMPR), getReturnAddressReg(), NULL, NULL));
+                }
                 break; /* RTN */
 
             case GET_PARAM:
@@ -334,18 +348,19 @@ void geraCodigoObjeto(Quadruple q) {
 
             case CALL:
                 if(!strcmp(q->op1.contents.variable.name, "input")) {
-                    printCode(createObjectInstruction(toStringOpcode(_IN), getOperandRegName(q->op3), NULL, NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_IN), getTempRegName(q->op3), NULL, NULL));
                 } else if(!strcmp(q->op1.contents.variable.name, "output")) {
-                    printCode(createObjectInstruction(toStringOpcode(_OUT), q->op3.contents.variable.name, NULL, NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_OUT), getOutputReg(), NULL, NULL));
                 } else {
-                    geraCodigoInstrucaoChamada(q, _JUMPAL);
+                    printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
                 }
+                escopoHead->argRegCount = 0;
+                escopoHead->savedRegCount = 0;
                 break; /* CALL */
 
             case PARAM_LIST:
                 /* Terá um novo chamado de função */
-                escopoHead->argRegCount = 0;
-                escopoHead->savedRegCount = 0;
                 break; /* PARAM_LIST */
 
             case JPF:

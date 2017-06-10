@@ -407,59 +407,55 @@ output:
     4:	lw	$s1, 4($sp)
     5:	lw	$s2, 5($sp)
     6:	lw	$s3, 6($sp)
-    7:	mov	$a0, $a0
-    8:	mov	$a1, $a1
-    9:	mov	$a2, $a2
-    10:	mov	$a3, $s0
-    11:	sw	$s0, 3($sp)
-    12:	lw	$t0, $t0
-    13:	in	$t0
+    7:	sw	$s3, 0($sp)
+    8:	sw	$s4, 1($sp)
+    9:	sw	$s5, 2($sp)
+    10:	sw	$s6, 4($sp)
+    11:	sw	$s7, 3($sp)
+    12:	in	$t0
 
 gdc:
-    14:	beq	$t0, $a1, 0
-    15:	mov	$v0, u
-    16:	jr	$ra
+    13:	beq	$t0, $a1, 0
+    14:	mov	$v0, $a0
+    15:	jr	$ra
 .L1
-    17:	mov	$a0, $a1
-    18:	div	$t1, $a0, $a1
-    19:	mul	$t2, $t1, $a1
-    20:	sub	$t3, $a0, $t2
-    21:	mov	$a1, $t3
-    22:	jal	gdc
-    23:	mov	$v0, t6
+    16:	mov	$a2, $a1
+    17:	div	$t1, $a0, $a1
+    18:	mul	$t2, $t1, $a1
+    19:	sub	$t3, $a0, $t2
+    20:	mov	$a3, $t3
+    21:	jal	gdc
+    22:	mov	$t4, $v0
+    23:	mov	$v0, $t4
     24:	jr	$ra
 
 main:
     25:	li	$t0, 1
     26:	addi	$t1, $t0, 2
     27:	sw	$t1, 14($sp)
-    28:	lw	$t2, $t2
-    29:	in	$t2
-    30:	sw	$t2, 0($sp)
-    31:	lw	$t3, $t3
-    32:	in	$t3
-    33:	sw	$t3, 1($sp)
-    34:	lw	$s0, 0($sp)
-    35:	mov	$a0, $s0
-    36:	lw	$s1, 1($sp)
-    37:	mov	$a1, $s1
-    38:	jal	gdc
-    39:	lw	$t4, $t4
-    40:	mov	$a2, $t4
-    41:	out	t12
-    42:	li	$t5, 0
-    43:	sw	$t5, 2($sp)
-    44:	li	$t6, 1
-    45:	sw	$t6, 0($sp)
+    28:	in	$t2
+    29:	sw	$t2, 0($sp)
+    30:	in	$t3
+    31:	sw	$t3, 1($sp)
+    32:	lw	$s0, 0($sp)
+    33:	mov	$a0, $s0
+    34:	lw	$s1, 1($sp)
+    35:	mov	$a1, $s1
+    36:	jal	gdc
+    37:	mov	$t4, $v0
+    38:	mov	$a0, $t4
+    39:	out	$out
+    40:	li	$t5, 0
+    41:	sw	$t5, 2($sp)
+    42:	li	$t6, 1
+    43:	sw	$t6, 0($sp)
 .L2
-    46:	blet	$t7, $s0, 10
-    47:	lw	$s2, 2($sp)
-    48:	addi	$t8, $s2, 1
-    49:	sw	$t8, 2($sp)
-    50:	addi	$t9, $s0, 1
-    51:	sw	$t9, 0($sp)
-    52:	j	L2
+    44:	blet	$t7, $s0, 10
+    45:	lw	$s0, 2($sp)
+    46:	addi	$t8, $s0, 1
+    47:	sw	$t8, 2($sp)
+    48:	addi	$t9, $s0, 1
+    49:	sw	$t9, 0($sp)
+    50:	j	L2
 .L3
-    53:	mov	$v0
-    54:	jr	$ra
-    55:	halt	
+    51:	halt	
