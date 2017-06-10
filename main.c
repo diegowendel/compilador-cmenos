@@ -104,7 +104,7 @@ int main( int argc, char * argv[] ) {
         if (TraceCode) fprintf(listing, "\nGerando código intermediário...\n");
         codeGen(syntaxTree, codefile);
         fclose(code);
-        if (TraceCode) fprintf(listing, "\nGeração de código intermediário concluída!\n\n");
+        if (TraceCode) fprintf(listing, "\nGeração de código intermediário concluída!\n");
         // Código intermediário gerado com sucesso
         CodigoIntermediarioGerarado = TRUE;
     }

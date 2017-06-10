@@ -4,7 +4,9 @@ int globalVar;
 int input(int a, int b, int c, int d, int e, int f, int g, int h) {}
 
 /* teste de função com parâmetro e sem corpo */
-void output(int x, int y, int w, int z, int a, int b, int c) {}
+void output(int x, int y, int w, int z, int a, int b, int c) {
+	input(x, y, w, a, z);
+}
 
 /* teste de função com parâmetros e corpo sem declarações */
 int gdc (int u, int v) {
@@ -36,7 +38,7 @@ void main(void) {
    while (x <= 10)
    {
       u = u + 1;  
-      v[i] = u;
+      /*v[i] = u;*/
       x = x + 1; 
    }
 
