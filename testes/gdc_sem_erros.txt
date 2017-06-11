@@ -1,7 +1,10 @@
 int globalVar;
 
 /* teste de função sem parâmetros e sem corpo */
-int input(int a, int b, int c, int d, int e, int f, int g, int h) {}
+int input(int a, int b, int c, int d, int e, int f, int g, int h) {
+	int var;
+	int varrr;
+}
 
 /* teste de função com parâmetro e sem corpo */
 void output(int x, int y, int w, int z, int a, int b, int c) {
@@ -44,5 +47,4 @@ void main(void) {
 
    /* teste return simples */   
    return;
-
 }

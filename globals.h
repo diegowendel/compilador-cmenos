@@ -66,6 +66,7 @@ typedef enum {StmtK, ExpK} NodeKind;
 typedef enum {IntegerK, VoidK, IfK, ElseK, ReturnK, WhileK, CompK} StmtKind;
 typedef enum {OpK, ConstK, IdK, VectorK, FunctionK, CallK, IndexK} ExpKind;
 typedef enum {DECLARANDO, ACESSANDO} VarAccessK;
+typedef enum {PARAM, LOCAL, GLOBAL, FUNCAO} VarMemK;
 
 /* ExpType é usado para checagem de tipos */
 typedef enum exp {Void,Integer} ExpType;
@@ -77,6 +78,7 @@ typedef struct treeNode {
     struct treeNode * sibling;
     int lineno;
     VarAccessK varAccess;
+    VarMemK varMemK;
     NodeKind nodekind;
     union {
         StmtKind stmt;

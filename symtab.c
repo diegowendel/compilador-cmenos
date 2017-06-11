@@ -46,11 +46,23 @@ const char * expTypeToString(enum exp e) {
 
 const char * dataTypeToString(ExpKind k) {
     if(k == IdK) {
-        return "Variável";
+        return "Variavel";
     } else if(k == VectorK) {
         return "Vetor";
     } else {
-        return "Função";
+        return "Funcao";
+    }
+}
+
+const char * varOrigemToString(VarMemK k) {
+    if(k == PARAM) {
+        return "Parametro";
+    } else if(k == LOCAL) {
+        return "Local";
+    } else if(k == GLOBAL){
+        return "Global";
+    } else {
+        return "-";
     }
 }
 
@@ -275,10 +287,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
 				LineList t = l->lines;
         		fprintf(listing, "%-18s", l->name);
 				fprintf(listing, "%-10s", expTypeToString(l->treeNode->type));
-                if(l->treeNode->kind.exp == VectorK)
-                    fprintf(listing, "%-12s", dataTypeToString(l->treeNode->kind.exp));
-                else
-                    fprintf(listing, "%-13s", dataTypeToString(l->treeNode->kind.exp));
+                fprintf(listing, "%-12s", dataTypeToString(l->treeNode->kind.exp));
 
                 /*
                  * Verifica se o item armazenado nessa posição da tabela de
@@ -286,9 +295,9 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                  * parâmetros
                  */
                 if(escopo == ESCOPO_GLOBAL) {
-                    if(strcmp("Função", dataTypeToString(l->treeNode->kind.exp)) == 0) {
+                    if(strcmp("Funcao", dataTypeToString(l->treeNode->kind.exp)) == 0) {
                         int numParams = getQuantidadeParams(l->treeNode->child[0]);
-                        fprintf(listing, " %-15d", numParams);
+                        fprintf(listing, "%-15d", numParams);
 
                         if(l->treeNode->child[0] == NULL) {
                             fprintf(listing, "%-17s", "void");
@@ -296,9 +305,12 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                             fprintf(listing, "%-17s", "int");
                         }
                     } else {
+                        l->treeNode->varMemK = GLOBAL;
                         fprintf(listing, "%-32s", "");
                     }
                 }
+
+                fprintf(listing, "%-17s", varOrigemToString(l->treeNode->varMemK));
 
                 if(l->memloc == -1) {
                     fprintf(listing, "%-8c", '-');
@@ -333,13 +345,13 @@ void printSymTab(FILE * listing) {
 
 		if (i == 0) { // Escopo global
 			fprintf(listing, "<Escopo Global>\n");
-            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Nº parametros  Tipo parametros  MemLoC  Numero das linhas\n");
-      		fprintf(listing, "----------------  --------  ----------  -------------  ---------------  ------  -----------------\n");
+            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Nº parametros  Tipo parametros  Origem Variavel  MemLoC  Numero das linhas\n");
+      		fprintf(listing, "----------------  --------  ----------  -------------  ---------------  ---------------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_GLOBAL);
 		} else {
 			fprintf(listing, "Nome da função: %s\n", scope->funcName);
-            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  MemLoc  Numero das linhas\n");
-      		fprintf(listing, "----------------  --------  ----------  ------  -----------------\n");
+            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Origem Variavel  MemLoc  Numero das linhas\n");
+      		fprintf(listing, "----------------  --------  ----------  ---------------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_NAO_GLOBAL);
 		}
 

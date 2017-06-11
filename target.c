@@ -102,9 +102,24 @@ const char * getRZero() {
     return "$rz"; /* Registrador com valor Zero */
 }
 
-const char * getStackLocation(Operand op) {
+/* Busca a posição de memória do operando op, e retorna sua posição com offset na stack */
+const char * getStackOperandLocation(Operand op) {
     sprintf(str, "%d($sp)", getMemoryLocation(op.contents.variable.name, op.contents.variable.scope));
     return str;
+}
+
+/* Retorna a posição da stack de acordo com o offset passado por parâmetro */
+const char * getStackLocation(int offset) {
+    sprintf(str, "%d($sp)", offset);
+    return str;
+}
+
+void pushStackSpace(int n) {
+    printCode(createObjectInstruction(toStringOpcode(_ADDI), getStackReg(), getStackReg(), itoa(n, str, DEC)));
+}
+
+void popStackSpace(int n) {
+    printCode(createObjectInstruction(toStringOpcode(_SUBI), getStackReg(), getStackReg(), itoa(n, str, DEC)));
 }
 
 char * getOperandRegName(Operand op) {
@@ -124,7 +139,7 @@ char * getOperandRegName(Operand op) {
                 opRegName = (char *) getSavedReg(escopoHead->savedRegCount++);
                 Registrador r = createRegistrador(op, opRegName);
                 insertRegistrador(r);
-                printCode(createObjectInstruction(toStringOpcode(_LOAD), opRegName, getStackLocation(op), NULL));
+                printCode(createObjectInstruction(toStringOpcode(_LOAD), opRegName, getStackOperandLocation(op), NULL));
             }
         }
     } else { /* Valor Imediato */
@@ -174,7 +189,7 @@ void geraCodigoInstrucaoAritmetica(Quadruple q, Opcode op) {
         printCode(createObjectInstruction(toStringOpcode(op), op3RegName, op1RegName, op2RegName));
     } else { /* Valor Imediato */
         // Valor imediato
-        op2RegName = itoa(q->op2.contents.val, str, 10);
+        op2RegName = itoa(q->op2.contents.val, str, DEC);
         // nextInstruction é a versão imediato da instrução atual
         int nextInstruction = op + 1;
         /* Imprime a instrução aritmética, versão imediato */
@@ -182,25 +197,25 @@ void geraCodigoInstrucaoAritmetica(Quadruple q, Opcode op) {
     }
 }
 
-void geraCodigoInstrucaoLogica(Quadruple q, Opcode op) {
+void geraCodigoInstrucaoLogica(Quadruple q, Opcode op, Operand label) {
     char * op1RegName, * op2RegName, * op3RegName;
 
     /* Busca ou atribui o registrador do operando 1 */
     op1RegName = getOperandRegName(q->op1);
-    /* Atribui um registrador para o resultado da expressão */
-    op3RegName = getOperandResultRegName(q->op3);
+    /* Label para o qual irá ser feito o desvio */
+    op3RegName = label.contents.variable.name;
 
     /* OPERANDO 2 */
     if(q->op2.kind == String) { /* Registrador */
         /* Busca ou atribui o registrador do operando 2 */
         op2RegName = getOperandRegName(q->op2);
         /* Imprime a instrução aritmética */
-        printCode(createObjectInstruction(toStringOpcode(op), op3RegName, op1RegName, op2RegName));
+        printCode(createObjectInstruction(toStringOpcode(op), op1RegName, op2RegName, op3RegName));
     } else { /* Valor Imediato */
         // Valor imediato
-        op2RegName = itoa(q->op2.contents.val, str, 10);
+        op2RegName = itoa(q->op2.contents.val, str, DEC);
         /* Imprime a instrução lógica */
-        printCode(createObjectInstruction(toStringOpcode(op), op3RegName, op1RegName, op2RegName));
+        printCode(createObjectInstruction(toStringOpcode(op), op1RegName, op2RegName, op3RegName));
     }
 }
 
@@ -267,32 +282,32 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* DIV */
 
             case EQ:
-                geraCodigoInstrucaoLogica(q, _BEQ);
+                geraCodigoInstrucaoLogica(q, _BEQ, q->next->op2);
                 break; /* BEQ */
 
             case NE:
-                geraCodigoInstrucaoLogica(q, _BNE);
+                geraCodigoInstrucaoLogica(q, _BNE, q->next->op2);
                 break; /* BNE */
 
             case LT:
-                geraCodigoInstrucaoLogica(q, _BLT);
+                geraCodigoInstrucaoLogica(q, _BLT, q->next->op2);
                 break; /* BLT */
 
             case LET:
-                geraCodigoInstrucaoLogica(q, _BLET);
+                geraCodigoInstrucaoLogica(q, _BLET, q->next->op2);
                 break; /* BLET */
 
             case GT:
-                geraCodigoInstrucaoLogica(q, _BGT);
+                geraCodigoInstrucaoLogica(q, _BGT, q->next->op2);
                 break; /* BGT */
 
             case GET:
-                geraCodigoInstrucaoLogica(q, _BGET);
+                geraCodigoInstrucaoLogica(q, _BGET, q->next->op2);
                 break; /* BGET */
 
             case ASN:
                 regName = getOperandRegName(q->op2);
-                printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getStackLocation(q->op1), NULL));
+                printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getStackOperandLocation(q->op1), NULL));
                 break; /* STORE */
 
             case VEC:
@@ -305,16 +320,16 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* FUNC */
 
             case RTN:
-                /* Verifica se há valor a ser retornado */
-                if(q->op1.contents.variable.name != NULL) {
-                    regName = getRegName(q->op1.contents.variable.name);
-                    if(regName == NULL) {
-                        regName = getOperandRegName(q->op1);
-                    }
-                    printCode(createObjectInstruction(toStringOpcode(_MOV), getReturnValueReg(), regName, NULL));
-                }
                 /* Só retorna valor se o escopo atual não for o escopo da main */
                 if(strcmp(escopoHead->nome, "main")) {
+                    /* Verifica se há valor para ser retornado */
+                    if(q->op1.contents.variable.name != NULL) {
+                        regName = getRegName(q->op1.contents.variable.name);
+                        if(regName == NULL) {
+                            regName = getOperandRegName(q->op1);
+                        }
+                        printCode(createObjectInstruction(toStringOpcode(_MOV), getReturnValueReg(), regName, NULL));
+                    }
                     printCode(createObjectInstruction(toStringOpcode(_JUMPR), getReturnAddressReg(), NULL, NULL));
                 }
                 break; /* RTN */
@@ -326,8 +341,8 @@ void geraCodigoObjeto(Quadruple q) {
                 if(escopoHead->argRegCount < 4) {
                     insertRegistrador(createRegistrador(q->op1, (char *) getArgReg(escopoHead->argRegCount++)));
                 } else if(escopoHead->argRegCount >= 4) {
-                    insertRegistrador(createRegistrador(q->op1, (char *) getSavedReg(escopoHead->savedRegCount++)));
-                    printCode(createObjectInstruction(toStringOpcode(_LOAD), (char *) getSavedReg(escopoHead->savedRegCount), getStackLocation(q->op1), NULL));
+                    insertRegistrador(createRegistrador(q->op1, (char *) getSavedReg(escopoHead->savedRegCount)));
+                    printCode(createObjectInstruction(toStringOpcode(_LOAD), (char *) getSavedReg(escopoHead->savedRegCount++), getStackOperandLocation(q->op1), NULL));
                 }
                 break; /* GET_PARAM */
 
@@ -341,8 +356,9 @@ void geraCodigoObjeto(Quadruple q) {
                  */
                 if(escopoHead->argRegCount < 4) {
                     printCode(createObjectInstruction(toStringOpcode(_MOV), getArgReg(escopoHead->argRegCount++), regName, NULL));
+                    removeRegistrador(regName);
                 } else if(escopoHead->argRegCount >= 4) {
-                    printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount++), getStackLocation(q->op1), NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount++), getStackOperandLocation(q->op1), NULL));
                 }
                 break; /* SET_PARAM */
 
@@ -351,33 +367,40 @@ void geraCodigoObjeto(Quadruple q) {
                     printCode(createObjectInstruction(toStringOpcode(_IN), getTempRegName(q->op3), NULL, NULL));
                 } else if(!strcmp(q->op1.contents.variable.name, "output")) {
                     printCode(createObjectInstruction(toStringOpcode(_OUT), getOutputReg(), NULL, NULL));
-                } else {
+                } else if(!strcmp(escopoHead->nome, "main")) {
+                    pushStackSpace(q->op2.contents.val);
                     printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
+                    popStackSpace(q->op2.contents.val);
+                } else {
+                    /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
+                    pushStackSpace(q->op2.contents.val + 1); // +1 devido ao registrador $ra
+                    printCode(createObjectInstruction(toStringOpcode(_STORE), getReturnAddressReg(), getStackLocation(q->op2.contents.val), NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_LOAD), getReturnAddressReg(), getStackLocation(q->op2.contents.val), NULL));
+                    popStackSpace(q->op2.contents.val + 1); // +1 devido ao registrador $ra
                     printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
                 }
                 escopoHead->argRegCount = 0;
                 escopoHead->savedRegCount = 0;
                 break; /* CALL */
 
-            case PARAM_LIST:
-                /* Terá um novo chamado de função */
-                break; /* PARAM_LIST */
-
-            case JPF:
-
-                break;
-
             case GOTO:
                 printCode(createObjectInstruction(toStringOpcode(_JUMP), q->op1.contents.variable.name, NULL, NULL));
-                break;
+                break; /* GOTO */
 
             case LBL:
                 geraCodigoInstrucaoLabel(q);
-                break;
+                break; /* LBL */
 
             case HALT:
                 printCode(createObjectInstruction(toStringOpcode(_HALT), NULL, NULL, NULL));
                 break; /* HALT */
+
+            case PARAM_LIST:
+                escopoHead->argRegCount = 0;
+                escopoHead->savedRegCount = 0;
+                break; /* PARAM_LIST */
 
             default:
                 break;
@@ -436,6 +459,28 @@ void insertRegistrador(Registrador r) {
             temp = temp->next;
         }
         temp->next = r;
+    }
+}
+
+void removeRegistrador(char * name) {
+    Registrador reg;
+    if(escopoHead != NULL) {
+        reg = escopoHead->regList;
+    }
+    while(reg->next != NULL) {
+        if(!strcmp(name, reg->next->op.contents.variable.name)) {
+            Registrador temp = reg->next;
+            reg->next = reg->next->next;
+            free(temp);
+            temp = NULL;
+        }
+        reg = reg->next;
+    }
+    if(reg->next == NULL) {
+        if(!strcmp(name, reg->op.contents.variable.name)) {
+            free(reg);
+            reg = NULL;
+        }
     }
 }
 

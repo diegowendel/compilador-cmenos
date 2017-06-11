@@ -57,6 +57,7 @@ var_declaracao     	: tipo_especificador id SEMI
 				$$ = $1;
 				$$->child[0] = $2;
 				$$->child[0]->type = $$->type;
+                $$->child[0]->varMemK = LOCAL;
 			}
             		| tipo_especificador id LBRACKET num RBRACKET SEMI
 			{
@@ -64,6 +65,7 @@ var_declaracao     	: tipo_especificador id SEMI
 				$$->child[0] = $2;
 				$$->child[0]->kind.exp = VectorK;
 				$$->child[0]->type = $$->type;
+                $$->child[0]->varMemK = LOCAL;
 				$$->child[0]->child[0] = $4;
 				$$->child[0]->child[0]->type = Integer;
 			}
@@ -87,6 +89,7 @@ fun_declaracao		: tipo_especificador id LPAREN params RPAREN composto_decl
 				$$->child[0] = $2;
 				$$->child[0]->type = $$->type;
 				$$->child[0]->kind.exp = FunctionK;
+                $$->child[0]->varMemK = FUNCAO;
 				$$->child[0]->child[0] = $4;
 				$$->child[0]->child[1] = $6;
 			}
@@ -114,12 +117,14 @@ param 			: tipo_especificador id
 				$$ = $1;
 				$$->child[0] = $2;
 				$$->child[0]->type = $$->type;
+                $$->child[0]->varMemK = PARAM;
 			}
 			| tipo_especificador id LBRACKET RBRACKET
 			{
 				$$ = $1;
 				$$->child[0] = $2;
 				$$->child[0]->type = $$->type;
+                $$->child[0]->varMemK = PARAM;
 			}
 			;
 composto_decl		: LKEY local_declaracoes statement_lista RKEY

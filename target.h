@@ -68,6 +68,8 @@ Registrador createRegistrador(Operand op, char *);
 
 void insertRegistrador(Registrador r);
 
+void removeRegistrador(char * name);
+
 char * getRegName(char * name);
 
 void geraCodigoObjeto(Quadruple q);
