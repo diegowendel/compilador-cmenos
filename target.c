@@ -55,7 +55,12 @@ const char * toStringOpcode(Opcode op) {
 }
 
 const char * getTempReg(int i) {
-    if(i > 9)   return "$inv"; /* Registrador que simboliza valor inválido */
+    /* Se já tiver usado todos registradores temporários volta a usar do início sem fazer nenhuma
+     * verificação adicional, pois os registradores temporários não garantem persistência dos dados
+     */
+    if(i > 9) {
+        escopoHead->tempRegCount = 0;
+    }
     const char * strings[] = {
         "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9" /* Registradores Temporários */
     };
@@ -63,7 +68,14 @@ const char * getTempReg(int i) {
 }
 
 const char * getSavedReg(int i) {
-    if(i > 7)   return "$inv"; /* Registrador que simboliza valor inválido */
+    /* Se já tiver usado todos registradores temporários volta a usar do início, mas antes de usar o registrador
+     * deve salvar seu valor antigo na memória
+     */
+    if(i > 7) {
+        escopoHead->savedRegCount = 0;
+
+        // TODO FIX IT!
+    }
     const char * strings[] = {
         "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7" /* Registradores Salvos */
     };
@@ -339,10 +351,12 @@ void geraCodigoObjeto(Quadruple q) {
                  * caso contrário, o excedente deve ser lido da stack
                  */
                 if(escopoHead->argRegCount < 4) {
-                    insertRegistrador(createRegistrador(q->op1, (char *) getArgReg(escopoHead->argRegCount++)));
+                    insertRegistrador(createRegistrador(q->op1, (char *) getArgReg(escopoHead->argRegCount)));
+                    escopoHead->argRegCount++;
                 } else if(escopoHead->argRegCount >= 4) {
                     insertRegistrador(createRegistrador(q->op1, (char *) getSavedReg(escopoHead->savedRegCount)));
-                    printCode(createObjectInstruction(toStringOpcode(_LOAD), (char *) getSavedReg(escopoHead->savedRegCount++), getStackOperandLocation(q->op1), NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_LOAD), (char *) getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+                    escopoHead->savedRegCount++;
                 }
                 break; /* GET_PARAM */
 
@@ -355,10 +369,14 @@ void geraCodigoObjeto(Quadruple q) {
                  * caso contrário, o excedente deve ser armazenado na stack
                  */
                 if(escopoHead->argRegCount < 4) {
-                    printCode(createObjectInstruction(toStringOpcode(_MOV), getArgReg(escopoHead->argRegCount++), regName, NULL));
-                    removeRegistrador(regName);
+                    if(strcmp(getArgReg(escopoHead->argRegCount), regName)) { /* Só move se os registradores forem diferentes */
+                        printCode(createObjectInstruction(toStringOpcode(_MOV), getArgReg(escopoHead->argRegCount), regName, NULL));
+                        moveRegistrador((char *) getArgReg(escopoHead->argRegCount), regName);
+                    }
+                    escopoHead->argRegCount++;
                 } else if(escopoHead->argRegCount >= 4) {
-                    printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount++), getStackOperandLocation(q->op1), NULL));
+                    printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+                    escopoHead->savedRegCount++;
                 }
                 break; /* SET_PARAM */
 
@@ -374,11 +392,11 @@ void geraCodigoObjeto(Quadruple q) {
                     popStackSpace(q->op2.contents.val);
                 } else {
                     /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
-                    pushStackSpace(q->op2.contents.val + 1); // +1 devido ao registrador $ra
-                    printCode(createObjectInstruction(toStringOpcode(_STORE), getReturnAddressReg(), getStackLocation(q->op2.contents.val), NULL));
+                    pushStackSpace(escopoHead->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
+                    printCode(createObjectInstruction(toStringOpcode(_STORE), getReturnAddressReg(), getStackLocation(-q->op2.contents.val), NULL));
                     printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
-                    printCode(createObjectInstruction(toStringOpcode(_LOAD), getReturnAddressReg(), getStackLocation(q->op2.contents.val), NULL));
-                    popStackSpace(q->op2.contents.val + 1); // +1 devido ao registrador $ra
+                    printCode(createObjectInstruction(toStringOpcode(_LOAD), getReturnAddressReg(), getStackLocation(-q->op2.contents.val), NULL));
+                    popStackSpace(escopoHead->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
                     printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
                 }
                 escopoHead->argRegCount = 0;
@@ -414,6 +432,14 @@ EscopoGerador createEscopoGerador(const char * nome) {
     eg->argRegCount = 0;
     eg->savedRegCount = 0;
     eg->tempRegCount = 0;
+    // Recupera o BucketList do escopo
+    BucketList bl = st_bucket_func((char *) nome);
+    /* Recupera o treeNode que representa o escopo para recuperar a quantidade de
+     * parâmetros e variáveis
+     */
+    eg->quantidadeParametros = getQuantidadeParametros(bl->treeNode);
+    eg->quantidadeVariaveis = getQuantidadeVariaveis(bl->treeNode);
+    eg->tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo((char *) nome);
     eg->nome = nome;
     eg->regList = NULL;
     eg->next = NULL;
@@ -462,26 +488,52 @@ void insertRegistrador(Registrador r) {
     }
 }
 
+void moveRegistrador(char * dest, char * orig) {
+    Registrador origem = getRegistrador(orig);
+    origem->regName = dest;
+    removeRegistrador(dest);
+}
+
 void removeRegistrador(char * name) {
+    Registrador atual, anterior;
+    if(escopoHead != NULL) {
+        atual = escopoHead->regList;
+    }
+    /* Verifica se o primeiro deve ser removido */
+    if(!strcmp(name, atual->regName)) {
+        escopoHead->regList = atual->next;
+        free(atual);
+        atual = NULL;
+        return;
+    }
+
+    anterior = atual;
+    atual = atual->next;
+
+    /* Verifica o restante */
+    while(atual != NULL && anterior != NULL) {
+        if(!strcmp(name, atual->regName)) {
+            anterior->next = atual->next;
+            free(atual);
+            return;
+        }
+        anterior = atual;
+        atual = atual->next;
+    }
+}
+
+Registrador getRegistrador(char * name) {
     Registrador reg;
     if(escopoHead != NULL) {
         reg = escopoHead->regList;
     }
-    while(reg->next != NULL) {
-        if(!strcmp(name, reg->next->op.contents.variable.name)) {
-            Registrador temp = reg->next;
-            reg->next = reg->next->next;
-            free(temp);
-            temp = NULL;
+    while(reg != NULL) {
+        if(!strcmp(name, reg->regName)) {
+            return reg;
         }
         reg = reg->next;
     }
-    if(reg->next == NULL) {
-        if(!strcmp(name, reg->op.contents.variable.name)) {
-            free(reg);
-            reg = NULL;
-        }
-    }
+    return NULL;
 }
 
 char * getRegName(char * name) {

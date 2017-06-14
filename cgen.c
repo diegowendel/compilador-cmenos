@@ -324,7 +324,7 @@ static void genExp(TreeNode * tree) {
             op1.contents.variable.name = tree->attr.name;
             op1.contents.variable.scope = tree->scope;
             /* Atribui o segundo operando */
-            qtdParams = getQuantidadeArgumentos(tree);
+            qtdParams = getQuantidadeParametros(tree);
             pushParam(&qtdParams);
             if(qtdParams > 0) {
                 op2.kind = IntConst;
@@ -336,7 +336,7 @@ static void genExp(TreeNode * tree) {
             /* build code for function call */
             instrucaoAtual = PARAM_LIST;
             op3.kind = IntConst;
-            op3.contents.val = getQuantidadeArgumentos(tree);
+            op3.contents.val = getQuantidadeParametros(tree);
             insertQuad(createQuad(instrucaoAtual, op3, vazio, vazio));
             emitComment("-> function call: arguments", indent);
             while(p1 != NULL) {

@@ -17,7 +17,7 @@
    in hash function  */
 #define SHIFT 4
 
-#define MAX_SCOPE 1000
+#define MAX_SCOPE 20
 
 #define ESCOPO_GLOBAL 0
 #define ESCOPO_NAO_GLOBAL 1
@@ -85,6 +85,7 @@ void sc_push(Scope scope) {
 Scope sc_create(char * funcName) {
     Scope newScope = (Scope) malloc(sizeof(struct ScopeRec));
     newScope->funcName = funcName;
+    newScope->tamanhoBlocoMemoria = 0;
     if(!strcmp(funcName, "ESCOPO_GLOBAL")) {
         newScope->parent = NULL;
     } else {
@@ -161,14 +162,15 @@ int getMemoryLocation(char * nome, Scope escopo) {
  * loc = memory location is inserted only the
  * first time, otherwise ignored
  */
-void st_insert(char * name, int lineno, int loc, TreeNode * treeNode) {
+void st_insert(char * name, int lineno, int loc, TreeNode * treeNode, int tamanho) {
 	int h = hash(name);
 	Scope top = sc_top();
 
     if(top->hashTable[h] == NULL) {
         // Adiciona o escopo ao nó da árvore sintática
         treeNode->scope = top;
-        top->hashTable[h] = st_create(name, lineno, loc, treeNode);
+        top->hashTable[h] = st_create(name, lineno, loc, treeNode, tamanho);
+        treeNode->scope->tamanhoBlocoMemoria += tamanho;
         return;
     } else {
         BucketList l = top->hashTable[h];
@@ -179,18 +181,20 @@ void st_insert(char * name, int lineno, int loc, TreeNode * treeNode) {
             // Adiciona o escopo ao nó da árvore sintática
             treeNode->scope = top;
             // Adiciona um novo item na tabela de símbolos
-            l->next = st_create(name, lineno, loc, treeNode);
+            l->next = st_create(name, lineno, loc, treeNode, tamanho);
+            treeNode->scope->tamanhoBlocoMemoria += tamanho;
         }
     }
 } /* st_insert */
 
-BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode) {
+BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode, int tamanho) {
     BucketList l = (BucketList) malloc(sizeof(struct BucketListRec));
     l->name = name;
     l->lines = (LineList) malloc(sizeof(struct LineListRec));
     l->lines->lineno = lineno;
     l->lines->next = NULL;
     l->memloc = loc;
+    l->tamanho = tamanho;
     l->treeNode = treeNode;
     l->next = NULL;
     return l;
@@ -231,6 +235,7 @@ void st_insert_func(char * name, int lineno, TreeNode * treeNode) {
 	    l->lines->lineno = lineno;
         l->lines->next = NULL;
         l->memloc = -1;
+        l->tamanho = 0;
         l->treeNode = treeNode;
 	    l->next = top->hashTable[h];
 	   	top->hashTable[h] = l;
@@ -277,6 +282,43 @@ int st_lookup_top (char * name) {
     }
 }
 
+int getQuantidadeParametros(TreeNode * functionNode) {
+    int qtd = 0;
+    TreeNode * temp = functionNode->child[0];
+    if(temp != NULL) {
+        ++qtd;
+        while(temp->sibling != NULL) {
+            temp = temp->sibling;
+            ++qtd;
+        }
+    }
+    return qtd;
+}
+
+int getQuantidadeVariaveis(TreeNode * functionNode) {
+    int qtd = 0;
+    TreeNode * temp = functionNode->child[1]->child[0];
+    if(temp != NULL) {
+        ++qtd;
+        while(temp->sibling != NULL) {
+            temp = temp->sibling;
+            ++qtd;
+        }
+    }
+    return qtd;
+}
+
+int getTamanhoBlocoMemoriaEscopo(char * scopeName) {
+    int i, tamanho = 0;
+    for (i = 0; i < nScope; ++i) {
+        if(!strcmp(scopeName, scopes[i]->funcName)) {
+            tamanho = scopes[i]->tamanhoBlocoMemoria;
+            break;
+        }
+    }
+    return tamanho;
+}
+
 void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
 	int j;
 	for (j = 0; j < SIZE; ++j) {
@@ -296,7 +338,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                  */
                 if(escopo == ESCOPO_GLOBAL) {
                     if(strcmp("Funcao", dataTypeToString(l->treeNode->kind.exp)) == 0) {
-                        int numParams = getQuantidadeParams(l->treeNode->child[0]);
+                        int numParams = getQuantidadeParametros(l->treeNode);
                         fprintf(listing, "%-15d", numParams);
 
                         if(l->treeNode->child[0] == NULL) {
@@ -345,41 +387,16 @@ void printSymTab(FILE * listing) {
 
 		if (i == 0) { // Escopo global
 			fprintf(listing, "<Escopo Global>\n");
-            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Nº parametros  Tipo parametros  Origem Variavel  MemLoC  Numero das linhas\n");
-      		fprintf(listing, "----------------  --------  ----------  -------------  ---------------  ---------------  ------  -----------------\n");
+            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Nº parametros  Tipo parametros  Origem Variavel  Tamanho  MemLoC  Numero das linhas\n");
+      		fprintf(listing, "----------------  --------  ----------  -------------  ---------------  ---------------  -------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_GLOBAL);
 		} else {
 			fprintf(listing, "Nome da função: %s\n", scope->funcName);
-            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Origem Variavel  MemLoc  Numero das linhas\n");
-      		fprintf(listing, "----------------  --------  ----------  ---------------  ------  -----------------\n");
+            fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Origem Variavel  Tamanho  MemLoc  Numero das linhas\n");
+      		fprintf(listing, "----------------  --------  ----------  ---------------  -------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_NAO_GLOBAL);
 		}
 
 		fputc('\n', listing);
 	}
 } /* printSymTab */
-
-int getQuantidadeParams(TreeNode * treeNode) {
-    int qtd = 0;
-    if(treeNode != NULL) {
-        ++qtd;
-        while(treeNode->sibling != NULL) {
-            treeNode = treeNode->sibling;
-            ++qtd;
-        }
-    }
-    return qtd;
-}
-
-int getQuantidadeArgumentos(TreeNode * treeNode) {
-    int qtd = 0;
-    TreeNode * temp = treeNode->child[0];
-    if(temp != NULL) {
-        ++qtd;
-        while(temp->sibling != NULL) {
-            temp = temp->sibling;
-            ++qtd;
-        }
-    }
-    return qtd;
-}

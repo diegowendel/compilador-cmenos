@@ -37,6 +37,9 @@ typedef struct escopoGerador {
     int argRegCount;
     int savedRegCount;
     int tempRegCount;
+    int quantidadeParametros;
+    int quantidadeVariaveis;
+    int tamanhoBlocoMemoria;
     const char * nome;
     struct registrador * regList;
     struct escopoGerador * next;
@@ -69,6 +72,10 @@ Registrador createRegistrador(Operand op, char *);
 void insertRegistrador(Registrador r);
 
 void removeRegistrador(char * name);
+
+Registrador getRegistrador(char * name);
+
+void moveRegistrador(char * dest, char * orig);
 
 char * getRegName(char * name);
 

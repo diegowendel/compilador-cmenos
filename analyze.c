@@ -97,7 +97,7 @@ static void insertNode(TreeNode * t) {
                     /* Se nenhum erro de declaração ocorrer e não existir o nome da variável,
                      * adiciona a variável na tabela de símbolos
                      */
-                    st_insert(t->attr.name, t->lineno, location++, t);
+                    st_insert(t->attr.name, t->lineno, location++, t, 1);
                 }
 				break;
 			case VectorK:
@@ -142,8 +142,8 @@ static void insertNode(TreeNode * t) {
                     /* Se nenhum erro de declaração ocorrer e não existir o nome da variável,
                      * adiciona a variável na tabela de símbolos
                      */
-                    st_insert(t->attr.name, t->lineno, location++, t);
                     int tamanhoVetor = t->child[0]->attr.val;
+                    st_insert(t->attr.name, t->lineno, location++, t, tamanhoVetor);
                     // Pula n posições na memória, onde n é o tamanhoVetor
                     location += tamanhoVetor - 1;
                 }

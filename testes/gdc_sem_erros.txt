@@ -1,18 +1,17 @@
 int globalVar;
 
 /* teste de função sem parâmetros e sem corpo */
-int input(int a, int b, int c, int d, int e, int f, int g, int h) {
-	int var;
-	int varrr;
-}
+int input(void) {}
 
 /* teste de função com parâmetro e sem corpo */
-void output(int x, int y, int w, int z, int a, int b, int c) {
-	input(x, y, w, a, z);
+void output(int x) {
+	int a;
 }
 
 /* teste de função com parâmetros e corpo sem declarações */
 int gdc (int u, int v) {
+	int w;
+	int z;
     /* teste de seleção, expressões, return e chamada de função */
     if (v == 0) return u;
     else return gdc(v,u-u/v*v);
