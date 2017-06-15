@@ -353,6 +353,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                 }
 
                 fprintf(listing, "%-17s", varOrigemToString(l->treeNode->varMemK));
+                fprintf(listing, "%-9d", l->tamanho);
 
                 if(l->memloc == -1) {
                     fprintf(listing, "%-8c", '-');

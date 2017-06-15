@@ -218,9 +218,9 @@
                         # -> identifier
                         # x
                         # <- identifier
-                        # -> identifier
-                        # y
-                        # <- identifier
+                        # -> constant
+                        # 99
+                        # <- constant
                     # <- function call: arguments
                     # <- function call
                 # <- function call: arguments
@@ -354,7 +354,7 @@
 29: (param_list, 1, _, _)
 30: (param_list, 2, _, _)
 31: (set_param, x, _, _)
-32: (set_param, y, _, _)
+32: (set_param, 99, _, _)
 33: (call, gdc, 2, t10)
 34: (set_param, t10, _, _)
 35: (call, output, 1, t11)
@@ -384,50 +384,49 @@ gdc:
     2:	jr	$ra
 .L1
     3:	mov	$a0, $a1
-    4:	lw	$s0, 0($sp)
+    4:	lw	$s0, -3($sp)
     5:	div	$t0, $s0, $a0
     6:	mul	$t1, $t0, $a0
     7:	sub	$t2, $s0, $t1
     8:	mov	$a1, $t2
     9:	addi	$sp, $sp, 5
-    10:	sw	$ra, -2($sp)
+    10:	sw	$ra, -4($sp)
     11:	jal	gdc
-    12:	lw	$ra, -2($sp)
+    12:	lw	$ra, -4($sp)
     13:	subi	$sp, $sp, 5
     14:	mov	$t3, $v0
     15:	mov	$v0, $t3
     16:	jr	$ra
 
 main:
-    17:	li	$t0, 1
-    18:	addi	$t1, $t0, 2
-    19:	sw	$t1, 14($sp)
-    20:	in	$t2
-    21:	sw	$t2, 0($sp)
-    22:	in	$t3
-    23:	sw	$t3, 1($sp)
-    24:	lw	$s0, 0($sp)
-    25:	mov	$a0, $s0
-    26:	lw	$s1, 1($sp)
-    27:	mov	$a1, $s1
-    28:	addi	$sp, $sp, 2
+    17:	lw	$s0, -10($sp)
+    18:	li	$t0, 1
+    19:	addi	$t1, $t0, 2
+    20:	sw	$t1, 0($sp)
+    21:	in	$t2
+    22:	sw	$t2, -14($sp)
+    23:	in	$t3
+    24:	sw	$t3, -13($sp)
+    25:	lw	$s0, -14($sp)
+    26:	mov	$a0, $s0
+    27:	li	$a1, 99
+    28:	addi	$sp, $sp, 4
     29:	jal	gdc
     30:	mov	$t4, $v0
-    31:	subi	$sp, $sp, 2
+    31:	subi	$sp, $sp, 4
     32:	mov	$a0, $t4
     33:	out	$out
     34:	li	$t5, 0
-    35:	sw	$t5, 2($sp)
+    35:	sw	$t5, -12($sp)
     36:	li	$t6, 1
-    37:	sw	$t6, 0($sp)
+    37:	sw	$t6, -14($sp)
 .L2
-    38:	lw	$s0, 0($sp)
-    39:	blet	$s0, 10, L3
-    40:	lw	$s1, 2($sp)
-    41:	addi	$t7, $s1, 1
-    42:	sw	$t7, 2($sp)
-    43:	addi	$t8, $s0, 1
-    44:	sw	$t8, 0($sp)
-    45:	j	L2
+    38:	blet	$s0, 10, L3
+    39:	lw	$s0, -12($sp)
+    40:	addi	$t7, $s0, 1
+    41:	sw	$t7, -12($sp)
+    42:	addi	$t8, $s0, 1
+    43:	sw	$t8, -14($sp)
+    44:	j	L2
 .L3
-    46:	halt	
+    45:	halt	

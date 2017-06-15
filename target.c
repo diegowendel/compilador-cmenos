@@ -116,7 +116,9 @@ const char * getRZero() {
 
 /* Busca a posição de memória do operando op, e retorna sua posição com offset na stack */
 const char * getStackOperandLocation(Operand op) {
-    sprintf(str, "%d($sp)", getMemoryLocation(op.contents.variable.name, op.contents.variable.scope));
+    int memloc = getMemoryLocation(op.contents.variable.name, op.contents.variable.scope);
+    int offset = memloc - (escopoHead->tamanhoBlocoMemoria - 1);
+    sprintf(str, "%d($sp)", offset);
     return str;
 }
 
@@ -168,17 +170,9 @@ char * getOperandRegName(Operand op) {
     return opRegName;
 }
 
-char * getOperandResultRegName(Operand op) {
-    char * opRegName;
-    // Cria registrador temporário para armazenar o resultado da expressão
-    opRegName = (char *) getTempReg(escopoHead->tempRegCount++);
-    Registrador r = createRegistrador(op, opRegName);
-    insertRegistrador(r);
-    return opRegName;
-}
-
 char * getTempRegName(Operand op) {
     char * opRegName;
+    // Cria registrador temporário para armazenar o resultado da expressão
     opRegName = (char *) getTempReg(escopoHead->tempRegCount++);
     Registrador r = createRegistrador(op, opRegName);
     insertRegistrador(r);
@@ -191,7 +185,7 @@ void geraCodigoInstrucaoAritmetica(Quadruple q, Opcode op) {
     /* Busca ou atribui o registrador do operando 1 */
     op1RegName = getOperandRegName(q->op1);
     /* Atribui um registrador para o resultado da expressão */
-    op3RegName = getOperandResultRegName(q->op3);
+    op3RegName = getTempRegName(q->op3);
 
     /* OPERANDO 2 */
     if(q->op2.kind == String) { /* Registrador */
@@ -241,6 +235,95 @@ void geraCodigoInstrucaoFuncao(Quadruple q, Opcode op) {
     emitCode(temp);
 }
 
+void geraCodigoChamadaFuncao(Quadruple q) {
+    int tamanhoBlocoMemoria;
+    /* Verifica o nome da função/procedimento que está sendo chamada, se for input ou output imprime as
+     * instruções específicas 'in' e 'out'. Depois verifica o escopo de onde vem a chamada, se for do
+     * escopo da 'main' não guarda $ra na memória, caso contrário guarda $ra na memória.
+     */
+    if(!strcmp(q->op1.contents.variable.name, "input")) {
+        printCode(createObjectInstruction(toStringOpcode(_IN), getTempRegName(q->op3), NULL, NULL));
+    } else if(!strcmp(q->op1.contents.variable.name, "output")) {
+        printCode(createObjectInstruction(toStringOpcode(_OUT), getOutputReg(), NULL, NULL));
+    } else if(!strcmp(escopoHead->nome, "main")) {
+        tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
+        /* Aloca o bloco de memória na stack */
+        pushStackSpace(tamanhoBlocoMemoria);
+        printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
+        printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
+        /* Desaloca o bloco de memória na stack */
+        popStackSpace(tamanhoBlocoMemoria);
+    } else {
+        tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
+        /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
+        pushStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
+        printCode(createObjectInstruction(toStringOpcode(_STORE), getReturnAddressReg(), getStackLocation(-escopoHead->tamanhoBlocoMemoria), NULL));
+        printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
+        printCode(createObjectInstruction(toStringOpcode(_LOAD), getReturnAddressReg(), getStackLocation(-escopoHead->tamanhoBlocoMemoria), NULL));
+        popStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
+        printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
+    }
+}
+
+void geraCodigoSetParam(Quadruple q) {
+    char * regName;
+    /* Se a chamada de função tiver até 4 parâmetros, utiliza os registradores $a0 - $a3
+     * caso contrário, o excedente deve ser armazenado na stack
+     */
+    if(escopoHead->argRegCount < 4) {
+        /* Verifica se é uma constante ou variável */
+        if(q->op1.kind == IntConst) { // Constante
+            printCode(createObjectInstruction(toStringOpcode(_LOADI), getArgReg(escopoHead->argRegCount), itoa(q->op1.contents.val, str, DEC), NULL));
+        } else { // Variável
+            regName = getOperandRegName(q->op1);
+            if(strcmp(getArgReg(escopoHead->argRegCount), regName)) { /* Só move se os registradores forem diferentes */
+                printCode(createObjectInstruction(toStringOpcode(_MOV), getArgReg(escopoHead->argRegCount), regName, NULL));
+                moveRegistrador((char *) getArgReg(escopoHead->argRegCount), regName);
+            }
+        }
+        escopoHead->argRegCount++;
+    } else {
+        /* Verifica se é uma constante ou variável */
+        if(q->op1.kind == IntConst) { // Constante
+            printCode(createObjectInstruction(toStringOpcode(_LOADI), getArgReg(escopoHead->savedRegCount), itoa(q->op1.contents.val, str, DEC), NULL));
+            printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+        } else { // Variável
+            printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+        }
+        escopoHead->savedRegCount++;
+    }
+}
+
+void geraCodigoGetParam(Quadruple q) {
+    /* Se a chamada de função tiver até 4 parâmetros, lê os registradores $a0 - $a3
+     * caso contrário, o excedente deve ser lido da stack
+     */
+    if(escopoHead->argRegCount < 4) {
+        insertRegistrador(createRegistrador(q->op1, (char *) getArgReg(escopoHead->argRegCount)));
+        escopoHead->argRegCount++;
+    } else if(escopoHead->argRegCount >= 4) {
+        insertRegistrador(createRegistrador(q->op1, (char *) getSavedReg(escopoHead->savedRegCount)));
+        printCode(createObjectInstruction(toStringOpcode(_LOAD), (char *) getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+        escopoHead->savedRegCount++;
+    }
+}
+
+void geraCodigoRetorno(Quadruple q) {
+    char * regName;
+    /* Só retorna valor se o escopo atual não for o escopo da main */
+    if(strcmp(escopoHead->nome, "main")) {
+        /* Verifica se há valor para ser retornado */
+        if(q->op1.contents.variable.name != NULL) {
+            regName = getRegName(q->op1.contents.variable.name);
+            if(regName == NULL) {
+                regName = getOperandRegName(q->op1);
+            }
+            printCode(createObjectInstruction(toStringOpcode(_MOV), getReturnValueReg(), regName, NULL));
+        }
+        printCode(createObjectInstruction(toStringOpcode(_JUMPR), getReturnAddressReg(), NULL, NULL));
+    }
+}
+
 void geraCodigoInstrucaoLabel(Quadruple q) {
     // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
     // strcat só insere de forma correta strings inicializadas.
@@ -272,6 +355,7 @@ void printCode(Objeto instrucao) {
 
 void geraCodigoObjeto(Quadruple q) {
     INDENT;
+
     char * regName;
     emitCode("\n********** Código objeto **********");
 
@@ -323,6 +407,7 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* STORE */
 
             case VEC:
+                // regName = getOperandRegName(q->op1);
                 //printCode(createObjectInstruction(toStringOpcode(_VEC), getVectorReg(), q->, const char *op3))
                 break; /* VEC */
 
@@ -332,73 +417,19 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* FUNC */
 
             case RTN:
-                /* Só retorna valor se o escopo atual não for o escopo da main */
-                if(strcmp(escopoHead->nome, "main")) {
-                    /* Verifica se há valor para ser retornado */
-                    if(q->op1.contents.variable.name != NULL) {
-                        regName = getRegName(q->op1.contents.variable.name);
-                        if(regName == NULL) {
-                            regName = getOperandRegName(q->op1);
-                        }
-                        printCode(createObjectInstruction(toStringOpcode(_MOV), getReturnValueReg(), regName, NULL));
-                    }
-                    printCode(createObjectInstruction(toStringOpcode(_JUMPR), getReturnAddressReg(), NULL, NULL));
-                }
+                geraCodigoRetorno(q);
                 break; /* RTN */
 
             case GET_PARAM:
-                /* Se a chamada de função tiver até 4 parâmetros, lê os registradores $a0 - $a3
-                 * caso contrário, o excedente deve ser lido da stack
-                 */
-                if(escopoHead->argRegCount < 4) {
-                    insertRegistrador(createRegistrador(q->op1, (char *) getArgReg(escopoHead->argRegCount)));
-                    escopoHead->argRegCount++;
-                } else if(escopoHead->argRegCount >= 4) {
-                    insertRegistrador(createRegistrador(q->op1, (char *) getSavedReg(escopoHead->savedRegCount)));
-                    printCode(createObjectInstruction(toStringOpcode(_LOAD), (char *) getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
-                    escopoHead->savedRegCount++;
-                }
+                geraCodigoGetParam(q);
                 break; /* GET_PARAM */
 
             case SET_PARAM:
-                regName = getRegName(q->op1.contents.variable.name);
-                if(regName == NULL) {
-                    regName = getOperandRegName(q->op1);
-                }
-                /* Se a chamada de função tiver até 4 parâmetros, utiliza os registradores $a0 - $a3
-                 * caso contrário, o excedente deve ser armazenado na stack
-                 */
-                if(escopoHead->argRegCount < 4) {
-                    if(strcmp(getArgReg(escopoHead->argRegCount), regName)) { /* Só move se os registradores forem diferentes */
-                        printCode(createObjectInstruction(toStringOpcode(_MOV), getArgReg(escopoHead->argRegCount), regName, NULL));
-                        moveRegistrador((char *) getArgReg(escopoHead->argRegCount), regName);
-                    }
-                    escopoHead->argRegCount++;
-                } else if(escopoHead->argRegCount >= 4) {
-                    printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
-                    escopoHead->savedRegCount++;
-                }
+                geraCodigoSetParam(q);
                 break; /* SET_PARAM */
 
             case CALL:
-                if(!strcmp(q->op1.contents.variable.name, "input")) {
-                    printCode(createObjectInstruction(toStringOpcode(_IN), getTempRegName(q->op3), NULL, NULL));
-                } else if(!strcmp(q->op1.contents.variable.name, "output")) {
-                    printCode(createObjectInstruction(toStringOpcode(_OUT), getOutputReg(), NULL, NULL));
-                } else if(!strcmp(escopoHead->nome, "main")) {
-                    pushStackSpace(q->op2.contents.val);
-                    printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
-                    printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
-                    popStackSpace(q->op2.contents.val);
-                } else {
-                    /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
-                    pushStackSpace(escopoHead->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
-                    printCode(createObjectInstruction(toStringOpcode(_STORE), getReturnAddressReg(), getStackLocation(-q->op2.contents.val), NULL));
-                    printCode(createObjectInstruction(toStringOpcode(_JUMPAL), q->op1.contents.variable.name, NULL, NULL));
-                    printCode(createObjectInstruction(toStringOpcode(_LOAD), getReturnAddressReg(), getStackLocation(-q->op2.contents.val), NULL));
-                    popStackSpace(escopoHead->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
-                    printCode(createObjectInstruction(toStringOpcode(_MOV), getTempRegName(q->op3), getReturnValueReg(), NULL));
-                }
+                geraCodigoChamadaFuncao(q);
                 escopoHead->argRegCount = 0;
                 escopoHead->savedRegCount = 0;
                 break; /* CALL */
