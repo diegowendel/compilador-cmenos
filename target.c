@@ -1,5 +1,5 @@
 /****************************************************/
-/* Arquivo: target.h                                */
+/* Arquivo: target.c                                */
 /* Implementação do Gerador de código objeto        */
 /* Diego Wendel de Oliveira Ferreira		        */
 /****************************************************/
@@ -14,39 +14,30 @@
 #define BIN 2
 #define DEC 10
 
+/* Macros para aumentar e diminuir o espaçamento da identação */
+#define INDENT indent+=4
+#define UNINDENT indent-=4
+
 /* Cabeça da lista de instruções objeto */
 Objeto objHead = NULL;
-
-/* Cabeça da lista de registradores */
-Registrador pHead = NULL;
 
 /* Escopo atual */
 EscopoGerador escopoHead = NULL;
 
-/* Variable indentno is used by printTree to
- * store current number of spaces to indent
- */
+/* Variável usada para configurar a identação do código impresso */
 static int indent = 0;
 
-/* macros to increase/decrease indentation */
-#define INDENT indent+=4
-#define UNINDENT indent-=4
-
-static char str[32];
-
-// Vetor de char não inicializado
+/* Variáveis auxiliares na geração de código objeto */
 static char temp[100];
-
+static char str[32];
 static int linha = 0;
 
 const char * toStringOpcode(Opcode op) {
     const char * strings[] = {
         "add", "addi", "sub", "subi", "mul", "muli", "div", "divi",
-        "VEC",
         "and", "andi", "or", "ori", "xor", "xori", "not",
         "sl", "sr",
-        "mov", "movi",
-        "lw", "li", "sw",
+        "mov", "lw", "li", "la", "sw",
         "beq", "bne", "blt", "blet", "bgt", "bget", "j", "jal", "jr",
         "func", "nop", "halt", "reset",
         "in", "out"
@@ -60,6 +51,7 @@ const char * getTempReg(int i) {
      */
     if(i > 9) {
         escopoHead->tempRegCount = 0;
+        i = 0;
     }
     const char * strings[] = {
         "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9" /* Registradores Temporários */
@@ -106,12 +98,17 @@ const char * getOutputReg() {
     return "$out"; /* Registrador para saída de dados */
 }
 
+const char * getRZero() {
+    return "$rz"; /* Registrador com valor Zero */
+}
+
 const char * getVectorReg() {
     return "$vec"; /* Registrador auxiliar para vetores */
 }
 
-const char * getRZero() {
-    return "$rz"; /* Registrador com valor Zero */
+const char * getVectorMemLocation(int offset) {
+    sprintf(str, "%d($vec)", offset);
+    return str;
 }
 
 /* Busca a posição de memória do operando op, e retorna sua posição com offset na stack */
@@ -225,7 +222,16 @@ void geraCodigoInstrucaoLogica(Quadruple q, Opcode op, Operand label) {
     }
 }
 
-void geraCodigoInstrucaoFuncao(Quadruple q, Opcode op) {
+void geraCodigoInstrucaoAtribuicao(Quadruple q) {
+    char * regName = getOperandRegName(q->op2);
+    if(q->op1.contents.variable.scope == NULL) { // Vetor
+        printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getVectorMemLocation(0), NULL));
+    } else { // Variável comum
+        printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getStackOperandLocation(q->op1), NULL));
+    }
+}
+
+void geraCodigoFuncao(Quadruple q, Opcode op) {
     // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
     // strcat só insere de forma correta strings inicializadas.
     memset(temp, '\0', sizeof(temp));
@@ -313,18 +319,28 @@ void geraCodigoRetorno(Quadruple q) {
     /* Só retorna valor se o escopo atual não for o escopo da main */
     if(strcmp(escopoHead->nome, "main")) {
         /* Verifica se há valor para ser retornado */
-        if(q->op1.contents.variable.name != NULL) {
-            regName = getRegName(q->op1.contents.variable.name);
-            if(regName == NULL) {
-                regName = getOperandRegName(q->op1);
-            }
+        if(q->op1.kind != Empty) {
+            regName = getOperandRegName(q->op1);
             printCode(createObjectInstruction(toStringOpcode(_MOV), getReturnValueReg(), regName, NULL));
         }
         printCode(createObjectInstruction(toStringOpcode(_JUMPR), getReturnAddressReg(), NULL, NULL));
     }
 }
 
-void geraCodigoInstrucaoLabel(Quadruple q) {
+void geraCodigoVetor(Quadruple q) {
+    /* Lê o endereço de memória do início do vetor */
+    printCode(createObjectInstruction(toStringOpcode(_LOADA), getVectorReg(), getStackOperandLocation(q->op1), NULL));
+    /* Verifica se o índice é constante ou variável */
+    if(q->op2.kind == String) {
+        printCode(createObjectInstruction(toStringOpcode(_ADD), getVectorReg(), getVectorReg(), getOperandRegName(q->op2)));
+    } else {
+        printCode(createObjectInstruction(toStringOpcode(_ADDI), getVectorReg(), getVectorReg(), itoa(q->op2.contents.val, str, DEC)));
+    }
+    /* Lê o valor da posição do vetor $vec em um registrador temporário */
+    printCode(createObjectInstruction(toStringOpcode(_LOAD), getTempRegName(q->op3), getVectorMemLocation(0), NULL));
+}
+
+void geraCodigoLabel(Quadruple q) {
     // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
     // strcat só insere de forma correta strings inicializadas.
     memset(temp, '\0', sizeof(temp));
@@ -355,10 +371,7 @@ void printCode(Objeto instrucao) {
 
 void geraCodigoObjeto(Quadruple q) {
     INDENT;
-
-    char * regName;
     emitCode("\n********** Código objeto **********");
-
     while(q != NULL) {
         switch (q->instruction) {
             case ADD:
@@ -402,18 +415,17 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* BGET */
 
             case ASN:
-                regName = getOperandRegName(q->op2);
-                printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getStackOperandLocation(q->op1), NULL));
-                break; /* STORE */
+                geraCodigoInstrucaoAtribuicao(q);
+                break; /* ASN */
 
             case VEC:
-                // regName = getOperandRegName(q->op1);
-                //printCode(createObjectInstruction(toStringOpcode(_VEC), getVectorReg(), q->, const char *op3))
+                geraCodigoVetor(q);
                 break; /* VEC */
 
             case FUNC:
-                geraCodigoInstrucaoFuncao(q, _FUNC);
+                geraCodigoFuncao(q, _FUNC);
                 pushEscopoGerador(createEscopoGerador(q->op1.contents.variable.name));
+                escopoHead->savedRegCount = 0;
                 break; /* FUNC */
 
             case RTN:
@@ -431,7 +443,6 @@ void geraCodigoObjeto(Quadruple q) {
             case CALL:
                 geraCodigoChamadaFuncao(q);
                 escopoHead->argRegCount = 0;
-                escopoHead->savedRegCount = 0;
                 break; /* CALL */
 
             case GOTO:
@@ -439,7 +450,7 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* GOTO */
 
             case LBL:
-                geraCodigoInstrucaoLabel(q);
+                geraCodigoLabel(q);
                 break; /* LBL */
 
             case HALT:
@@ -448,7 +459,6 @@ void geraCodigoObjeto(Quadruple q) {
 
             case PARAM_LIST:
                 escopoHead->argRegCount = 0;
-                escopoHead->savedRegCount = 0;
                 break; /* PARAM_LIST */
 
             default:

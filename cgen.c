@@ -281,12 +281,16 @@ static void genExp(TreeNode * tree) {
             emitComment("<- vector: position", indent);
             /* Atribui a instrução atual */
             instrucaoAtual = VEC;
-            /*Temporário */
+            /* Temporário */
             op3 = createTemporaryOperand();
             /* Atualiza o operando atual */
             operandoAtual = op3;
-            /* Cria e insere uma nova representação em código intermediário */
-            insertQuad(createQuad(instrucaoAtual, op1, op2, op3));
+            /* Cria e insere uma nova representação em código intermediário, mas
+             * somente se estiver acessando o vetor
+             */
+            if(tree->varAccess == ACESSANDO) {
+                insertQuad(createQuad(instrucaoAtual, op1, op2, op3));
+            }
             emitComment("<- vector", indent);
             break; /* VectorK */
 

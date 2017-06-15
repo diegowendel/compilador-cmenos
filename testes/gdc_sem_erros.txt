@@ -6,6 +6,7 @@ int input(void) {}
 /* teste de função com parâmetro e sem corpo */
 void output(int x) {
 	int a;
+        return 5; 
 }
 
 /* teste de função com parâmetros e corpo sem declarações */
@@ -27,12 +28,12 @@ void main(void) {
    int v[10];
    int teste;
 
-   teste = 1 + 2;
+   teste = 1 + v[2];
 
    /* chamadas de funções */
    x = input();
    y = input();
-   output(gdc(x, 99));
+   output(gdc(x, y));
 
    /* teste atribuição e repetição */
    u = 0;
@@ -40,8 +41,9 @@ void main(void) {
    while (x <= 10)
    {
       u = u + 1;  
-      /*v[i] = u;*/
-      x = x + 1; 
+      v[i] = u;
+      teste = v[3];
+      x = x + u; 
    }
 
    /* teste return simples */   

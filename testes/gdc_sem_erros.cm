@@ -21,6 +21,13 @@
                     # <- identifier
                 # <- type int
 
+                # -> return
+                # -> return: expression
+                    # -> constant
+                    # 5
+                    # <- constant
+                # <- return: expression
+                # <- return
         # <- function declaration
     # <- type void
 
@@ -173,9 +180,14 @@
                         # <- constant
                     # <- arithmetic operator: left argument
                     # -> arithmetic operator: right argument
-                        # -> constant
-                        # 2
-                        # <- constant
+                        # -> vector
+                        # v
+                        # -> vector: position
+                            # -> constant
+                            # 2
+                            # <- constant
+                        # <- vector: position
+                        # <- vector
                     # <- arithmetic operator: right argument
                     # arithmetic operator: +
                     # <- Operator
@@ -218,9 +230,9 @@
                         # -> identifier
                         # x
                         # <- identifier
-                        # -> constant
-                        # 99
-                        # <- constant
+                        # -> identifier
+                        # y
+                        # <- identifier
                     # <- function call: arguments
                     # <- function call
                 # <- function call: arguments
@@ -290,6 +302,40 @@
                         # <- assign
                         # -> assign
                         # -> assign: left argument
+                            # -> vector
+                            # v
+                            # -> vector: position
+                                # -> identifier
+                                # i
+                                # <- identifier
+                            # <- vector: position
+                            # <- vector
+                        # <- assign: left argument
+                        # -> assign: right argument
+                            # -> identifier
+                            # u
+                            # <- identifier
+                        # <- assign: right argument
+                        # <- assign
+                        # -> assign
+                        # -> assign: left argument
+                            # -> identifier
+                            # teste
+                            # <- identifier
+                        # <- assign: left argument
+                        # -> assign: right argument
+                            # -> vector
+                            # v
+                            # -> vector: position
+                                # -> constant
+                                # 3
+                                # <- constant
+                            # <- vector: position
+                            # <- vector
+                        # <- assign: right argument
+                        # <- assign
+                        # -> assign
+                        # -> assign: left argument
                             # -> identifier
                             # x
                             # <- identifier
@@ -302,9 +348,9 @@
                                 # <- identifier
                             # <- arithmetic operator: left argument
                             # -> arithmetic operator: right argument
-                                # -> constant
-                                # 1
-                                # <- constant
+                                # -> identifier
+                                # u
+                                # <- identifier
                             # <- arithmetic operator: right argument
                             # arithmetic operator: +
                             # <- Operator
@@ -326,107 +372,128 @@
 1: (function, input, _, _)
 2: (function, output, _, _)
 3: (get_param, x, _, _)
-4: (function, gdc, _, _)
-5: (get_param, u, _, _)
-6: (get_param, v, _, _)
-7: (equal, v, 0, t1)
-8: (jump_if_false, t1, L1, _)
-9: (return, u, _, _)
-10: (label, L1, _, _)
-11: (param_list, 2, _, _)
-12: (set_param, v, _, _)
-13: (division, u, v, t2)
-14: (multiplication, t2, v, t3)
-15: (subtraction, u, t3, t4)
-16: (set_param, t4, _, _)
-17: (call, gdc, 2, t5)
-18: (return, t5, _, _)
-19: (function, main, _, _)
-20: (vector, v, 10, t6)
-21: (addition, 1, 2, t7)
-22: (assign, teste, t7, _)
-23: (param_list, 0, _, _)
-24: (call, input, 0, t8)
-25: (assign, x, t8, _)
-26: (param_list, 0, _, _)
-27: (call, input, 0, t9)
-28: (assign, y, t9, _)
-29: (param_list, 1, _, _)
-30: (param_list, 2, _, _)
-31: (set_param, x, _, _)
-32: (set_param, 99, _, _)
-33: (call, gdc, 2, t10)
-34: (set_param, t10, _, _)
-35: (call, output, 1, t11)
-36: (assign, u, 0, _)
-37: (assign, x, 1, _)
-38: (label, L2, _, _)
-39: (less_than_equal_to, x, 10, t12)
-40: (jump_if_false, t12, L3, _)
-41: (addition, u, 1, t13)
-42: (assign, u, t13, _)
-43: (addition, x, 1, t14)
-44: (assign, x, t14, _)
-45: (goto, L2, _, _)
-46: (label, L3, _, _)
-47: (return, _, _, _)
-48: (halt, _, _, _)
+4: (return, 5, _, _)
+5: (function, gdc, _, _)
+6: (get_param, u, _, _)
+7: (get_param, v, _, _)
+8: (equal, v, 0, t1)
+9: (jump_if_false, t1, L1, _)
+10: (return, u, _, _)
+11: (label, L1, _, _)
+12: (param_list, 2, _, _)
+13: (set_param, v, _, _)
+14: (division, u, v, t2)
+15: (multiplication, t2, v, t3)
+16: (subtraction, u, t3, t4)
+17: (set_param, t4, _, _)
+18: (call, gdc, 2, t5)
+19: (return, t5, _, _)
+20: (function, main, _, _)
+21: (vector, v, 2, t7)
+22: (addition, 1, t7, t8)
+23: (assign, teste, t8, _)
+24: (param_list, 0, _, _)
+25: (call, input, 0, t9)
+26: (assign, x, t9, _)
+27: (param_list, 0, _, _)
+28: (call, input, 0, t10)
+29: (assign, y, t10, _)
+30: (param_list, 1, _, _)
+31: (param_list, 2, _, _)
+32: (set_param, x, _, _)
+33: (set_param, y, _, _)
+34: (call, gdc, 2, t11)
+35: (set_param, t11, _, _)
+36: (call, output, 1, t12)
+37: (assign, u, 0, _)
+38: (assign, x, 1, _)
+39: (label, L2, _, _)
+40: (less_than_equal_to, x, 10, t13)
+41: (jump_if_false, t13, L3, _)
+42: (addition, u, 1, t14)
+43: (assign, u, t14, _)
+44: (vector, v, i, t15)
+45: (assign, t15, u, _)
+46: (vector, v, 3, t16)
+47: (assign, teste, t16, _)
+48: (addition, x, u, t17)
+49: (assign, x, t17, _)
+50: (goto, L2, _, _)
+51: (label, L3, _, _)
+52: (return, _, _, _)
+53: (halt, _, _, _)
 
 ********** Código objeto **********
 
 input:
 
 output:
+    0:	li	$t0, 5
+    1:	mov	$v0, $t0
+    2:	jr	$ra
 
 gdc:
-    0:	beq	$a1, 0, L1
-    1:	mov	$v0, $a0
-    2:	jr	$ra
+    3:	beq	$a1, 0, L1
+    4:	mov	$v0, $a0
+    5:	jr	$ra
 .L1
-    3:	mov	$a0, $a1
-    4:	lw	$s0, -3($sp)
-    5:	div	$t0, $s0, $a0
-    6:	mul	$t1, $t0, $a0
-    7:	sub	$t2, $s0, $t1
-    8:	mov	$a1, $t2
-    9:	addi	$sp, $sp, 5
-    10:	sw	$ra, -4($sp)
-    11:	jal	gdc
-    12:	lw	$ra, -4($sp)
-    13:	subi	$sp, $sp, 5
-    14:	mov	$t3, $v0
-    15:	mov	$v0, $t3
-    16:	jr	$ra
+    6:	mov	$a0, $a1
+    7:	lw	$s0, -3($sp)
+    8:	div	$t0, $s0, $a0
+    9:	mul	$t1, $t0, $a0
+    10:	sub	$t2, $s0, $t1
+    11:	mov	$a1, $t2
+    12:	addi	$sp, $sp, 5
+    13:	sw	$ra, -4($sp)
+    14:	jal	gdc
+    15:	lw	$ra, -4($sp)
+    16:	subi	$sp, $sp, 5
+    17:	mov	$t3, $v0
+    18:	mov	$v0, $t3
+    19:	jr	$ra
 
 main:
-    17:	lw	$s0, -10($sp)
-    18:	li	$t0, 1
-    19:	addi	$t1, $t0, 2
-    20:	sw	$t1, 0($sp)
-    21:	in	$t2
-    22:	sw	$t2, -14($sp)
-    23:	in	$t3
-    24:	sw	$t3, -13($sp)
-    25:	lw	$s0, -14($sp)
-    26:	mov	$a0, $s0
-    27:	li	$a1, 99
-    28:	addi	$sp, $sp, 4
-    29:	jal	gdc
-    30:	mov	$t4, $v0
-    31:	subi	$sp, $sp, 4
-    32:	mov	$a0, $t4
-    33:	out	$out
-    34:	li	$t5, 0
-    35:	sw	$t5, -12($sp)
-    36:	li	$t6, 1
-    37:	sw	$t6, -14($sp)
+    20:	la	$vec, -10($sp)
+    21:	addi	$vec, $vec, 2
+    22:	lw	$t0, 0($vec)
+    23:	li	$t1, 1
+    24:	add	$t2, $t1, $t0
+    25:	sw	$t2, 0($sp)
+    26:	in	$t3
+    27:	sw	$t3, -14($sp)
+    28:	in	$t4
+    29:	sw	$t4, -13($sp)
+    30:	lw	$s0, -14($sp)
+    31:	mov	$a0, $s0
+    32:	lw	$s1, -13($sp)
+    33:	mov	$a1, $s1
+    34:	addi	$sp, $sp, 4
+    35:	jal	gdc
+    36:	mov	$t5, $v0
+    37:	subi	$sp, $sp, 4
+    38:	mov	$a0, $t5
+    39:	out	$out
+    40:	li	$t6, 0
+    41:	sw	$t6, -12($sp)
+    42:	li	$t7, 1
+    43:	sw	$t7, -14($sp)
 .L2
-    38:	blet	$s0, 10, L3
-    39:	lw	$s0, -12($sp)
-    40:	addi	$t7, $s0, 1
-    41:	sw	$t7, -12($sp)
-    42:	addi	$t8, $s0, 1
-    43:	sw	$t8, -14($sp)
-    44:	j	L2
+    44:	lw	$s2, -14($sp)
+    45:	blet	$s2, 10, L3
+    46:	lw	$s3, -12($sp)
+    47:	addi	$t8, $s3, 1
+    48:	sw	$t8, -12($sp)
+    49:	la	$vec, -10($sp)
+    50:	lw	$s4, -11($sp)
+    51:	add	$vec, $vec, $s4
+    52:	lw	$t9, 0($vec)
+    53:	sw	$s3, 0($vec)
+    54:	la	$vec, -10($sp)
+    55:	addi	$vec, $vec, 3
+    56:	lw	$t0, 0($vec)
+    57:	sw	$t0, 0($sp)
+    58:	add	$t0, $s2, $s3
+    59:	sw	$t0, -14($sp)
+    60:	j	L2
 .L3
-    45:	halt	
+    61:	halt	
