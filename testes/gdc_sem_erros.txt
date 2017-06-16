@@ -1,14 +1,5 @@
 int globalVar;
 
-/* teste de função sem parâmetros e sem corpo */
-int input(void) {}
-
-/* teste de função com parâmetro e sem corpo */
-void output(int x) {
-	int a;
-        return 5; 
-}
-
 /* teste de função com parâmetros e corpo sem declarações */
 int gdc (int u, int v) {
 	int w;
@@ -28,7 +19,7 @@ void main(void) {
    int v[10];
    int teste;
 
-   teste = 1 + v[2];
+   v[0] = v[1] + v[2];
 
    /* chamadas de funções */
    x = input();

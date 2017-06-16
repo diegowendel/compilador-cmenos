@@ -188,7 +188,7 @@ static void afterInsertNode(TreeNode * t) {
  * table by preorder traversal of the syntax tree
  */
 void buildSymtab(TreeNode * syntaxTree) {
-	globalScope = sc_create("ESCOPO_GLOBAL");
+	globalScope = sc_create((char *) "ESCOPO_GLOBAL");
 	sc_push(globalScope);
 	traverse(syntaxTree, insertNode, afterInsertNode);
 	sc_pop();

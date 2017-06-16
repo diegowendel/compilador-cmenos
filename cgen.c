@@ -297,24 +297,29 @@ static void genExp(TreeNode * tree) {
         case FunctionK:
             emitComment("-> function declaration", indent);
             emitComment(tree->attr.name, indent);
-            op1.kind = String;
-            op1.contents.variable.name = tree->attr.name;
-            op1.contents.variable.scope = tree->scope;
-            insertQuad(createQuad(FUNC, op1, vazio, vazio));
 
-            /* list of parameters */
-            p1 = tree->child[0];
-            while(p1 != NULL) {
-                op2.kind = String;
-                op2.contents.variable.name = p1->child[0]->attr.name;
-                op2.contents.variable.scope = p1->child[0]->scope;
-                insertQuad(createQuad(GET_PARAM, op2, vazio, vazio));
-                p1 = p1->sibling;
+            /* Se for função de input ou output não gera código intermediário */
+            if(strcmp(tree->attr.name, "input") && strcmp(tree->attr.name, "output")) {
+                op1.kind = String;
+                op1.contents.variable.name = tree->attr.name;
+                op1.contents.variable.scope = tree->scope;
+                insertQuad(createQuad(FUNC, op1, vazio, vazio));
+
+                /* list of parameters */
+                p1 = tree->child[0];
+                while(p1 != NULL) {
+                    op2.kind = String;
+                    op2.contents.variable.name = p1->child[0]->attr.name;
+                    op2.contents.variable.scope = p1->child[0]->scope;
+                    insertQuad(createQuad(GET_PARAM, op2, vazio, vazio));
+                    p1 = p1->sibling;
+                }
+
+                /* build code for function block */
+                p2 = tree->child[1];
+                cGen(p2);
             }
 
-            /* build code for function block */
-            p2 = tree->child[1];
-            cGen(p2);
             emitComment("<- function declaration", indent);
             break;
 

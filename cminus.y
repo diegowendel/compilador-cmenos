@@ -19,6 +19,7 @@ static int savedLineNo;  /* ditto */
 static TreeNode * savedTree; /* stores syntax tree for later return */
 static int yylex(void);
 static int yyerror(char * message);
+static TreeNode * insertIOFunctions();
 %}
 
 %token IF WHILE RETURN ELSE
@@ -32,7 +33,9 @@ static int yyerror(char * message);
 
 %% /* Gramática C- */
 
-programa    		: declaracao_lista { savedTree = $1; }
+programa    		: declaracao_lista { savedTree = insertIOFunctions();
+                                         savedTree->sibling->sibling = $1;
+                                       }
            		;
 declaracao_lista	: declaracao_lista declaracao
                  	{
@@ -373,4 +376,35 @@ static int yylex(void) {
 TreeNode * parse(void) {
     yyparse();
     return savedTree;
+}
+
+/* Insere as funções input e output na árvore sintática */
+static TreeNode * insertIOFunctions() {
+    /*********** Output **********/
+    TreeNode * output = newExpNode(FunctionK);
+    output->attr.name = "output";
+    output->type = Void;
+    output->varMemK = FUNCAO;
+    output->lineno = 0;
+
+    TreeNode * voidNode = newStmtNode(VoidK);
+    voidNode->attr.name = "void";
+    voidNode->type = Void;
+    voidNode->child[0] = output;
+
+    /********** Input **********/
+    TreeNode * input = newExpNode(FunctionK);
+    input->attr.name = "input";
+    input->type = Integer;
+    input->varMemK = FUNCAO;
+    input->lineno = 0;
+
+    TreeNode * intNode = newStmtNode(IntegerK);
+    intNode->attr.name = "int";
+    intNode->type = Integer;
+    intNode->child[0] = input;
+
+    /********** Adicionando na árvore **********/
+    intNode->sibling = voidNode;
+    return intNode;
 }

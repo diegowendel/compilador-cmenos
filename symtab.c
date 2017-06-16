@@ -392,9 +392,12 @@ void printSymTab(FILE * listing) {
       		fprintf(listing, "----------------  --------  ----------  -------------  ---------------  ---------------  -------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_GLOBAL);
 		} else {
-			fprintf(listing, "Nome da função: %s\n", scope->funcName);
+            if(!strcmp(scope->funcName, "input") || !strcmp(scope->funcName, "output")) {
+                continue;
+            }
+            fprintf(listing, "Nome da função: %s\n", scope->funcName);
             fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Origem Variavel  Tamanho  MemLoc  Numero das linhas\n");
-      		fprintf(listing, "----------------  --------  ----------  ---------------  -------  ------  -----------------\n");
+            fprintf(listing, "----------------  --------  ----------  ---------------  -------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_NAO_GLOBAL);
 		}
 

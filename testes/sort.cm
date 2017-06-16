@@ -1,0 +1,584 @@
+# Compilação C- para código intermediário
+# Arquivo: testes/sort.cm
+    # -> type int
+        # -> function declaration
+        # input
+        # <- function declaration
+    # <- type int
+
+    # -> type void
+        # -> function declaration
+        # output
+        # <- function declaration
+    # <- type void
+
+    # -> type void
+        # -> function declaration
+        # sort
+                # -> type int
+                    # -> identifier
+                    # i
+                    # <- identifier
+                # <- type int
+
+                # -> type int
+                    # -> identifier
+                    # j
+                    # <- identifier
+                # <- type int
+
+                # -> type int
+                    # -> identifier
+                    # min
+                    # <- identifier
+                # <- type int
+
+                # -> type int
+                    # -> identifier
+                    # aux
+                    # <- identifier
+                # <- type int
+
+                # -> assign
+                # -> assign: left argument
+                    # -> identifier
+                    # i
+                    # <- identifier
+                # <- assign: left argument
+                # -> assign: right argument
+                    # -> constant
+                    # 0
+                    # <- constant
+                # <- assign: right argument
+                # <- assign
+                # -> while
+                # -> while: test expression
+                    # -> arithmetic operator
+                    # -> arithmetic operator: left argument
+                        # -> identifier
+                        # i
+                        # <- identifier
+                    # <- arithmetic operator: left argument
+                    # -> arithmetic operator: right argument
+                        # -> arithmetic operator
+                        # -> arithmetic operator: left argument
+                            # -> identifier
+                            # tam
+                            # <- identifier
+                        # <- arithmetic operator: left argument
+                        # -> arithmetic operator: right argument
+                            # -> constant
+                            # 1
+                            # <- constant
+                        # <- arithmetic operator: right argument
+                        # arithmetic operator: -
+                        # <- Operator
+                    # <- arithmetic operator: right argument
+                    # relational operator: <
+                    # <- Operator
+                # <- while: test expression
+                # -> while: while block
+                        # -> assign
+                        # -> assign: left argument
+                            # -> identifier
+                            # min
+                            # <- identifier
+                        # <- assign: left argument
+                        # -> assign: right argument
+                            # -> identifier
+                            # i
+                            # <- identifier
+                        # <- assign: right argument
+                        # <- assign
+                        # -> assign
+                        # -> assign: left argument
+                            # -> identifier
+                            # j
+                            # <- identifier
+                        # <- assign: left argument
+                        # -> assign: right argument
+                            # -> arithmetic operator
+                            # -> arithmetic operator: left argument
+                                # -> identifier
+                                # i
+                                # <- identifier
+                            # <- arithmetic operator: left argument
+                            # -> arithmetic operator: right argument
+                                # -> constant
+                                # 1
+                                # <- constant
+                            # <- arithmetic operator: right argument
+                            # arithmetic operator: +
+                            # <- Operator
+                        # <- assign: right argument
+                        # <- assign
+                        # -> while
+                        # -> while: test expression
+                            # -> arithmetic operator
+                            # -> arithmetic operator: left argument
+                                # -> identifier
+                                # j
+                                # <- identifier
+                            # <- arithmetic operator: left argument
+                            # -> arithmetic operator: right argument
+                                # -> identifier
+                                # tam
+                                # <- identifier
+                            # <- arithmetic operator: right argument
+                            # relational operator: <
+                            # <- Operator
+                        # <- while: test expression
+                        # -> while: while block
+                                # -> if
+                                # -> if: test expression
+                                    # -> arithmetic operator
+                                    # -> arithmetic operator: left argument
+                                        # -> vector
+                                        # num
+                                        # -> vector: position
+                                            # -> identifier
+                                            # j
+                                            # <- identifier
+                                        # <- vector: position
+                                        # <- vector
+                                    # <- arithmetic operator: left argument
+                                    # -> arithmetic operator: right argument
+                                        # -> vector
+                                        # num
+                                        # -> vector: position
+                                            # -> identifier
+                                            # min
+                                            # <- identifier
+                                        # <- vector: position
+                                        # <- vector
+                                    # <- arithmetic operator: right argument
+                                    # relational operator: <
+                                    # <- Operator
+                                # <- if: test expression
+                                # -> if: if block
+                                    # -> assign
+                                    # -> assign: left argument
+                                        # -> identifier
+                                        # min
+                                        # <- identifier
+                                    # <- assign: left argument
+                                    # -> assign: right argument
+                                        # -> identifier
+                                        # j
+                                        # <- identifier
+                                    # <- assign: right argument
+                                    # <- assign
+                                # <- if: if block
+                                # -> if: else/end block
+                                # <- if: else/end block
+                                # <- if
+                                # -> assign
+                                # -> assign: left argument
+                                    # -> identifier
+                                    # j
+                                    # <- identifier
+                                # <- assign: left argument
+                                # -> assign: right argument
+                                    # -> arithmetic operator
+                                    # -> arithmetic operator: left argument
+                                        # -> identifier
+                                        # j
+                                        # <- identifier
+                                    # <- arithmetic operator: left argument
+                                    # -> arithmetic operator: right argument
+                                        # -> constant
+                                        # 1
+                                        # <- constant
+                                    # <- arithmetic operator: right argument
+                                    # arithmetic operator: +
+                                    # <- Operator
+                                # <- assign: right argument
+                                # <- assign
+                        # <- while: while block
+                        # <- while
+                        # -> if
+                        # -> if: test expression
+                            # -> arithmetic operator
+                            # -> arithmetic operator: left argument
+                                # -> identifier
+                                # i
+                                # <- identifier
+                            # <- arithmetic operator: left argument
+                            # -> arithmetic operator: right argument
+                                # -> identifier
+                                # min
+                                # <- identifier
+                            # <- arithmetic operator: right argument
+                            # relational operator: !=
+                            # <- Operator
+                        # <- if: test expression
+                        # -> if: if block
+                                # -> assign
+                                # -> assign: left argument
+                                    # -> identifier
+                                    # aux
+                                    # <- identifier
+                                # <- assign: left argument
+                                # -> assign: right argument
+                                    # -> vector
+                                    # num
+                                    # -> vector: position
+                                        # -> identifier
+                                        # i
+                                        # <- identifier
+                                    # <- vector: position
+                                    # <- vector
+                                # <- assign: right argument
+                                # <- assign
+                                # -> assign
+                                # -> assign: left argument
+                                    # -> vector
+                                    # num
+                                    # -> vector: position
+                                        # -> identifier
+                                        # i
+                                        # <- identifier
+                                    # <- vector: position
+                                    # <- vector
+                                # <- assign: left argument
+                                # -> assign: right argument
+                                    # -> vector
+                                    # num
+                                    # -> vector: position
+                                        # -> identifier
+                                        # min
+                                        # <- identifier
+                                    # <- vector: position
+                                    # <- vector
+                                # <- assign: right argument
+                                # <- assign
+                                # -> assign
+                                # -> assign: left argument
+                                    # -> vector
+                                    # num
+                                    # -> vector: position
+                                        # -> identifier
+                                        # min
+                                        # <- identifier
+                                    # <- vector: position
+                                    # <- vector
+                                # <- assign: left argument
+                                # -> assign: right argument
+                                    # -> identifier
+                                    # aux
+                                    # <- identifier
+                                # <- assign: right argument
+                                # <- assign
+                        # <- if: if block
+                        # -> if: else/end block
+                        # <- if: else/end block
+                        # <- if
+                        # -> assign
+                        # -> assign: left argument
+                            # -> identifier
+                            # i
+                            # <- identifier
+                        # <- assign: left argument
+                        # -> assign: right argument
+                            # -> arithmetic operator
+                            # -> arithmetic operator: left argument
+                                # -> identifier
+                                # i
+                                # <- identifier
+                            # <- arithmetic operator: left argument
+                            # -> arithmetic operator: right argument
+                                # -> constant
+                                # 1
+                                # <- constant
+                            # <- arithmetic operator: right argument
+                            # arithmetic operator: +
+                            # <- Operator
+                        # <- assign: right argument
+                        # <- assign
+                # <- while: while block
+                # <- while
+        # <- function declaration
+    # <- type void
+
+    # -> type void
+        # -> function declaration
+        # main
+                # -> type int
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 4
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- type int
+
+                # -> type int
+                    # -> identifier
+                    # i
+                    # <- identifier
+                # <- type int
+
+                # -> assign
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 0
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # -> assign: right argument
+                    # -> constant
+                    # 9
+                    # <- constant
+                # <- assign: right argument
+                # <- assign
+                # -> assign
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # -> assign: right argument
+                    # -> constant
+                    # 6
+                    # <- constant
+                # <- assign: right argument
+                # <- assign
+                # -> assign
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 2
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # -> assign: right argument
+                    # -> constant
+                    # 8
+                    # <- constant
+                # <- assign: right argument
+                # <- assign
+                # -> assign
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 3
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # -> assign: right argument
+                    # -> constant
+                    # 7
+                    # <- constant
+                # <- assign: right argument
+                # <- assign
+                # -> function call
+                # sort
+                # -> function call: arguments
+                    # -> identifier
+                    # vetor
+                    # <- identifier
+                    # -> constant
+                    # 4
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> assign
+                # -> assign: left argument
+                    # -> identifier
+                    # i
+                    # <- identifier
+                # <- assign: left argument
+                # -> assign: right argument
+                    # -> function call
+                    # input
+                    # -> function call: arguments
+                    # <- function call: arguments
+                    # <- function call
+                # <- assign: right argument
+                # <- assign
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> identifier
+                        # i
+                        # <- identifier
+                    # <- vector: position
+                    # <- vector
+                # <- function call: arguments
+                # <- function call
+        # <- function declaration
+    # <- type void
+
+# Fim da execução.
+
+********** Código intermediário **********
+
+1: (function, sort, _, _)
+2: (get_param, num, _, _)
+3: (get_param, tam, _, _)
+4: (assign, i, 0, _)
+5: (label, L1, _, _)
+6: (subtraction, tam, 1, t1)
+7: (less_than, i, t1, t2)
+8: (jump_if_false, t2, L6, _)
+9: (assign, min, i, _)
+10: (addition, i, 1, t3)
+11: (assign, j, t3, _)
+12: (label, L2, _, _)
+13: (less_than, j, tam, t4)
+14: (jump_if_false, t4, L4, _)
+15: (vector, num, j, t5)
+16: (vector, num, min, t6)
+17: (less_than, t5, t6, t7)
+18: (jump_if_false, t7, L3, _)
+19: (assign, min, j, _)
+20: (label, L3, _, _)
+21: (addition, j, 1, t8)
+22: (assign, j, t8, _)
+23: (goto, L2, _, _)
+24: (label, L4, _, _)
+25: (not_equal, i, min, t9)
+26: (jump_if_false, t9, L5, _)
+27: (vector, num, i, t10)
+28: (assign, aux, t10, _)
+29: (vector, num, i, t11)
+30: (vector, num, min, t12)
+31: (assign, t11, t12, _)
+32: (vector, num, min, t13)
+33: (assign, t13, aux, _)
+34: (label, L5, _, _)
+35: (addition, i, 1, t14)
+36: (assign, i, t14, _)
+37: (goto, L1, _, _)
+38: (label, L6, _, _)
+39: (function, main, _, _)
+40: (vector, vetor, 0, t16)
+41: (assign, t16, 9, _)
+42: (vector, vetor, 1, t17)
+43: (assign, t17, 6, _)
+44: (vector, vetor, 2, t18)
+45: (assign, t18, 8, _)
+46: (vector, vetor, 3, t19)
+47: (assign, t19, 7, _)
+48: (param_list, 2, _, _)
+49: (set_param, vetor, _, _)
+50: (set_param, 4, _, _)
+51: (call, sort, 2, t20)
+52: (param_list, 0, _, _)
+53: (call, input, 0, t21)
+54: (assign, i, t21, _)
+55: (param_list, 1, _, _)
+56: (vector, vetor, i, t22)
+57: (set_param, t22, _, _)
+58: (call, output, 1, t23)
+59: (halt, _, _, _)
+
+********** Código objeto **********
+
+sort:
+    0:	li	$t0, 0
+    1:	sw	$t0, -3($sp)
+.L1
+    2:	subi	$t1, $a1, 1
+    3:	lw	$s0, -3($sp)
+    4:	blt	$s0, $t1, L6
+    5:	sw	$s0, -1($sp)
+    6:	addi	$t2, $s0, 1
+    7:	sw	$t2, -2($sp)
+.L2
+    8:	lw	$s1, -2($sp)
+    9:	blt	$s1, $a1, L4
+    10:	la	$vec, -5($sp)
+    11:	add	$vec, $vec, $s1
+    12:	lw	$t3, 0($vec)
+    13:	la	$vec, -5($sp)
+    14:	lw	$s2, -1($sp)
+    15:	add	$vec, $vec, $s2
+    16:	lw	$t4, 0($vec)
+    17:	blt	$t3, $t4, L3
+    18:	sw	$s1, -1($sp)
+.L3
+    19:	addi	$t5, $s1, 1
+    20:	sw	$t5, -2($sp)
+    21:	j	L2
+.L4
+    22:	bne	$s0, $s2, L5
+    23:	la	$vec, -5($sp)
+    24:	add	$vec, $vec, $s0
+    25:	lw	$t6, 0($vec)
+    26:	sw	$t6, 0($sp)
+    27:	la	$vec, -5($sp)
+    28:	add	$vec, $vec, $s0
+    29:	lw	$t7, 0($vec)
+    30:	la	$vec, -5($sp)
+    31:	add	$vec, $vec, $s2
+    32:	lw	$t8, 0($vec)
+    33:	sw	$t8, 0($vec)
+    34:	la	$vec, -5($sp)
+    35:	add	$vec, $vec, $s2
+    36:	lw	$t9, 0($vec)
+    37:	lw	$s3, 0($sp)
+    38:	sw	$s3, 0($vec)
+.L5
+    39:	addi	$t0, $s0, 1
+    40:	sw	$t0, -3($sp)
+    41:	j	L1
+.L6
+
+main:
+    42:	la	$vec, -4($sp)
+    43:	addi	$vec, $vec, 0
+    44:	lw	$t0, 0($vec)
+    45:	li	$t1, 9
+    46:	sw	$t1, 0($vec)
+    47:	la	$vec, -4($sp)
+    48:	addi	$vec, $vec, 1
+    49:	lw	$t2, 0($vec)
+    50:	li	$t3, 6
+    51:	sw	$t3, 0($vec)
+    52:	la	$vec, -4($sp)
+    53:	addi	$vec, $vec, 2
+    54:	lw	$t4, 0($vec)
+    55:	li	$t5, 8
+    56:	sw	$t5, 0($vec)
+    57:	la	$vec, -4($sp)
+    58:	addi	$vec, $vec, 3
+    59:	lw	$t6, 0($vec)
+    60:	li	$t7, 7
+    61:	sw	$t7, 0($vec)
+    62:	lw	$s0, -4($sp)
+    63:	mov	$a0, $s0
+    64:	li	$a1, 4
+    65:	addi	$sp, $sp, 6
+    66:	jal	sort
+    67:	mov	$t8, $v0
+    68:	subi	$sp, $sp, 6
+    69:	in	$t9
+    70:	sw	$t9, 0($sp)
+    71:	la	$vec, -4($sp)
+    72:	lw	$s1, 0($sp)
+    73:	add	$vec, $vec, $s1
+    74:	lw	$t0, 0($vec)
+    75:	mov	$a0, $t0
+    76:	out	$out
+    77:	halt	
