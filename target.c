@@ -102,12 +102,16 @@ const char * getRZero() {
     return "$rz"; /* Registrador com valor Zero */
 }
 
+const char * getParamRefReg() {
+    return "$ref";
+}
+
 const char * getVectorReg() {
     return "$vec"; /* Registrador auxiliar para vetores */
 }
 
-const char * getVectorMemLocation(int offset) {
-    sprintf(str, "%d($vec)", offset);
+const char * getVectorMemLocation(char * regName) {
+    sprintf(str, "0(%s)", regName);
     return str;
 }
 
@@ -165,6 +169,18 @@ char * getOperandRegName(Operand op) {
         printCode(createObjectInstruction(toStringOpcode(_LOADI), opRegName, op1, NULL));
     }
     return opRegName;
+}
+
+char * getVectorRegName(Operand op) {
+    char * regName = getRegName(op.contents.variable.name);
+    if(regName == NULL) {
+        regName = (char *) getSavedReg(escopoHead->savedRegCount++);
+        Registrador r = createRegistrador(op, regName);
+        insertRegistrador(r);
+        /* Lê o endereço de memória do início do vetor */
+        printCode(createObjectInstruction(toStringOpcode(_LOADA), regName, getStackOperandLocation(op), NULL));
+    }
+    return regName;
 }
 
 char * getTempRegName(Operand op) {
@@ -225,7 +241,7 @@ void geraCodigoInstrucaoLogica(Quadruple q, Opcode op, Operand label) {
 void geraCodigoInstrucaoAtribuicao(Quadruple q) {
     char * regName = getOperandRegName(q->op2);
     if(q->op1.contents.variable.scope == NULL) { // Vetor
-        printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getVectorMemLocation(0), NULL));
+        // oprintCode(createObjectInstruction(toStringOpcode(_STORE), regName, getVectorMemLocation(regName), NULL));
     } else { // Variável comum
         printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getStackOperandLocation(q->op1), NULL));
     }
@@ -273,29 +289,43 @@ void geraCodigoChamadaFuncao(Quadruple q) {
 
 void geraCodigoSetParam(Quadruple q) {
     char * regName;
+    BucketList var = NULL;
+    /* Verifica se é uma variável para recuperar o BucketList correspondente */
+    if(q->op1.kind == String && q->op1.contents.variable.scope != NULL) {
+        // Recupera o BucketList da variável
+        var = getVarFromSymtab(q->op1.contents.variable.name, q->op1.contents.variable.scope);
+    }
     /* Se a chamada de função tiver até 4 parâmetros, utiliza os registradores $a0 - $a3
      * caso contrário, o excedente deve ser armazenado na stack
      */
     if(escopoHead->argRegCount < 4) {
         /* Verifica se é uma constante ou variável */
-        if(q->op1.kind == IntConst) { // Constante
-            printCode(createObjectInstruction(toStringOpcode(_LOADI), getArgReg(escopoHead->argRegCount), itoa(q->op1.contents.val, str, DEC), NULL));
-        } else { // Variável
-            regName = getOperandRegName(q->op1);
-            if(strcmp(getArgReg(escopoHead->argRegCount), regName)) { /* Só move se os registradores forem diferentes */
-                printCode(createObjectInstruction(toStringOpcode(_MOV), getArgReg(escopoHead->argRegCount), regName, NULL));
-                moveRegistrador((char *) getArgReg(escopoHead->argRegCount), regName);
+        if(q->op1.kind == String) { // Variável
+            if(var != NULL && var->treeNode->kind.exp == VectorK) { // Vetor
+                printCode(createObjectInstruction(toStringOpcode(_LOADA), getArgReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+            } else { // Variável
+                regName = getOperandRegName(q->op1);
+                if(strcmp(getArgReg(escopoHead->argRegCount), regName)) { /* Só move se os registradores forem diferentes */
+                    printCode(createObjectInstruction(toStringOpcode(_MOV), getArgReg(escopoHead->argRegCount), regName, NULL));
+                    moveRegistrador((char *) getArgReg(escopoHead->argRegCount), regName);
+                }
             }
+        } else { // Constante
+            printCode(createObjectInstruction(toStringOpcode(_LOADI), getArgReg(escopoHead->argRegCount), itoa(q->op1.contents.val, str, DEC), NULL));
         }
         escopoHead->argRegCount++;
-    } else {
+    } else { // TODO fazer o resto
         /* Verifica se é uma constante ou variável */
-        if(q->op1.kind == IntConst) { // Constante
-            printCode(createObjectInstruction(toStringOpcode(_LOADI), getArgReg(escopoHead->savedRegCount), itoa(q->op1.contents.val, str, DEC), NULL));
-            printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
-        } else { // Variável
-            printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+        if(q->op1.kind == String) { // Variável
+            if(var != NULL && var->treeNode->kind.exp == VectorK) { // Vetor
+                printCode(createObjectInstruction(toStringOpcode(_LOADA), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+            } else { // Variável
+                printCode(createObjectInstruction(toStringOpcode(_LOAD), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
+            }
+        } else { // Constante
+            printCode(createObjectInstruction(toStringOpcode(_LOADI), getSavedReg(escopoHead->savedRegCount), itoa(q->op1.contents.val, str, DEC), NULL));
         }
+        printCode(createObjectInstruction(toStringOpcode(_STORE), getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL));
         escopoHead->savedRegCount++;
     }
 }
@@ -328,16 +358,15 @@ void geraCodigoRetorno(Quadruple q) {
 }
 
 void geraCodigoVetor(Quadruple q) {
-    /* Lê o endereço de memória do início do vetor */
-    printCode(createObjectInstruction(toStringOpcode(_LOADA), getVectorReg(), getStackOperandLocation(q->op1), NULL));
+    char * regName = getVectorRegName(q->op1);
     /* Verifica se o índice é constante ou variável */
     if(q->op2.kind == String) {
-        printCode(createObjectInstruction(toStringOpcode(_ADD), getVectorReg(), getVectorReg(), getOperandRegName(q->op2)));
+        printCode(createObjectInstruction(toStringOpcode(_ADD), regName, regName, getOperandRegName(q->op2)));
     } else {
-        printCode(createObjectInstruction(toStringOpcode(_ADDI), getVectorReg(), getVectorReg(), itoa(q->op2.contents.val, str, DEC)));
+        printCode(createObjectInstruction(toStringOpcode(_ADDI), regName, regName, itoa(q->op2.contents.val, str, DEC)));
     }
-    /* Lê o valor da posição do vetor $vec em um registrador temporário */
-    printCode(createObjectInstruction(toStringOpcode(_LOAD), getTempRegName(q->op3), getVectorMemLocation(0), NULL));
+    /* Lê o valor da posição do vetor em um registrador temporário */
+    printCode(createObjectInstruction(toStringOpcode(_LOAD), getTempRegName(q->op3), getVectorMemLocation(regName), NULL));
 }
 
 void geraCodigoLabel(Quadruple q) {
@@ -458,6 +487,7 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* HALT */
 
             case PARAM_LIST:
+                //fprintf(listing, "params: %d\n", q->op1.contents.val);
                 escopoHead->argRegCount = 0;
                 break; /* PARAM_LIST */
 

@@ -1,11 +1,11 @@
 int globalVar;
 
 /* teste de função com parâmetros e corpo sem declarações */
-int gdc (int u, int v) {
-	int w;
-	int z;
+int gdc (int u, int v, int vetor[]) {
+	int w[60];
+	int z[60];
     /* teste de seleção, expressões, return e chamada de função */
-    if (v == 0) return u;
+    if (vetor[1] == 0) return u;
     else return gdc(v,u-u/v*v);
 }
 
@@ -24,7 +24,7 @@ void main(void) {
    /* chamadas de funções */
    x = input();
    y = input();
-   output(gdc(x, y));
+   output(gdc(v, y, 10));
 
    /* teste atribuição e repetição */
    u = 0;

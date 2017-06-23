@@ -128,6 +128,7 @@ param 			: tipo_especificador id
 				$$->child[0] = $2;
 				$$->child[0]->type = $$->type;
                 $$->child[0]->varMemK = PARAM;
+                $$->child[0]->kind.exp = VectorK;
 			}
 			;
 composto_decl		: LKEY local_declaracoes statement_lista RKEY

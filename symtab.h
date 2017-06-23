@@ -83,6 +83,8 @@ void sc_push(Scope scope);
 
 int st_lookup_func (char * name);
 
+BucketList getVarFromSymtab(char * nome, Scope escopo);
+
 int getMemoryLocation(char * nome, Scope escopo);
 
 /* Procedure printSymTab prints a formatted

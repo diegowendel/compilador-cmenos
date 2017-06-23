@@ -141,6 +141,22 @@ BucketList st_bucket_func (char * name) {
     }
 }
 
+BucketList getVarFromSymtab(char * nome, Scope escopo) {
+    int h = hash(nome);
+    BucketList l = escopo->hashTable[h];
+    while (l != NULL) {
+        /* !strcmp(const char *s1, const char *s2) verifica se as duas
+         * strings passadas como parâmetro são iguais. Retorna 0 em caso
+         * verdadeiro, por isso o símbolo '!' antes da função
+         */
+        if(!strcmp(l->name, nome)) {
+            return l;
+        }
+        l = l->next;
+    }
+    return NULL;
+}
+
 int getMemoryLocation(char * nome, Scope escopo) {
     int h = hash(nome);
     BucketList l = escopo->hashTable[h];
