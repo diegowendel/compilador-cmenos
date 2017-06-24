@@ -79,6 +79,10 @@ void geraCodigoObjeto(Quadruple q);
 
 void printCode(Objeto instrucao);
 
-Objeto createObjectInstruction(const char * opcode, const char * op1, const char * op2, const char * op3);
+Objeto createObjInst(const char * opcode, const char * op1, const char * op2, const char * op3);
+
+Objeto insertObjInst(Objeto obj);
+
+Objeto getCodigoObjeto(void);
 
 #endif

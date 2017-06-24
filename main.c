@@ -17,10 +17,15 @@
  */
 #define NO_CODE FALSE
 
-/* NO_TARGET_CODE igual a FALSE não gera código objeto,
+/* NO_TARGET_CODE igual a TRUE não gera código objeto,
  * caso contrário gera código objeto
  */
 #define NO_TARGET_CODE FALSE
+
+/* NO_TARGET_CODE igual a TRUE não gera código binário,
+ * caso contrário gera código binário
+ */
+#define NO_BINARY_CODE FALSE
 
 #include "util.h"
 #if NO_PARSE
@@ -33,6 +38,9 @@
 #include "cgen.h"
 #if !NO_TARGET_CODE
 #include "target.h"
+#if !NO_BINARY_CODE
+#include "binary.h"
+#endif
 #endif
 #endif
 #endif
@@ -51,9 +59,11 @@ int TraceParse = TRUE;
 int TraceAnalyze = TRUE;
 int TraceCode = TRUE;
 int TraceTarget = TRUE;
+int TraceBinary = TRUE;
 
 int Error = FALSE;
-int CodigoIntermediarioGerarado = FALSE;
+int codigoIntermediarioGerarado = FALSE;
+int codigoObjetoGerado = FALSE;
 
 int main( int argc, char * argv[] ) {
     TreeNode * syntaxTree;
@@ -106,10 +116,10 @@ int main( int argc, char * argv[] ) {
         fclose(code);
         if (TraceCode) fprintf(listing, "\nGeração de código intermediário concluída!\n");
         // Código intermediário gerado com sucesso
-        CodigoIntermediarioGerarado = TRUE;
+        codigoIntermediarioGerarado = TRUE;
     }
 #if !NO_TARGET_CODE
-    if(CodigoIntermediarioGerarado) {
+    if(codigoIntermediarioGerarado) {
         char * codefile;
         int fnlen = strcspn(pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
@@ -120,8 +130,25 @@ int main( int argc, char * argv[] ) {
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
         geraCodigoObjeto(codigoIntermediario);
         fclose(code);
-        if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n\n");
+        if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n");
+        // Código objeto gerado com sucesso
+        codigoObjetoGerado = TRUE;
     }
+#if !NO_BINARY_CODE
+    if(codigoObjetoGerado) {
+        char * codefile;
+        int fnlen = strcspn(pgm, ".");
+        codefile = (char *) calloc(fnlen + 4, sizeof(char));
+        strncpy(codefile, pgm, fnlen);
+        strcat(codefile, ".cm");
+        code = fopen(codefile, "a+");
+        Objeto codigoObjeto = getCodigoObjeto();
+        if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
+        geraCodigoBinario(codigoObjeto);
+        fclose(code);
+        if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
+    }
+#endif
 #endif
 #endif
 #endif
