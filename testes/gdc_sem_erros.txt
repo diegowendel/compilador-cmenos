@@ -1,17 +1,17 @@
 int globalVar;
 
-/* teste de função com parâmetros e corpo sem declarações */
+/* teste de funï¿½ï¿½o com parï¿½metros e corpo sem declaraï¿½ï¿½es */
 int gdc (int u, int v, int vetor[]) {
 	int w[60];
 	int z[60];
-    /* teste de seleção, expressões, return e chamada de função */
+    /* teste de seleï¿½ï¿½o, expressï¿½es, return e chamada de funï¿½ï¿½o */
     if (vetor[1] == 0) return u;
     else return gdc(v,u-u/v*v);
 }
 
-/* teste de função sem parâmetro e com corpo completo */
+/* teste de funï¿½ï¿½o sem parï¿½metro e com corpo completo */
 void main(void) {
-   /* teste de diferentes tipos de variáveis, incluindo vetor */
+   /* teste de diferentes tipos de variï¿½veis, incluindo vetor */
    int x;
    int y;
    int u;
@@ -19,24 +19,23 @@ void main(void) {
    int v[10];
    int teste;
 
-   v[0] = v[1] + v[2];
+   /*v[i] = v[i] + v[i];*/
+   v[3] = 5;
 
-   /* chamadas de funções */
+   /* chamadas de funï¿½ï¿½es */
    x = input();
    y = input();
    output(gdc(v, y, 10));
 
-   /* teste atribuição e repetição */
+   /* teste atribuiï¿½ï¿½o e repetiï¿½ï¿½o */
    u = 0;
    x = 1;
    while (x <= 10)
    {
-      u = u + 1;  
+   	  /*v[6] = u;*/
       v[i] = u;
-      teste = v[3];
-      x = x + u; 
    }
 
-   /* teste return simples */   
+   /* teste return simples */
    return;
 }

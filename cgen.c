@@ -40,9 +40,14 @@ static int temporario = 1;
 static int label = 1;
 
 Operand operandoAtual;
+
 /* Operando para representar vazio */
 Operand vazio;
+
 InstructionKind instrucaoAtual;
+
+/* Útil para saber quando deve-se retornar o endereço do vetor */
+Quadruple ultimaQuadrupla;
 
 static int linha = 0;
 
@@ -289,7 +294,9 @@ static void genExp(TreeNode * tree) {
              * somente se estiver acessando o vetor
              */
             if(tree->varAccess == ACESSANDO) {
-                insertQuad(createQuad(instrucaoAtual, op1, op2, op3));
+                // Guarda a última instrução para manipular em caso de acesso ao endereço do vetor
+                ultimaQuadrupla = createQuad(instrucaoAtual, op1, op2, op3);
+                insertQuad(ultimaQuadrupla);
             }
             emitComment("<- vector", indent);
             break; /* VectorK */
@@ -375,22 +382,41 @@ static void genExp(TreeNode * tree) {
                 emitComment("-> assign", indent);
                 p1 = tree->child[0];
                 p2 = tree->child[1];
-                /* Gera código para o operando da esquerda */
-                emitComment("-> assign: left argument", indent);
-                cGen(p1);
-                /* Atribui como o primeiro operando */
-                op1 = operandoAtual;
-                emitComment("<- assign: left argument", indent);
+                op3 = vazio;
+
                 /* Gera código para o operando da direita */
                 emitComment("-> assign: right argument", indent);
                 cGen(p2);
                 /* Atribui como o segundo operando */
                 op2 = operandoAtual;
                 emitComment("<- assign: right argument", indent);
+
+                /* Gera código para o operando da esquerda */
+                emitComment("-> assign: left argument", indent);
+                cGen(p1);
+                /* Atribui como o primeiro operando */
+                op1 = operandoAtual;
+                emitComment("<- assign: left argument", indent);
+
+                // ------------------- Caso especial ------------------- //
+                /* Na atribuição, se o operando da esquerda for um vetor, deve-se
+                 * fazer um store na posição de memória dessa variável
+                 */
+                if(p1->kind.exp == VectorK) {
+                     ultimaQuadrupla->instruction = VEC_ADDR;
+                     // Se o índice for uma constante, adiciona o offset como o 3º operando (para código objeto)
+                     if(ultimaQuadrupla->op2.kind == IntConst) {
+                         op3.kind = IntConst;
+                         op3.contents.val = ultimaQuadrupla->op2.contents.val;
+
+                         op1 = ultimaQuadrupla->op1;
+                     }
+                }
+
                 /* Atribui o tipo de instrução */
                 instrucaoAtual = ASN;
                 /* Cria e insere uma nova representação em código intermediário */
-                insertQuad(createQuad(instrucaoAtual, op1, op2, vazio));
+                insertQuad(createQuad(instrucaoAtual, op1, op2, op3));
                 emitComment("<- assign", indent);
 
             } else {
@@ -571,7 +597,6 @@ void printIntermediateCode() {
         } else {
             strcat(quad, ", _)");
         }
-
         emitCode(quad);
         q = q->next;
     }

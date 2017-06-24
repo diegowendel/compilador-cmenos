@@ -110,8 +110,13 @@ const char * getVectorReg() {
     return "$vec"; /* Registrador auxiliar para vetores */
 }
 
-const char * getVectorMemLocation(char * regName) {
+const char * getMemLocation(char * regName) {
     sprintf(str, "0(%s)", regName);
+    return str;
+}
+
+const char * getMemIndexedLocation(char * regName, int offset) {
+    sprintf(str, "%d(%s)", offset, regName);
     return str;
 }
 
@@ -240,10 +245,17 @@ void geraCodigoInstrucaoLogica(Quadruple q, Opcode op, Operand label) {
 
 void geraCodigoInstrucaoAtribuicao(Quadruple q) {
     char * regName = getOperandRegName(q->op2);
-    if(q->op1.contents.variable.scope == NULL) { // Vetor
-        // oprintCode(createObjectInstruction(toStringOpcode(_STORE), regName, getVectorMemLocation(regName), NULL));
-    } else { // Variável comum
-        printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getStackOperandLocation(q->op1), NULL));
+    if(q->op1.contents.variable.scope == NULL) {
+        // Vetor com índice do acesso igual a uma variável
+        printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getMemLocation(getRegName(q->op1.contents.variable.name)), NULL));
+    } else {
+        if(q->op3.kind != Empty) {
+            // Vetor com índice de acesso igual a uma constante
+            printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getMemIndexedLocation(getOperandRegName(q->op1), q->op3.contents.val), NULL));
+        } else {
+            // Variável comum
+            printCode(createObjectInstruction(toStringOpcode(_STORE), regName, getStackOperandLocation(q->op1), NULL));
+        }
     }
 }
 
@@ -361,12 +373,24 @@ void geraCodigoVetor(Quadruple q) {
     char * regName = getVectorRegName(q->op1);
     /* Verifica se o índice é constante ou variável */
     if(q->op2.kind == String) {
-        printCode(createObjectInstruction(toStringOpcode(_ADD), regName, regName, getOperandRegName(q->op2)));
+        /* Lê o valor da posição do vetor em um registrador temporário */
+        printCode(createObjectInstruction(toStringOpcode(_LOAD), getTempRegName(q->op3), getMemLocation(regName), NULL));
+        printCode(createObjectInstruction(toStringOpcode(_ADD), getTempRegName(q->op3), regName, getOperandRegName(q->op2)));
     } else {
-        printCode(createObjectInstruction(toStringOpcode(_ADDI), regName, regName, itoa(q->op2.contents.val, str, DEC)));
+        printCode(createObjectInstruction(toStringOpcode(_LOAD), getTempRegName(q->op3), getMemIndexedLocation(regName, q->op2.contents.val), NULL));
     }
-    /* Lê o valor da posição do vetor em um registrador temporário */
-    printCode(createObjectInstruction(toStringOpcode(_LOAD), getTempRegName(q->op3), getVectorMemLocation(regName), NULL));
+}
+
+void geraCodigoEnderecoVetor(Quadruple q) {
+    /* Lê endereço do vetor */
+    char * regName = getVectorRegName(q->op1);
+    /* Verifica se o índice é constante ou variável */
+    if(q->op2.kind == String) {
+        /* Soma o endereço base do vetor com o valor da variável */
+        printCode(createObjectInstruction(toStringOpcode(_ADD), getTempRegName(q->op3), regName, getOperandRegName(q->op2)));
+    } else {
+        //printCode(createObjectInstruction(toStringOpcode(_LOADA), getTempRegName(q->op3), getMemIndexedLocation(regName, q->op2.contents.val), NULL));
+    }
 }
 
 void geraCodigoLabel(Quadruple q) {
@@ -450,6 +474,10 @@ void geraCodigoObjeto(Quadruple q) {
             case VEC:
                 geraCodigoVetor(q);
                 break; /* VEC */
+
+            case VEC_ADDR:
+                geraCodigoEnderecoVetor(q);
+                break; /* VEC_ADDR */
 
             case FUNC:
                 geraCodigoFuncao(q, _FUNC);
