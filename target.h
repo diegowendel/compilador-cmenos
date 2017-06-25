@@ -14,7 +14,7 @@ typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI,
       _SL, _SR,
       _MOV, _LOAD, _LOADI, _LOADA, _STORE,
       _BEQ, _BNE, _BLT, _BLET, _BGT, _BGET, _JUMP, _JUMPAL, _JUMPR,
-      _FUNC, _NOP, _HALT, _RESET,
+      _NOP, _HALT, _RESET,
       _IN, _OUT} Opcode;
 
 /**
@@ -26,7 +26,7 @@ static const enum opcode opcode_map[] = {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI
       _SL, _SR,
       _MOV, _LOAD, _LOADI, _LOADA, _STORE,
       _BEQ, _BNE, _BLT, _BLET, _BGT, _BGET, _JUMP, _JUMPAL, _JUMPR,
-      _FUNC, _NOP, _HALT, _RESET,
+      _NOP, _HALT, _RESET,
       _IN, _OUT};
 
 typedef struct escopoGerador {
@@ -48,7 +48,7 @@ typedef struct registrador {
 } * Registrador;
 
 typedef struct objeto {
-    const char * opcode;
+    Opcode opcode;
     const char * op1;
     const char * op2;
     const char * op3;
@@ -79,7 +79,7 @@ void geraCodigoObjeto(Quadruple q);
 
 void printCode(Objeto instrucao);
 
-Objeto createObjInst(const char * opcode, const char * op1, const char * op2, const char * op3);
+Objeto createObjInst(Opcode opcode, const char * op1, const char * op2, const char * op3);
 
 Objeto insertObjInst(Objeto obj);
 

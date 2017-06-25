@@ -11,4 +11,6 @@
 
 void geraCodigoBinario(Objeto codigoObjeto);
 
+const char * toBinaryOpcode(Opcode op);
+
 #endif
