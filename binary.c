@@ -41,17 +41,7 @@ void geraCodigoBinario(Objeto codigoObjeto) {
         // Traduz o opcode para binário
         strcat(temp, toBinaryOpcode(obj->opcode));
         strcat(temp, "\t");
-        if(obj->op1 != NULL) {
-            strcat(temp, obj->op1);
-        }
-        if(obj->op2 != NULL) {
-            strcat(temp, ", ");
-            strcat(temp, obj->op2);
-        }
-        if(obj->op3 != NULL) {
-            strcat(temp, ", ");
-            strcat(temp, obj->op3);
-        }
+        
         emitCode(temp);
         obj = obj->next;
     }

@@ -29,6 +29,34 @@ static const enum opcode opcode_map[] = {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI
       _NOP, _HALT, _RESET,
       _IN, _OUT};
 
+typedef enum type {
+    TYPE_R, TYPE_I, TYPE_J
+} Type;
+
+typedef enum registerName {
+    $rz, $v0, $out, $sp, $ra, $inv, $ESPECIAL2, $ESPECIAL3,
+    $a0, $a1, $a2, $a3, $s0, $s1, $s2, $s3,
+    $s4, $s5, $s6, $s7, $s8, $s9, $t0, $t1,
+    $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9
+} RegisterName;
+
+typedef enum addressingType {
+    IMEDIATO, REGISTRADOR, INDEXADO, LABEL
+} AddressingType;
+
+typedef struct instOperand {
+    union {
+        int imediato;
+        RegisterName registrador;
+        struct {
+            RegisterName registrador;
+            int offset;
+        } indexado;
+        char * label;
+    } enderecamento;
+    AddressingType tipoEnderecamento;
+} * InstOperand;
+
 typedef struct escopoGerador {
     int argRegCount;
     int savedRegCount;
@@ -43,15 +71,16 @@ typedef struct escopoGerador {
 
 typedef struct registrador {
     Operand op;
-    char * regName;
+    RegisterName regName;
     struct registrador * next;
 } * Registrador;
 
 typedef struct objeto {
     Opcode opcode;
-    const char * op1;
-    const char * op2;
-    const char * op3;
+    Type type;
+    InstOperand op1;
+    InstOperand op2;
+    InstOperand op3;
     struct objeto * next;
 } * Objeto;
 
@@ -63,26 +92,32 @@ void pushEscopoGerador(EscopoGerador eg);
 
 void popEscopoGerador();
 
-Registrador createRegistrador(Operand op, char *);
+Registrador createRegistrador(Operand op, RegisterName regName);
 
 void insertRegistrador(Registrador r);
 
-void removeRegistrador(char * name);
+void removeRegistrador(RegisterName name);
 
-Registrador getRegistrador(char * name);
+Registrador getRegistrador(RegisterName name);
 
-void moveRegistrador(char * dest, char * orig);
+void moveRegistrador(RegisterName dest, RegisterName orig);
 
-char * getRegName(char * name);
+InstOperand getRegByName(char * name);
 
 void geraCodigoObjeto(Quadruple q);
 
 void printCode(Objeto instrucao);
 
-Objeto createObjInst(Opcode opcode, const char * op1, const char * op2, const char * op3);
+Objeto createObjInst(Opcode opcode, Type type, InstOperand op1, InstOperand op2, InstOperand op3);
 
 Objeto insertObjInst(Objeto obj);
 
 Objeto getCodigoObjeto(void);
+
+void preparaRegistradoresEspeciais(void);
+
+InstOperand getImediato(int valor);
+
+InstOperand getLabel(char * name);
 
 #endif
