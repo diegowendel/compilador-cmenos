@@ -84,6 +84,12 @@ typedef struct objeto {
     struct objeto * next;
 } * Objeto;
 
+typedef struct label {
+    char * nome;
+    int linha;
+    struct label * next;
+} * Label;
+
 const char * toStringOpcode(enum opcode op);
 
 EscopoGerador createEscopoGerador(const char *);
@@ -118,6 +124,12 @@ void preparaRegistradoresEspeciais(void);
 
 InstOperand getImediato(int valor);
 
-InstOperand getLabel(char * name);
+InstOperand getOperandLabel(char * name);
+
+Label createLabel(char * nome, int linha);
+
+void insertLabel(char * nome, int linha);
+
+int getLinhaLabel(char * nome);
 
 #endif

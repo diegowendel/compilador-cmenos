@@ -18,6 +18,9 @@
 /* Cabeça da lista de instruções objeto */
 Objeto objHead = NULL;
 
+/* Cabeça da lista de labels */
+Label labelHead = NULL;
+
 /* Escopo atual */
 EscopoGerador escopoHead = NULL;
 
@@ -240,7 +243,7 @@ void geraCodigoInstrucaoLogica(Quadruple q, Opcode op, Operand label) {
     /* Busca ou atribui o registrador do operando 1 */
     op1 = getOperandRegName(q->op1);
     /* Label para o qual irá ser feito o desvio */
-    op3 = getLabel(label.contents.variable.name);
+    op3 = getOperandLabel(label.contents.variable.name);
 
     /* OPERANDO 2 */
     if(q->op2.kind == String) { /* Registrador */
@@ -274,16 +277,6 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
     }
 }
 
-void geraCodigoFuncao(Quadruple q) {
-    // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
-    // strcat só insere de forma correta strings inicializadas.
-    memset(temp, '\0', sizeof(temp));
-    strcat(temp, "\n");
-    strcat(temp, q->op1.contents.variable.name);
-    strcat(temp, ":");
-    emitCode(temp);
-}
-
 void geraCodigoChamadaFuncao(Quadruple q) {
     int tamanhoBlocoMemoria;
     /* Verifica o nome da função/procedimento que está sendo chamada, se for input ou output imprime as
@@ -298,7 +291,7 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
         /* Aloca o bloco de memória na stack */
         pushStackSpace(tamanhoBlocoMemoria);
-        printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getLabel(q->op1.contents.variable.name), NULL, NULL)));
+        printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempRegName(q->op3), rtnValReg, NULL)));
         /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoria);
@@ -307,7 +300,7 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_STORE, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // sw $ra
         /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
         pushStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
-        printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getLabel(q->op1.contents.variable.name), NULL, NULL)));
+        printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
         popStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
         printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // lw $ra
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempRegName(q->op3), rtnValReg, NULL)));
@@ -406,12 +399,27 @@ void geraCodigoEnderecoVetor(Quadruple q) {
     }
 }
 
+void geraCodigoFuncao(Quadruple q) {
+    // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
+    // strcat só insere de forma correta strings inicializadas.
+    memset(temp, '\0', sizeof(temp));
+    strcat(temp, "\n");
+    strcat(temp, q->op1.contents.variable.name);
+    strcat(temp, ":");
+    // Adiciona o label a próxima linha de instrução
+    insertLabel(q->op1.contents.variable.name, linha);
+    emitCode(temp);
+}
+
 void geraCodigoLabel(Quadruple q) {
     // Atribui fim de string para todas posições de temp, isso é feito pois o Procedimento
     // strcat só insere de forma correta strings inicializadas.
     memset(temp, '\0', sizeof(temp));
     strcat(temp, ".");
     strcat(temp, q->op1.contents.variable.name);
+    strcat(temp, "\t");
+    // Adiciona o label a próxima linha de instrução
+    insertLabel(q->op1.contents.variable.name, linha);
     emitCode(temp);
 }
 
@@ -548,7 +556,7 @@ void geraCodigoObjeto(Quadruple q) {
                 break; /* CALL */
 
             case GOTO:
-                printCode(insertObjInst(createObjInst(_JUMP, TYPE_J, getLabel(q->op1.contents.variable.name), NULL, NULL)));
+                printCode(insertObjInst(createObjInst(_JUMP, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
                 break; /* GOTO */
 
             case LBL:
@@ -759,11 +767,46 @@ InstOperand getImediato(int valor) {
     return imediato;
 }
 
-InstOperand getLabel(char * name) {
+InstOperand getOperandLabel(char * name) {
     InstOperand label = (InstOperand) malloc(sizeof(struct instOperand));
     label->tipoEnderecamento = LABEL;
     label->enderecamento.label = name;
     return label;
+}
+
+Label createLabel(char * nome, int linha) {
+    Label l = (Label) malloc(sizeof(struct label));
+    l->nome = nome;
+    l->linha = linha;
+    l->next = NULL;
+    return l;
+}
+
+void insertLabel(char * nome, int linha) {
+    Label l = createLabel(nome, linha);
+    if(labelHead == NULL) {
+        labelHead = l;
+    } else {
+        Label temp = labelHead;
+        while(temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = l;
+    }
+}
+
+int getLinhaLabel(char * nome) {
+    Label l;
+    if(labelHead != NULL) {
+        l = labelHead;
+    }
+    while(l != NULL) {
+        if(!strcmp(nome, l->nome)) {
+            return l->linha;
+        }
+        l = l->next;
+    }
+    return -1;
 }
 
 Objeto getCodigoObjeto(void) {
