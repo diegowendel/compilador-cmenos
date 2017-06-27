@@ -252,8 +252,8 @@ void geraCodigoInstrucaoLogica(Quadruple q, Opcode op, Operand label) {
         /* Imprime a instrução aritmética */
         printCode(insertObjInst(createObjInst(op, TYPE_R, op1, op2, op3)));
     } else { /* Valor Imediato */
-        // Valor imediato
-        op2 = getImediato(q->op2.contents.val);
+        // Lê o valor imediato
+        op2 = getOperandRegName(q->op2);
         /* Imprime a instrução lógica */
         printCode(insertObjInst(createObjInst(op, TYPE_I, op1, op2, op3)));
     }
@@ -802,7 +802,7 @@ int getLinhaLabel(char * nome) {
     }
     while(l != NULL) {
         if(!strcmp(nome, l->nome)) {
-            return l->linha;
+            return linha;
         }
         l = l->next;
     }

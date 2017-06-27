@@ -50,16 +50,38 @@ const char * getZeros(int n) {
     return zeros;
 }
 
+/* Função que converte um número decimal para uma string binária em complemento
+ * de 2. Essa função não trata casos de overflow!!! Fica a cargo do programador
+ * alocar a quantidade de bits suficiente para a conversão
+ */
+const char * decimalToBinaryStr(unsigned x, int qtdBits) {
+    int i = 0;
+    qtdBits--;
+    char * bin = (char *) malloc(qtdBits + 1);
+    for (unsigned bit = 1u << qtdBits; bit != 0; bit >>= 1) {
+        bin[i++] = (x & bit) ? '1' : '0';
+    }
+    bin[i] = '\0';
+    return bin;
+}
+
 void geraCodigoBinario(Objeto codigoObjeto) {
     emitCode("\n********** Código binário **********\n");
     Objeto obj = codigoObjeto;
     char str[26];
+    int linha = 0;
 
     // TODO jump to main, first instruction, need to be made
 
     while(obj != NULL) {
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
+        // Boilerplate
+        strcat(temp, "memoria_instrucoes[");
+        sprintf(str, "%d", linha++);
+        strcat(temp, str);
+        strcat(temp, "] = 32'b");
+
         // Traduz o opcode para binário
         strcat(temp, toBinaryOpcode(obj->opcode));
 
@@ -71,30 +93,57 @@ void geraCodigoBinario(Objeto codigoObjeto) {
                 strcat(temp, getZeros(11));
                 break;
             case TYPE_I:
-
-                if(obj->op1->tipoEnderecamento == REGISTRADOR) {
+                if(obj->opcode == _LOADI) {
+                    strcat(temp, getZeros(5));
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                    strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.imediato, 16));
+                    break;
+                }
+
+                if(obj->op1 == NULL) {
+                    strcat(temp, getZeros(5));
+                } else {
+                    if(obj->op1->tipoEnderecamento == REGISTRADOR) {
+                        strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                    }
                 }
 
                 if(obj->op2 == NULL) {
-                    fprintf(listing, "%s\n", toStringOpcode(obj->opcode));
-                } else if(obj->op2->tipoEnderecamento == REGISTRADOR) {
-                    strcat(temp, "      ");
-                    strcat(temp, toBinaryRegister(obj->op2->enderecamento.registrador));
+                    strcat(temp, getZeros(5));
+                } else {
+                    if(obj->op2->tipoEnderecamento == REGISTRADOR) {
+                        strcat(temp, toBinaryRegister(obj->op2->enderecamento.registrador));
+                    } else if(obj->op2->tipoEnderecamento == INDEXADO) {
+                        strcat(temp, toBinaryRegister(obj->op2->enderecamento.indexado.registrador));
+                        strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.indexado.offset, 16));
+                        break;
+                    }
+                }
+
+                if(obj->op3 == NULL) {
+                    strcat(temp, getZeros(16));
+                } else {
+                    if(obj->op3->tipoEnderecamento == IMEDIATO) {
+                        strcat(temp, decimalToBinaryStr(obj->op3->enderecamento.imediato, 16));
+                    } else if(obj->op3->tipoEnderecamento == LABEL) {
+                        strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op3->enderecamento.label), 16));
+                    }
                 }
 
                 break;
             case TYPE_J:
                 if(obj->opcode == _JUMP || obj->opcode == _JUMPAL) {
-                    strcat(temp, "\t");
-                    strcat(temp, itoa(getLinhaLabel(obj->op1->enderecamento.label), str, 2));
+                    strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op1->enderecamento.label), 26));
                 } else if(obj->opcode == _JUMPR) {
-
+                    strcat(temp, getZeros(21));
+                    strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                 } else { // HALT
                     strcat(temp, getZeros(26));
                 }
                 break;
         }
+        strcat(temp, ";\t// ");
+        strcat(temp, toStringOpcode(obj->opcode));
         emitCode(temp);
         obj = obj->next;
     }
