@@ -187,6 +187,28 @@
                 # <- assign
                 # -> assign
                 # -> assign: right argument
+                    # -> arithmetic operator
+                    # -> arithmetic operator: left argument
+                        # -> identifier
+                        # teste
+                        # <- identifier
+                    # <- arithmetic operator: left argument
+                    # -> arithmetic operator: right argument
+                        # -> constant
+                        # 49
+                        # <- constant
+                    # <- arithmetic operator: right argument
+                    # arithmetic operator: +
+                    # <- Operator
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> identifier
+                    # teste
+                    # <- identifier
+                # <- assign: left argument
+                # <- assign
+                # -> assign
+                # -> assign: right argument
                     # -> function call
                     # input
                     # -> function call: arguments
@@ -323,31 +345,33 @@
 18: (function, main, _, _)
 19: (vector_address, v, 3, t10)
 20: (assign, v, 5, 3)
-21: (param_list, 0, _, _)
-22: (call, input, 0, t11)
-23: (assign, x, t11, _)
-24: (param_list, 0, _, _)
-25: (call, input, 0, t12)
-26: (assign, y, t12, _)
-27: (param_list, 1, _, _)
-28: (param_list, 3, _, _)
-29: (set_param, v, _, _)
-30: (set_param, y, _, _)
-31: (set_param, 10, _, _)
-32: (call, gdc, 3, t13)
-33: (set_param, t13, _, _)
-34: (call, output, 1, t14)
-35: (assign, u, 0, _)
-36: (assign, x, 1, _)
-37: (label, L2, _, _)
-38: (less_than_equal_to, x, 10, t15)
-39: (jump_if_false, t15, L3, _)
-40: (vector_address, v, i, t16)
-41: (assign, t16, u, _)
-42: (goto, L2, _, _)
-43: (label, L3, _, _)
-44: (return, _, _, _)
-45: (halt, _, _, _)
+21: (addition, teste, 49, t11)
+22: (assign, teste, t11, _)
+23: (param_list, 0, _, _)
+24: (call, input, 0, t12)
+25: (assign, x, t12, _)
+26: (param_list, 0, _, _)
+27: (call, input, 0, t13)
+28: (assign, y, t13, _)
+29: (param_list, 1, _, _)
+30: (param_list, 3, _, _)
+31: (set_param, v, _, _)
+32: (set_param, y, _, _)
+33: (set_param, 10, _, _)
+34: (call, gdc, 3, t14)
+35: (set_param, t14, _, _)
+36: (call, output, 1, t15)
+37: (assign, u, 0, _)
+38: (assign, x, 1, _)
+39: (label, L2, _, _)
+40: (less_than_equal_to, x, 10, t16)
+41: (jump_if_false, t16, L3, _)
+42: (vector_address, v, i, t17)
+43: (assign, t17, u, _)
+44: (goto, L2, _, _)
+45: (label, L3, _, _)
+46: (return, _, _, _)
+47: (halt, _, _, _)
 
 ********** Código objeto **********
 
@@ -377,84 +401,90 @@ main:
     19:	la	$s0, -10($sp)
     20:	li	$t0, 5
     21:	sw	$t0, 3($s0)
-    22:	in	$t1
-    23:	sw	$t1, -14($sp)
-    24:	in	$t2
-    25:	sw	$t2, -13($sp)
-    26:	la	$a1, -10($sp)
-    27:	lw	$s1, -13($sp)
-    28:	mov	$a1, $s1
-    29:	li	$a2, 10
-    30:	addi	$sp, $sp, 123
-    31:	jal	gdc
-    32:	mov	$t3, $v0
-    33:	subi	$sp, $sp, 123
-    34:	mov	$a0, $t3
-    35:	out	$out
-    36:	li	$t4, 0
-    37:	sw	$t4, -12($sp)
-    38:	li	$t5, 1
-    39:	sw	$t5, -14($sp)
+    22:	lw	$s1, 0($sp)
+    23:	addi	$t1, $s1, 49
+    24:	sw	$t1, 0($sp)
+    25:	in	$t2
+    26:	sw	$t2, -14($sp)
+    27:	in	$t3
+    28:	sw	$t3, -13($sp)
+    29:	la	$a2, -10($sp)
+    30:	lw	$s2, -13($sp)
+    31:	mov	$a1, $s2
+    32:	li	$a2, 10
+    33:	addi	$sp, $sp, 123
+    34:	jal	gdc
+    35:	mov	$t4, $v0
+    36:	subi	$sp, $sp, 123
+    37:	mov	$a0, $t4
+    38:	out	$out
+    39:	li	$t5, 0
+    40:	sw	$t5, -12($sp)
+    41:	li	$t6, 1
+    42:	sw	$t6, -14($sp)
 .L2	
-    40:	lw	$s2, -14($sp)
-    41:	li	$t6, 10
-    42:	blet	$s2, $t6, L3
-    43:	lw	$s3, -11($sp)
-    44:	add	$t7, $s0, $s3
-    45:	lw	$s4, -12($sp)
-    46:	sw	$s4, 0($t7)
-    47:	j	L2
+    43:	lw	$s3, -14($sp)
+    44:	li	$t7, 10
+    45:	blet	$s3, $t7, L3
+    46:	lw	$s4, -11($sp)
+    47:	add	$t8, $s0, $s4
+    48:	lw	$s5, -12($sp)
+    49:	sw	$s5, 0($t8)
+    50:	j	L2
 .L3	
-    48:	halt	
+    51:	halt	
 
 ********** Código binário **********
 
-memoria_instrucoes[0] = 32'b01001110110010100000000000000001;	// lw
-memoria_instrucoes[1] = 32'b01010000000101110000000000000000;	// li
-memoria_instrucoes[2] = 32'b01011110110101110000000000110001;	// beq
-memoria_instrucoes[3] = 32'b01001000001010000000000000000000;	// mov
-memoria_instrucoes[4] = 32'b01111100000000000000000000000100;	// jr
-memoria_instrucoes[5] = 32'b01001001000010010000000000000000;	// mov
-memoria_instrucoes[6] = 32'b01001101100000111111111110000110;	// lw
-memoria_instrucoes[7] = 32'b00011111000011000100000000000000;	// div
-memoria_instrucoes[8] = 32'b00010111001110000100000000000000;	// mul
-memoria_instrucoes[9] = 32'b00001111010011001100100000000000;	// sub
-memoria_instrucoes[10] = 32'b01001001001110100000000000000000;	// mov
-memoria_instrucoes[11] = 32'b01011000100000110000000000000001;	// sw
-memoria_instrucoes[12] = 32'b00001000011000110000000001111100;	// addi
-memoria_instrucoes[13] = 32'b01111000000000000000000000110001;	// jal
-memoria_instrucoes[14] = 32'b00010000011000110000000001111100;	// subi
-memoria_instrucoes[15] = 32'b01001100100000110000000000000001;	// lw
-memoria_instrucoes[16] = 32'b01001011011000010000000000000000;	// mov
-memoria_instrucoes[17] = 32'b01001000001110110000000000000000;	// mov
-memoria_instrucoes[18] = 32'b01111100000000000000000000000100;	// jr
-memoria_instrucoes[19] = 32'b01010101100000111111111111110110;	// la
-memoria_instrucoes[20] = 32'b01010000000101100000000000000101;	// li
-memoria_instrucoes[21] = 32'b01011010110011000000000000000011;	// sw
-memoria_instrucoes[22] = 32'b10000010111000000000000000000000;	// in
-memoria_instrucoes[23] = 32'b01011010111000111111111111110010;	// sw
-memoria_instrucoes[24] = 32'b10000011000000000000000000000000;	// in
-memoria_instrucoes[25] = 32'b01011011000000111111111111110011;	// sw
-memoria_instrucoes[26] = 32'b01010101001000111111111111110110;	// la
-memoria_instrucoes[27] = 32'b01001101101000111111111111110011;	// lw
-memoria_instrucoes[28] = 32'b01001001001011010000000000000000;	// mov
-memoria_instrucoes[29] = 32'b01010000000010100000000000001010;	// li
-memoria_instrucoes[30] = 32'b00001000011000110000000001111011;	// addi
-memoria_instrucoes[31] = 32'b01111000000000000000000000110001;	// jal
-memoria_instrucoes[32] = 32'b01001011001000010000000000000000;	// mov
-memoria_instrucoes[33] = 32'b00010000011000110000000001111011;	// subi
-memoria_instrucoes[34] = 32'b01001001000110010000000000000000;	// mov
-memoria_instrucoes[35] = 32'b10000100010000000000000000000000;	// out
-memoria_instrucoes[36] = 32'b01010000000110100000000000000000;	// li
-memoria_instrucoes[37] = 32'b01011011010000111111111111110100;	// sw
-memoria_instrucoes[38] = 32'b01010000000110110000000000000001;	// li
-memoria_instrucoes[39] = 32'b01011011011000111111111111110010;	// sw
-memoria_instrucoes[40] = 32'b01001101110000111111111111110010;	// lw
-memoria_instrucoes[41] = 32'b01010000000111000000000000001010;	// li
-memoria_instrucoes[42] = 32'b01101001110111000000000000110001;	// blet
-memoria_instrucoes[43] = 32'b01001101111000111111111111110101;	// lw
-memoria_instrucoes[44] = 32'b00000111101011000111100000000000;	// add
-memoria_instrucoes[45] = 32'b01001110000000111111111111110100;	// lw
-memoria_instrucoes[46] = 32'b01011010000111010000000000000000;	// sw
-memoria_instrucoes[47] = 32'b01110100000000000000000000110001;	// j
-memoria_instrucoes[48] = 32'b11111100000000000000000000000000;	// halt
+memoria_instrucoes[0] = 32'b010011_01001_10101_0000000000000001;	// lw
+memoria_instrucoes[1] = 32'b010100_00000_10110_0000000000000000;	// li
+memoria_instrucoes[2] = 32'b010111_10110_10101_0000000000110100;	// beq
+memoria_instrucoes[3] = 32'b010010_00111_00001_0000000000000000;	// mov
+memoria_instrucoes[4] = 32'b011111_00000000000000000000011111;	// jr
+memoria_instrucoes[5] = 32'b010010_01000_00111_0000000000000000;	// mov
+memoria_instrucoes[6] = 32'b010011_00011_01011_1111111110000110;	// lw
+memoria_instrucoes[7] = 32'b000111_01011_00111_10111_00000000000;	// div
+memoria_instrucoes[8] = 32'b000101_10111_00111_11000_00000000000;	// mul
+memoria_instrucoes[9] = 32'b000011_01011_11000_11001_00000000000;	// sub
+memoria_instrucoes[10] = 32'b010010_11001_01000_0000000000000000;	// mov
+memoria_instrucoes[11] = 32'b010110_00011_11111_0000000000000001;	// sw
+memoria_instrucoes[12] = 32'b000010_00011_00011_0000000001111100;	// addi
+memoria_instrucoes[13] = 32'b011110_00000000000000000000110100;	// jal
+memoria_instrucoes[14] = 32'b000100_00011_00011_0000000001111100;	// subi
+memoria_instrucoes[15] = 32'b010011_00011_11111_0000000000000001;	// lw
+memoria_instrucoes[16] = 32'b010010_00001_11010_0000000000000000;	// mov
+memoria_instrucoes[17] = 32'b010010_11010_00001_0000000000000000;	// mov
+memoria_instrucoes[18] = 32'b011111_00000000000000000000011111;	// jr
+memoria_instrucoes[19] = 32'b010101_00011_01011_1111111111110110;	// la
+memoria_instrucoes[20] = 32'b010100_00000_10101_0000000000000101;	// li
+memoria_instrucoes[21] = 32'b010110_01011_10101_0000000000000011;	// sw
+memoria_instrucoes[22] = 32'b010011_00011_01100_0000000000000000;	// lw
+memoria_instrucoes[23] = 32'b000010_01100_10110_0000000000110001;	// addi
+memoria_instrucoes[24] = 32'b010110_00011_10110_0000000000000000;	// sw
+memoria_instrucoes[25] = 32'b100000_00000_10111_0000000000000000;	// in
+memoria_instrucoes[26] = 32'b010110_00011_10111_1111111111110010;	// sw
+memoria_instrucoes[27] = 32'b100000_00000_11000_0000000000000000;	// in
+memoria_instrucoes[28] = 32'b010110_00011_11000_1111111111110011;	// sw
+memoria_instrucoes[29] = 32'b010101_00011_01001_1111111111110110;	// la
+memoria_instrucoes[30] = 32'b010011_00011_01101_1111111111110011;	// lw
+memoria_instrucoes[31] = 32'b010010_01101_01000_0000000000000000;	// mov
+memoria_instrucoes[32] = 32'b010100_00000_01001_0000000000001010;	// li
+memoria_instrucoes[33] = 32'b000010_00011_00011_0000000001111011;	// addi
+memoria_instrucoes[34] = 32'b011110_00000000000000000000110100;	// jal
+memoria_instrucoes[35] = 32'b010010_00001_11001_0000000000000000;	// mov
+memoria_instrucoes[36] = 32'b000100_00011_00011_0000000001111011;	// subi
+memoria_instrucoes[37] = 32'b010010_11001_00111_0000000000000000;	// mov
+memoria_instrucoes[38] = 32'b100001_00000_00010_0000000000000000;	// out
+memoria_instrucoes[39] = 32'b010100_00000_11010_0000000000000000;	// li
+memoria_instrucoes[40] = 32'b010110_00011_11010_1111111111110100;	// sw
+memoria_instrucoes[41] = 32'b010100_00000_11011_0000000000000001;	// li
+memoria_instrucoes[42] = 32'b010110_00011_11011_1111111111110010;	// sw
+memoria_instrucoes[43] = 32'b010011_00011_01110_1111111111110010;	// lw
+memoria_instrucoes[44] = 32'b010100_00000_11100_0000000000001010;	// li
+memoria_instrucoes[45] = 32'b011010_11100_01110_0000000000110100;	// blet
+memoria_instrucoes[46] = 32'b010011_00011_01111_1111111111110101;	// lw
+memoria_instrucoes[47] = 32'b000001_01011_01111_11101_00000000000;	// add
+memoria_instrucoes[48] = 32'b010011_00011_10000_1111111111110100;	// lw
+memoria_instrucoes[49] = 32'b010110_11101_10000_0000000000000000;	// sw
+memoria_instrucoes[50] = 32'b011101_00000000000000000000110100;	// j
+memoria_instrucoes[51] = 32'b111111_00000000000000000000000000;	// halt

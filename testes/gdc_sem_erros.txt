@@ -21,6 +21,7 @@ void main(void) {
 
    /*v[i] = v[i] + v[i];*/
    v[3] = 5;
+   teste = teste + 49;
 
    /* chamadas de fun��es */
    x = input();

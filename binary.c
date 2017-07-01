@@ -32,9 +32,13 @@ const char * toBinaryOpcode(Opcode op) {
 
 const char * toBinaryRegister(RegisterName rn) {
     const char * strings[] = {
+        // "$rz", "$v0",  "$out",  "$sp",  "$inv",   "$gp",   "$fp",   "$a0",
         "00000", "00001", "00010", "00011", "00100", "00101", "00110", "00111",
+        // "$a1", "$a2",  "$a3",   "$s0",   "$s1",   "$s2",   "$s3",   "$s4",
         "01000", "01001", "01010", "01011", "01100", "01101", "01110", "01111",
+        // "$s5", "$s6",  "$s7",   "$s8",   "$s9",   "$t0",   "$t1",   "$t2",
         "10000", "10001", "10010", "10011", "10100", "10101", "10110", "10111",
+        // "$t3", "$t4",  "$t5",   "$t6",   "$t7",   "$t8",   "$t9",   "$ra"
         "11000", "11001", "11010", "11011", "11100", "11101", "11110", "11111"
     };
     return strings[rn];
@@ -84,28 +88,26 @@ void geraCodigoBinario(Objeto codigoObjeto) {
 
         // Traduz o opcode para binário
         strcat(temp, toBinaryOpcode(obj->opcode));
+        strcat(temp, "_");
 
         switch(obj->type) {
             case TYPE_R:
-                strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                 strcat(temp, toBinaryRegister(obj->op2->enderecamento.registrador));
+                strcat(temp, "_");
                 strcat(temp, toBinaryRegister(obj->op3->enderecamento.registrador));
+                strcat(temp, "_");
+                strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                strcat(temp, "_");
                 strcat(temp, getZeros(11));
                 break;
             case TYPE_I:
                 if(obj->opcode == _LOADI) {
                     strcat(temp, getZeros(5));
+                    strcat(temp, "_");
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                    strcat(temp, "_");
                     strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.imediato, 16));
                     break;
-                }
-
-                if(obj->op1 == NULL) {
-                    strcat(temp, getZeros(5));
-                } else {
-                    if(obj->op1->tipoEnderecamento == REGISTRADOR) {
-                        strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
-                    }
                 }
 
                 if(obj->op2 == NULL) {
@@ -115,10 +117,23 @@ void geraCodigoBinario(Objeto codigoObjeto) {
                         strcat(temp, toBinaryRegister(obj->op2->enderecamento.registrador));
                     } else if(obj->op2->tipoEnderecamento == INDEXADO) {
                         strcat(temp, toBinaryRegister(obj->op2->enderecamento.indexado.registrador));
+                        strcat(temp, "_");
+                        strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                        strcat(temp, "_");
                         strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.indexado.offset, 16));
                         break;
                     }
                 }
+                strcat(temp, "_");
+
+                if(obj->op1 == NULL) {
+                    strcat(temp, getZeros(5));
+                } else {
+                    if(obj->op1->tipoEnderecamento == REGISTRADOR) {
+                        strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                    }
+                }
+                strcat(temp, "_");
 
                 if(obj->op3 == NULL) {
                     strcat(temp, getZeros(16));

@@ -1,0 +1,65 @@
+# Compilação C- para código intermediário
+# Arquivo: testes/teste.cm
+    # -> type int
+        # -> function declaration
+        # input
+        # <- function declaration
+    # <- type int
+
+    # -> type void
+        # -> function declaration
+        # output
+        # <- function declaration
+    # <- type void
+
+    # -> type void
+        # -> function declaration
+        # main
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> arithmetic operator
+                    # -> arithmetic operator: left argument
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- arithmetic operator: left argument
+                    # -> arithmetic operator: right argument
+                        # -> constant
+                        # 2
+                        # <- constant
+                    # <- arithmetic operator: right argument
+                    # arithmetic operator: +
+                    # <- Operator
+                # <- function call: arguments
+                # <- function call
+        # <- function declaration
+    # <- type void
+
+# Fim da execução.
+
+********** Código intermediário **********
+
+1: (function, main, _, _)
+2: (param_list, 1, _, _)
+3: (addition, 1, 2, t1)
+4: (set_param, t1, _, _)
+5: (call, output, 1, t2)
+6: (halt, _, _, _)
+
+********** Código objeto **********
+
+main:
+    0:	li	$t0, 1
+    1:	addi	$t1, $t0, 2
+    2:	mov	$a0, $t1
+    3:	out	$out
+    4:	halt	
+
+********** Código binário **********
+
+memoria_instrucoes[0] = 32'b01010000000101100000000000000001;	// li
+memoria_instrucoes[1] = 32'b00001010111101100000000000000010;	// addi
+memoria_instrucoes[2] = 32'b01001001000101110000000000000000;	// mov
+memoria_instrucoes[3] = 32'b10000100010000000000000000000000;	// out
+memoria_instrucoes[4] = 32'b11111100000000000000000000000000;	// halt
