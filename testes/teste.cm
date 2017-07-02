@@ -14,6 +14,27 @@
 
     # -> type void
         # -> function declaration
+        # mostra
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> identifier
+                    # n
+                    # <- identifier
+                    # -> constant
+                    # 2
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> return
+                # -> return: expression
+                # <- return: expression
+                # <- return
+        # <- function declaration
+    # <- type void
+
+    # -> type void
+        # -> function declaration
         # main
                 # -> type int
                     # -> identifier
@@ -39,21 +60,10 @@
                     # <- identifier
                 # <- assign: left argument
                 # <- assign
-                # -> function call
-                # output
-                # -> function call: arguments
-                    # -> identifier
-                    # a
-                    # <- identifier
-                    # -> constant
-                    # 0
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
                 # -> assign
                 # -> assign: right argument
                     # -> constant
-                    # 20
+                    # 22
                     # <- constant
                 # <- assign: right argument
                 # -> assign: left argument
@@ -63,34 +73,29 @@
                 # <- assign: left argument
                 # <- assign
                 # -> function call
-                # output
+                # mostra
+                # -> function call: arguments
+                    # -> identifier
+                    # a
+                    # <- identifier
+                # <- function call: arguments
+                # <- function call
+                # -> function call
+                # mostra
                 # -> function call: arguments
                     # -> identifier
                     # b
                     # <- identifier
-                    # -> constant
-                    # 1
-                    # <- constant
                 # <- function call: arguments
                 # <- function call
                 # -> function call
                 # output
                 # -> function call: arguments
-                    # -> arithmetic operator
-                    # -> arithmetic operator: left argument
-                        # -> identifier
-                        # a
-                        # <- identifier
-                    # <- arithmetic operator: left argument
-                    # -> arithmetic operator: right argument
-                        # -> identifier
-                        # b
-                        # <- identifier
-                    # <- arithmetic operator: right argument
-                    # arithmetic operator: +
-                    # <- Operator
                     # -> constant
-                    # 2
+                    # 11
+                    # <- constant
+                    # -> constant
+                    # 0
                     # <- constant
                 # <- function call: arguments
                 # <- function call
@@ -101,67 +106,80 @@
 
 ********** Código intermediário **********
 
-1: (function, main, _, _)
-2: (assign, a, 10, _)
+1: (function, mostra, _, _)
+2: (get_param, n, _, _)
 3: (param_list, 2, _, _)
-4: (set_param, a, _, _)
-5: (set_param, 0, _, _)
+4: (set_param, n, _, _)
+5: (set_param, 2, _, _)
 6: (call, output, 2, t1)
-7: (assign, b, 20, _)
-8: (param_list, 2, _, _)
-9: (set_param, b, _, _)
-10: (set_param, 1, _, _)
-11: (call, output, 2, t2)
-12: (param_list, 2, _, _)
-13: (addition, a, b, t3)
-14: (set_param, t3, _, _)
-15: (set_param, 2, _, _)
-16: (call, output, 2, t4)
-17: (halt, _, _, _)
+7: (return, _, _, _)
+8: (function, main, _, _)
+9: (assign, a, 10, _)
+10: (assign, b, 22, _)
+11: (param_list, 1, _, _)
+12: (set_param, a, _, _)
+13: (call, mostra, 1, t2)
+14: (param_list, 1, _, _)
+15: (set_param, b, _, _)
+16: (call, mostra, 1, t3)
+17: (param_list, 2, _, _)
+18: (set_param, 11, _, _)
+19: (set_param, 0, _, _)
+20: (call, output, 2, t4)
+21: (halt, _, _, _)
 
 ********** Código objeto **********
 
+mostra:
+    0:	addi	$sp, $sp, 2
+    1:	li	$a1, 2
+    2:	out	$a0, 2
+    3:	jr	$ra
+
 main:
-    0:	addi	$sp, $sp, 1
-    1:	li	$t0, 10
-    2:	sw	$t0, -1($sp)
-    3:	lw	$s0, -1($sp)
-    4:	mov	$a0, $s0
-    5:	li	$a1, 0
-    6:	out	$a0, 0
-    7:	li	$t1, 20
+    4:	addi	$sp, $sp, 1
+    5:	li	$t0, 10
+    6:	sw	$t0, -1($sp)
+    7:	li	$t1, 22
     8:	sw	$t1, 0($sp)
-    9:	lw	$s1, 0($sp)
-    10:	mov	$a0, $s1
-    11:	li	$a1, 1
-    12:	out	$a0, 1
-    13:	lw	$s2, -1($sp)
-    14:	lw	$s3, 0($sp)
-    15:	add	$t2, $s2, $s3
-    16:	mov	$a0, $t2
-    17:	li	$a1, 2
-    18:	out	$a0, 2
-    19:	halt	
+    9:	lw	$s0, -1($sp)
+    10:	mov	$a0, $s0
+    11:	jal	mostra
+    12:	mov	$t2, $v0
+    13:	subi	$sp, $sp, 2
+    14:	lw	$s1, 0($sp)
+    15:	mov	$a0, $s1
+    16:	jal	mostra
+    17:	mov	$t3, $v0
+    18:	subi	$sp, $sp, 2
+    19:	li	$a0, 11
+    20:	li	$a1, 0
+    21:	out	$a0, 0
+    22:	halt	
 
 ********** Código binário **********
 
-memoria_instrucoes[0] = 32'b000010_00011_00011_0000000000000001; 	// addi
-memoria_instrucoes[1] = 32'b010100_00000_10101_0000000000001010; 	// li
-memoria_instrucoes[2] = 32'b010110_00011_10101_1111111111111111; 	// sw
-memoria_instrucoes[3] = 32'b010011_00011_01011_1111111111111111; 	// lw
-memoria_instrucoes[4] = 32'b010010_01011_00111_0000000000000000; 	// mov
-memoria_instrucoes[5] = 32'b010100_00000_01000_0000000000000000; 	// li
-memoria_instrucoes[6] = 32'b100001_00000_00111_0000000000000000; 	// out
-memoria_instrucoes[7] = 32'b010100_00000_10110_0000000000010100; 	// li
-memoria_instrucoes[8] = 32'b010110_00011_10110_0000000000000000; 	// sw
-memoria_instrucoes[9] = 32'b010011_00011_01100_0000000000000000; 	// lw
-memoria_instrucoes[10] = 32'b010010_01100_00111_0000000000000000; 	// mov
-memoria_instrucoes[11] = 32'b010100_00000_01000_0000000000000001; 	// li
-memoria_instrucoes[12] = 32'b100001_00000_00111_0000000000000001; 	// out
-memoria_instrucoes[13] = 32'b010011_00011_01101_1111111111111111; 	// lw
-memoria_instrucoes[14] = 32'b010011_00011_01110_0000000000000000; 	// lw
-memoria_instrucoes[15] = 32'b000001_01101_01110_10111_00000000000; 	// add
-memoria_instrucoes[16] = 32'b010010_10111_00111_0000000000000000; 	// mov
-memoria_instrucoes[17] = 32'b010100_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[18] = 32'b100001_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[19] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[0] = 32'b011101_00000000000000000000000101; 	// Jump to Main
+memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000010; 	// addi
+memoria_instrucoes[2] = 32'b010100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[3] = 32'b100001_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[4] = 32'b011111_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[5] = 32'b000010_00011_00011_0000000000000001; 	// addi
+memoria_instrucoes[6] = 32'b010100_00000_10101_0000000000001010; 	// li
+memoria_instrucoes[7] = 32'b010110_00011_10101_1111111111111111; 	// sw
+memoria_instrucoes[8] = 32'b010100_00000_10110_0000000000010110; 	// li
+memoria_instrucoes[9] = 32'b010110_00011_10110_0000000000000000; 	// sw
+memoria_instrucoes[10] = 32'b010011_00011_01011_1111111111111111; 	// lw
+memoria_instrucoes[11] = 32'b010010_01011_00111_0000000000000000; 	// mov
+memoria_instrucoes[12] = 32'b011110_00000000000000000000000001; 	// jal
+memoria_instrucoes[13] = 32'b010010_00001_10111_0000000000000000; 	// mov
+memoria_instrucoes[14] = 32'b000100_00011_00011_0000000000000010; 	// subi
+memoria_instrucoes[15] = 32'b010011_00011_01100_0000000000000000; 	// lw
+memoria_instrucoes[16] = 32'b010010_01100_00111_0000000000000000; 	// mov
+memoria_instrucoes[17] = 32'b011110_00000000000000000000000001; 	// jal
+memoria_instrucoes[18] = 32'b010010_00001_11000_0000000000000000; 	// mov
+memoria_instrucoes[19] = 32'b000100_00011_00011_0000000000000010; 	// subi
+memoria_instrucoes[20] = 32'b010100_00000_00111_0000000000001011; 	// li
+memoria_instrucoes[21] = 32'b010100_00000_01000_0000000000000000; 	// li
+memoria_instrucoes[22] = 32'b100001_00000_00111_0000000000000000; 	// out
+memoria_instrucoes[23] = 32'b111111_00000000000000000000000000; 	// halt

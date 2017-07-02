@@ -289,17 +289,13 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(escopoHead->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
-        /* Aloca o bloco de memória na stack */
-        pushStackSpace(tamanhoBlocoMemoria);
         printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempRegName(q->op3), rtnValReg, NULL)));
         /* Desaloca o bloco de memória na stack */
-        popStackSpace(tamanhoBlocoMemoria);
+        popStackSpace(tamanhoBlocoMemoria + 1);
     } else {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
         printCode(insertObjInst(createObjInst(_STORE, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // sw $ra
-        /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
-        pushStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
         printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
         popStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
         printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // lw $ra
@@ -373,7 +369,7 @@ void geraCodigoRetorno(Quadruple q) {
             reg = getOperandRegName(q->op1);
             printCode(insertObjInst(createObjInst(_MOV, TYPE_I, rtnValReg, reg, NULL)));
         }
-        printCode(insertObjInst(createObjInst(_JUMPR, TYPE_J, rtnAddrReg, NULL, NULL)));
+        printCode(insertObjInst(createObjInst(_JUMPR, TYPE_I, rtnAddrReg, NULL, NULL)));
     }
 }
 
@@ -410,8 +406,13 @@ void geraCodigoFuncao(Quadruple q) {
     insertLabel(q->op1.contents.variable.name, linha);
     emitCode(temp);
     pushEscopoGerador(createEscopoGerador(q->op1.contents.variable.name));
-    if(escopoHead->tamanhoBlocoMemoria > 0) {
+
+    if(!strcmp(escopoHead->nome, "main")) {
+        /* Aloca o bloco de memória na stack */
         pushStackSpace(escopoHead->tamanhoBlocoMemoria - 1);
+    } else {
+        /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
+        pushStackSpace(escopoHead->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
     }
 }
 
@@ -805,7 +806,7 @@ int getLinhaLabel(char * nome) {
     }
     while(l != NULL) {
         if(!strcmp(nome, l->nome)) {
-            return l->linha;
+            return l->linha + 1; // +1 útil no código binário
         }
         l = l->next;
     }

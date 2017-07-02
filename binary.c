@@ -75,7 +75,18 @@ void geraCodigoBinario(Objeto codigoObjeto) {
     char str[26];
     int linha = 0;
 
-    // TODO jump to main, first instruction, need to be made
+    // Limpa o vetor de caracteres auxiliar
+    memset(temp, '\0', sizeof(temp));
+    // Boilerplate
+    strcat(temp, "memoria_instrucoes[");
+    sprintf(str, "%d", linha++);
+    strcat(temp, str);
+    strcat(temp, "] = 32'b");
+    strcat(temp, toBinaryOpcode(_JUMP));
+    strcat(temp, "_");
+    strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
+    strcat(temp, "; \t// Jump to Main");
+    emitCode(temp);
 
     while(obj != NULL) {
         // Limpa o vetor de caracteres auxiliar
@@ -108,6 +119,14 @@ void geraCodigoBinario(Objeto codigoObjeto) {
                     strcat(temp, "_");
                     strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.imediato, 16));
                     break;
+                } else if(obj->opcode == _BLT || obj->opcode == _BLT || obj->opcode == _BGT || obj->opcode == _BGET
+                    || obj->opcode == _BEQ || obj->opcode == _BNE) {
+                        strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                        strcat(temp, "_");
+                        strcat(temp, toBinaryRegister(obj->op2->enderecamento.registrador));
+                        strcat(temp, "_");
+                        strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op3->enderecamento.label), 16));
+                        break;
                 }
 
                 if(obj->op2 == NULL) {
@@ -152,7 +171,7 @@ void geraCodigoBinario(Objeto codigoObjeto) {
                 } else if(obj->opcode == _JUMPR) {
                     strcat(temp, getZeros(21));
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
-                } else { // HALT
+                } else { // HALT, NOP
                     strcat(temp, getZeros(26));
                 }
                 break;

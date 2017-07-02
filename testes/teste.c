@@ -1,10 +1,15 @@
+void mostra(int n) {
+	output(n, 2);
+	return;
+}
+
 void main(void) {
 	int a;
 	int b;
 
 	a = 10;
-	output(a, 0);
-	b = 20;
-	output(b, 1);
-	output(a + b, 2);
+	b = 22;
+	mostra(a);
+	mostra(b);
+	output(11, 0);
 }
