@@ -157,7 +157,7 @@ void geraCodigoBinario(Objeto codigoObjeto) {
                 }
                 break;
         }
-        strcat(temp, ";\t// ");
+        strcat(temp, "; \t// ");
         strcat(temp, toStringOpcode(obj->opcode));
         emitCode(temp);
         obj = obj->next;

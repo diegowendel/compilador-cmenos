@@ -244,9 +244,10 @@ static void genStmt(TreeNode * tree) {
 /* Procedure genExp generates code at an expression node */
 static void genExp(TreeNode * tree) {
     INDENT;
+    Quadruple q;
     TreeNode * p1, * p2;
     Operand op1, op2, op3;
-    int qtdParams;
+    int qtdParams, display = -1;
 
     switch (tree->kind.exp) {
         case ConstK:
@@ -363,6 +364,10 @@ static void genExp(TreeNode * tree) {
                 insertQuad(createQuad(instrucaoAtual, operandoAtual, vazio, vazio));
                 /* Decrementa qtdParams */
                 --qtdParams;
+                /* Se for um chamado de OUTPUT, verifica o display de exibição */
+                if(!strcmp(tree->attr.name, "output") && p1->sibling == NULL) {
+                    display = p1->attr.val;
+                }
                 p1 = p1->sibling;
             }
             popParam();
@@ -372,7 +377,11 @@ static void genExp(TreeNode * tree) {
             /* Atualiza o operando atual */
             operandoAtual = createTemporaryOperand();
             /* Cria e insere uma nova representação em código intermediário */
-            insertQuad(createQuad(instrucaoAtual, op1, op2, operandoAtual));
+            q = createQuad(instrucaoAtual, op1, op2, operandoAtual);
+            if(display != -1) {
+                q->display = display;
+            }
+            insertQuad(q);
             emitComment("<- function call", indent);
             break;
 

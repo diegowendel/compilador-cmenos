@@ -36,6 +36,7 @@ typedef struct Quad {
     InstructionKind instruction;
     Operand op1, op2, op3;
     int linha;
+    int display;
     struct Quad * next;
 } * Quadruple;
 

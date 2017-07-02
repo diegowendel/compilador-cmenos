@@ -286,7 +286,7 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     if(!strcmp(q->op1.contents.variable.name, "input")) {
         printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempRegName(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1.contents.variable.name, "output")) {
-        printCode(insertObjInst(createObjInst(_OUT, TYPE_I, outputReg, NULL, NULL)));
+        printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(escopoHead->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
         /* Aloca o bloco de memória na stack */
@@ -409,6 +409,10 @@ void geraCodigoFuncao(Quadruple q) {
     // Adiciona o label a próxima linha de instrução
     insertLabel(q->op1.contents.variable.name, linha);
     emitCode(temp);
+    pushEscopoGerador(createEscopoGerador(q->op1.contents.variable.name));
+    if(escopoHead->tamanhoBlocoMemoria > 0) {
+        pushStackSpace(escopoHead->tamanhoBlocoMemoria - 1);
+    }
 }
 
 void geraCodigoLabel(Quadruple q) {
@@ -534,7 +538,6 @@ void geraCodigoObjeto(Quadruple q) {
 
             case FUNC:
                 geraCodigoFuncao(q);
-                pushEscopoGerador(createEscopoGerador(q->op1.contents.variable.name));
                 escopoHead->savedRegCount = 0;
                 break; /* FUNC */
 
@@ -802,7 +805,7 @@ int getLinhaLabel(char * nome) {
     }
     while(l != NULL) {
         if(!strcmp(nome, l->nome)) {
-            return linha;
+            return l->linha;
         }
         l = l->next;
     }
