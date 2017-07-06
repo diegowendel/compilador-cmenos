@@ -105,7 +105,7 @@ int main( int argc, char * argv[] ) {
         int fnlen = strcspn(pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
         strncpy(codefile, pgm, fnlen);
-        strcat(codefile, ".cm");
+        strcat(codefile, ".txt");
         code = fopen(codefile, "w");
         if (code == NULL) {
             printf("Incapaz de abrir %s\n", codefile);
@@ -124,7 +124,7 @@ int main( int argc, char * argv[] ) {
         int fnlen = strcspn(pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
         strncpy(codefile, pgm, fnlen);
-        strcat(codefile, ".cm");
+        strcat(codefile, ".txt");
         code = fopen(codefile, "a+");
         Quadruple codigoIntermediario = getCodigoIntermediario();
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
@@ -140,7 +140,7 @@ int main( int argc, char * argv[] ) {
         int fnlen = strcspn(pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
         strncpy(codefile, pgm, fnlen);
-        strcat(codefile, ".cm");
+        strcat(codefile, ".txt");
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");

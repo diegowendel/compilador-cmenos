@@ -1,15 +1,23 @@
-void mostra(int n) {
-	output(n, 2);
-	return;
-}
 
 void main(void) {
 	int a;
-	int b;
+	a = 11;
 
-	a = 10;
-	b = 22;
-	mostra(a);
-	mostra(b);
-	output(11, 0);
+	if(a <= 12) {
+		output(77, 0);
+	} else {
+		output(77, 1);
+	}
+
+	if(a <= 10) {
+		output(88, 0);
+	} else {
+		output(88, 1);
+	}
+
+	if(a <= 11) {
+		output(99, 0);
+	} else {
+		output(99, 1);
+	}
 }

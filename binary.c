@@ -119,7 +119,7 @@ void geraCodigoBinario(Objeto codigoObjeto) {
                     strcat(temp, "_");
                     strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.imediato, 16));
                     break;
-                } else if(obj->opcode == _BLT || obj->opcode == _BLT || obj->opcode == _BGT || obj->opcode == _BGET
+                } else if(obj->opcode == _BLT || obj->opcode == _BLET || obj->opcode == _BGT || obj->opcode == _BGET
                     || obj->opcode == _BEQ || obj->opcode == _BNE) {
                         strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                         strcat(temp, "_");

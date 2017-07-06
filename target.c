@@ -250,7 +250,7 @@ void geraCodigoInstrucaoLogica(Quadruple q, Opcode op, Operand label) {
         /* Busca ou atribui o registrador do operando 2 */
         op2 = getOperandRegName(q->op2);
         /* Imprime a instrução aritmética */
-        printCode(insertObjInst(createObjInst(op, TYPE_R, op1, op2, op3)));
+        printCode(insertObjInst(createObjInst(op, TYPE_I, op1, op2, op3)));
     } else { /* Valor Imediato */
         // Lê o valor imediato
         op2 = getOperandRegName(q->op2);
@@ -273,6 +273,11 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
         } else {
             // Variável comum
             printCode(insertObjInst(createObjInst(_STORE, TYPE_I, reg, getStackOperandLocation(q->op1), NULL)));
+            /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
+            InstOperand regAux = getRegByName(q->op1.contents.variable.name);
+            if(regAux != NULL) {
+                removeRegistrador(regAux->enderecamento.registrador);
+            }
         }
     }
 }
