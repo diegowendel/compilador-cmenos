@@ -28,6 +28,9 @@ void main(void){
     vetor[2] = 8;
     vetor[3] = 7;
     sort(vetor, 4);
-    i = input();
-    output(vetor[i]);
+
+    	output(vetor[0], 0);
+	output(vetor[1], 0);
+	output(vetor[2], 1);
+	output(vetor[3], 2);
 }

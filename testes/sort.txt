@@ -1,5 +1,5 @@
 # Compilação C- para código intermediário
-# Arquivo: testes/sort.cm
+# Arquivo: testes/sort.txt
     # -> type int
         # -> function declaration
         # input
@@ -399,31 +399,68 @@
                     # <- constant
                 # <- function call: arguments
                 # <- function call
-                # -> assign
-                # -> assign: right argument
-                    # -> function call
-                    # input
-                    # -> function call: arguments
-                    # <- function call: arguments
-                    # <- function call
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> identifier
-                    # i
-                    # <- identifier
-                # <- assign: left argument
-                # <- assign
                 # -> function call
                 # output
                 # -> function call: arguments
                     # -> vector
                     # vetor
                     # -> vector: position
-                        # -> identifier
-                        # i
-                        # <- identifier
+                        # -> constant
+                        # 0
+                        # <- constant
                     # <- vector: position
                     # <- vector
+                    # -> constant
+                    # 0
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                    # -> constant
+                    # 0
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 2
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                    # -> constant
+                    # 1
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 3
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                    # -> constant
+                    # 2
+                    # <- constant
                 # <- function call: arguments
                 # <- function call
         # <- function declaration
@@ -471,153 +508,196 @@
 36: (assign, i, t14, _)
 37: (goto, L1, _, _)
 38: (label, L6, _, _)
-39: (function, main, _, _)
-40: (vector_address, vetor, 0, t16)
-41: (assign, vetor, 9, 0)
-42: (vector_address, vetor, 1, t17)
-43: (assign, vetor, 6, 1)
-44: (vector_address, vetor, 2, t18)
-45: (assign, vetor, 8, 2)
-46: (vector_address, vetor, 3, t19)
-47: (assign, vetor, 7, 3)
-48: (param_list, 2, _, _)
-49: (set_param, vetor, _, _)
-50: (set_param, 4, _, _)
-51: (call, sort, 2, t20)
-52: (param_list, 0, _, _)
-53: (call, input, 0, t21)
-54: (assign, i, t21, _)
-55: (param_list, 1, _, _)
-56: (vector_value, vetor, i, t22)
-57: (set_param, t22, _, _)
-58: (call, output, 1, t23)
-59: (halt, _, _, _)
+39: (return, _, _, _)
+40: (function, main, _, _)
+41: (vector_address, vetor, 0, t16)
+42: (assign, vetor, 9, 0)
+43: (vector_address, vetor, 1, t17)
+44: (assign, vetor, 6, 1)
+45: (vector_address, vetor, 2, t18)
+46: (assign, vetor, 8, 2)
+47: (vector_address, vetor, 3, t19)
+48: (assign, vetor, 7, 3)
+49: (param_list, 2, _, _)
+50: (set_param, vetor, _, _)
+51: (set_param, 4, _, _)
+52: (call, sort, 2, t20)
+53: (param_list, 2, _, _)
+54: (vector_value, vetor, 0, t21)
+55: (set_param, t21, _, _)
+56: (set_param, 0, _, _)
+57: (call, output, 2, t22)
+58: (param_list, 2, _, _)
+59: (vector_value, vetor, 1, t23)
+60: (set_param, t23, _, _)
+61: (set_param, 0, _, _)
+62: (call, output, 2, t24)
+63: (param_list, 2, _, _)
+64: (vector_value, vetor, 2, t25)
+65: (set_param, t25, _, _)
+66: (set_param, 1, _, _)
+67: (call, output, 2, t26)
+68: (param_list, 2, _, _)
+69: (vector_value, vetor, 3, t27)
+70: (set_param, t27, _, _)
+71: (set_param, 2, _, _)
+72: (call, output, 2, t28)
+73: (halt, _, _, _)
 
 ********** Código objeto **********
 
 sort:
-    0:	li	$t0, 0
-    1:	sw	$t0, -3($sp)
-.L1
-    2:	subi	$t1, $a1, 1
-    3:	lw	$s0, -3($sp)
-    4:	blt	$s0, $t1, L6
-    5:	sw	$s0, -1($sp)
-    6:	addi	$t2, $s0, 1
-    7:	sw	$t2, -2($sp)
-.L2
-    8:	lw	$s1, -2($sp)
-    9:	blt	$s1, $a1, L4
-    10:	lw	$t3, 0($a0)
-    11:	add	$t4, $a0, $s1
-    12:	lw	$t5, 0($a0)
-    13:	lw	$s2, -1($sp)
-    14:	add	$t6, $a0, $s2
-    15:	blt	$t3, $t5, L3
-    16:	sw	$s1, -1($sp)
-.L3
-    17:	addi	$t7, $s1, 1
-    18:	sw	$t7, -2($sp)
-    19:	j	L2
-.L4
-    20:	bne	$s0, $s2, L5
-    21:	lw	$t8, 0($a0)
-    22:	add	$t9, $a0, $s0
-    23:	sw	$t8, 0($sp)
-    24:	lw	$t0, 0($a0)
-    25:	add	$t0, $a0, $s2
-    26:	add	$t1, $a0, $s0
-    27:	sw	$t0, 0($t1)
-    28:	add	$t2, $a0, $s2
-    29:	lw	$s3, 0($sp)
-    30:	sw	$s3, 0($t2)
-.L5
-    31:	addi	$t3, $s0, 1
-    32:	sw	$t3, -3($sp)
-    33:	j	L1
-.L6
+    0:	addi	$sp, $sp, 7
+    1:	mov	$s0, $a0
+    2:	mov	$s1, $a1
+    3:	li	$t0, 0
+    4:	sw	$t0, -3($sp)
+.L1	
+    5:	subi	$t1, $s1, 1
+    6:	lw	$s2, -3($sp)
+    7:	blt	$s2, $t1, L6
+    8:	sw	$s2, -1($sp)
+    9:	addi	$t2, $s2, 1
+    10:	sw	$t2, -2($sp)
+.L2	
+    11:	lw	$s3, -2($sp)
+    12:	blt	$s3, $s1, L4
+    13:	add	$t3, $s0, $s3
+    14:	lw	$t3, 0($t3)
+    15:	lw	$s4, -1($sp)
+    16:	add	$t4, $s0, $s4
+    17:	lw	$t4, 0($t4)
+    18:	blt	$t3, $t4, L3
+    19:	sw	$s3, -1($sp)
+.L3	
+    20:	addi	$t5, $s3, 1
+    21:	sw	$t5, -2($sp)
+    22:	j	L2
+.L4	
+    23:	lw	$s5, -1($sp)
+    24:	bne	$s2, $s5, L5
+    25:	add	$t6, $s0, $s2
+    26:	lw	$t6, 0($t6)
+    27:	sw	$t6, 0($sp)
+    28:	add	$t7, $s0, $s5
+    29:	lw	$t7, 0($t7)
+    30:	add	$t8, $s0, $s2
+    31:	sw	$t7, 0($t8)
+    32:	add	$t9, $s0, $s5
+    33:	lw	$s6, 0($sp)
+    34:	sw	$s6, 0($t9)
+.L5	
+    35:	addi	$t0, $s2, 1
+    36:	sw	$t0, -3($sp)
+    37:	j	L1
+.L6	
+    38:	jr	$ra
 
 main:
-    34:	la	$s0, -4($sp)
-    35:	li	$t0, 9
-    36:	sw	$t0, 0($s0)
-    37:	li	$t1, 6
-    38:	sw	$t1, 1($s0)
-    39:	li	$t2, 8
-    40:	sw	$t2, 2($s0)
-    41:	li	$t3, 7
-    42:	sw	$t3, 3($s0)
-    43:	la	$a1, -4($sp)
-    44:	li	$a1, 4
-    45:	addi	$sp, $sp, 6
-    46:	jal	sort
-    47:	mov	$t4, $v0
-    48:	subi	$sp, $sp, 6
-    49:	in	$t5
-    50:	sw	$t5, 0($sp)
-    51:	lw	$t6, 0($s0)
-    52:	lw	$s1, 0($sp)
-    53:	add	$t7, $s0, $s1
-    54:	mov	$a0, $t6
-    55:	out	$out
-    56:	halt	
+    39:	addi	$sp, $sp, 4
+    40:	la	$s0, -4($sp)
+    41:	li	$t0, 9
+    42:	sw	$t0, 0($s0)
+    43:	li	$t1, 6
+    44:	sw	$t1, 1($s0)
+    45:	li	$t2, 8
+    46:	sw	$t2, 2($s0)
+    47:	li	$t3, 7
+    48:	sw	$t3, 3($s0)
+    49:	la	$a1, -4($sp)
+    50:	li	$a1, 4
+    51:	jal	sort
+    52:	mov	$t4, $v0
+    53:	subi	$sp, $sp, 7
+    54:	lw	$t5, 0($s0)
+    55:	mov	$a0, $t5
+    56:	li	$a1, 0
+    57:	out	$a0, 0
+    58:	lw	$t6, 1($s0)
+    59:	mov	$a0, $t6
+    60:	li	$a1, 0
+    61:	out	$a0, 0
+    62:	lw	$t7, 2($s0)
+    63:	mov	$a0, $t7
+    64:	li	$a1, 1
+    65:	out	$a0, 1
+    66:	lw	$t8, 3($s0)
+    67:	mov	$a0, $t8
+    68:	li	$a1, 2
+    69:	out	$a0, 2
+    70:	halt	
 
 ********** Código binário **********
 
-010100	$t0, 0
-010110	$t0, -3($sp)
-000100	$t1, $a1, 1
-010011	$s0, -3($sp)
-011001	$s0, $t1, L6
-010110	$s0, -1($sp)
-000010	$t2, $s0, 1
-010110	$t2, -2($sp)
-010011	$s1, -2($sp)
-011001	$s1, $a1, L4
-010011	$t3, 0($a0)
-000001	$t4, $a0, $s1
-010011	$t5, 0($a0)
-010011	$s2, -1($sp)
-000001	$t6, $a0, $s2
-011001	$t3, $t5, L3
-010110	$s1, -1($sp)
-000010	$t7, $s1, 1
-010110	$t7, -2($sp)
-011101	L2
-011000	$s0, $s2, L5
-010011	$t8, 0($a0)
-000001	$t9, $a0, $s0
-010110	$t8, 0($sp)
-010011	$t0, 0($a0)
-000001	$t0, $a0, $s2
-000001	$t1, $a0, $s0
-010110	$t0, 0($t1)
-000001	$t2, $a0, $s2
-010011	$s3, 0($sp)
-010110	$s3, 0($t2)
-000010	$t3, $s0, 1
-010110	$t3, -3($sp)
-011101	L1
-010101	$s0, -4($sp)
-010100	$t0, 9
-010110	$t0, 0($s0)
-010100	$t1, 6
-010110	$t1, 1($s0)
-010100	$t2, 8
-010110	$t2, 2($s0)
-010100	$t3, 7
-010110	$t3, 3($s0)
-010101	$a1, -4($sp)
-010100	$a1, 4
-000010	$sp, $sp, 6
-011110	sort
-010010	$t4, $v0
-000100	$sp, $sp, 6
-100000	$t5
-010110	$t5, 0($sp)
-010011	$t6, 0($s0)
-010011	$s1, 0($sp)
-000001	$t7, $s0, $s1
-010010	$a0, $t6
-100001	$out
-111111	
+memoria_instrucoes[0] = 32'b011101_00000000000000000000101000; 	// Jump to Main
+memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000111; 	// addi
+memoria_instrucoes[2] = 32'b010010_00111_01011_0000000000000000; 	// mov
+memoria_instrucoes[3] = 32'b010010_01000_01100_0000000000000000; 	// mov
+memoria_instrucoes[4] = 32'b010100_00000_10101_0000000000000000; 	// li
+memoria_instrucoes[5] = 32'b010110_00011_10101_1111111111111101; 	// sw
+memoria_instrucoes[6] = 32'b000100_01100_10110_0000000000000001; 	// subi
+memoria_instrucoes[7] = 32'b010011_00011_01101_1111111111111101; 	// lw
+memoria_instrucoes[8] = 32'b011001_01101_10110_0000000000100111; 	// blt
+memoria_instrucoes[9] = 32'b010110_00011_01101_1111111111111111; 	// sw
+memoria_instrucoes[10] = 32'b000010_01101_10111_0000000000000001; 	// addi
+memoria_instrucoes[11] = 32'b010110_00011_10111_1111111111111110; 	// sw
+memoria_instrucoes[12] = 32'b010011_00011_01110_1111111111111110; 	// lw
+memoria_instrucoes[13] = 32'b011001_01110_01100_0000000000011000; 	// blt
+memoria_instrucoes[14] = 32'b000001_01011_01110_11000_00000000000; 	// add
+memoria_instrucoes[15] = 32'b010011_11000_11000_0000000000000000; 	// lw
+memoria_instrucoes[16] = 32'b010011_00011_01111_1111111111111111; 	// lw
+memoria_instrucoes[17] = 32'b000001_01011_01111_11001_00000000000; 	// add
+memoria_instrucoes[18] = 32'b010011_11001_11001_0000000000000000; 	// lw
+memoria_instrucoes[19] = 32'b011001_11000_11001_0000000000010101; 	// blt
+memoria_instrucoes[20] = 32'b010110_00011_01110_1111111111111111; 	// sw
+memoria_instrucoes[21] = 32'b000010_01110_11010_0000000000000001; 	// addi
+memoria_instrucoes[22] = 32'b010110_00011_11010_1111111111111110; 	// sw
+memoria_instrucoes[23] = 32'b011101_00000000000000000000001100; 	// j
+memoria_instrucoes[24] = 32'b010011_00011_10000_1111111111111111; 	// lw
+memoria_instrucoes[25] = 32'b011000_01101_10000_0000000000100100; 	// bne
+memoria_instrucoes[26] = 32'b000001_01011_01101_11011_00000000000; 	// add
+memoria_instrucoes[27] = 32'b010011_11011_11011_0000000000000000; 	// lw
+memoria_instrucoes[28] = 32'b010110_00011_11011_0000000000000000; 	// sw
+memoria_instrucoes[29] = 32'b000001_01011_10000_11100_00000000000; 	// add
+memoria_instrucoes[30] = 32'b010011_11100_11100_0000000000000000; 	// lw
+memoria_instrucoes[31] = 32'b000001_01011_01101_11101_00000000000; 	// add
+memoria_instrucoes[32] = 32'b010110_11101_11100_0000000000000000; 	// sw
+memoria_instrucoes[33] = 32'b000001_01011_10000_11110_00000000000; 	// add
+memoria_instrucoes[34] = 32'b010011_00011_10001_0000000000000000; 	// lw
+memoria_instrucoes[35] = 32'b010110_11110_10001_0000000000000000; 	// sw
+memoria_instrucoes[36] = 32'b000010_01101_10101_0000000000000001; 	// addi
+memoria_instrucoes[37] = 32'b010110_00011_10101_1111111111111101; 	// sw
+memoria_instrucoes[38] = 32'b011101_00000000000000000000000110; 	// j
+memoria_instrucoes[39] = 32'b011111_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[40] = 32'b000010_00011_00011_0000000000000100; 	// addi
+memoria_instrucoes[41] = 32'b010101_00011_01011_1111111111111100; 	// la
+memoria_instrucoes[42] = 32'b010100_00000_10101_0000000000001001; 	// li
+memoria_instrucoes[43] = 32'b010110_01011_10101_0000000000000000; 	// sw
+memoria_instrucoes[44] = 32'b010100_00000_10110_0000000000000110; 	// li
+memoria_instrucoes[45] = 32'b010110_01011_10110_0000000000000001; 	// sw
+memoria_instrucoes[46] = 32'b010100_00000_10111_0000000000001000; 	// li
+memoria_instrucoes[47] = 32'b010110_01011_10111_0000000000000010; 	// sw
+memoria_instrucoes[48] = 32'b010100_00000_11000_0000000000000111; 	// li
+memoria_instrucoes[49] = 32'b010110_01011_11000_0000000000000011; 	// sw
+memoria_instrucoes[50] = 32'b010101_00011_01000_1111111111111100; 	// la
+memoria_instrucoes[51] = 32'b010100_00000_01000_0000000000000100; 	// li
+memoria_instrucoes[52] = 32'b011110_00000000000000000000000001; 	// jal
+memoria_instrucoes[53] = 32'b010010_00001_11001_0000000000000000; 	// mov
+memoria_instrucoes[54] = 32'b000100_00011_00011_0000000000000111; 	// subi
+memoria_instrucoes[55] = 32'b010011_01011_11010_0000000000000000; 	// lw
+memoria_instrucoes[56] = 32'b010010_11010_00111_0000000000000000; 	// mov
+memoria_instrucoes[57] = 32'b010100_00000_01000_0000000000000000; 	// li
+memoria_instrucoes[58] = 32'b100001_00000_00111_0000000000000000; 	// out
+memoria_instrucoes[59] = 32'b010011_01011_11011_0000000000000001; 	// lw
+memoria_instrucoes[60] = 32'b010010_11011_00111_0000000000000000; 	// mov
+memoria_instrucoes[61] = 32'b010100_00000_01000_0000000000000000; 	// li
+memoria_instrucoes[62] = 32'b100001_00000_00111_0000000000000000; 	// out
+memoria_instrucoes[63] = 32'b010011_01011_11100_0000000000000010; 	// lw
+memoria_instrucoes[64] = 32'b010010_11100_00111_0000000000000000; 	// mov
+memoria_instrucoes[65] = 32'b010100_00000_01000_0000000000000001; 	// li
+memoria_instrucoes[66] = 32'b100001_00000_00111_0000000000000001; 	// out
+memoria_instrucoes[67] = 32'b010011_01011_11101_0000000000000011; 	// lw
+memoria_instrucoes[68] = 32'b010010_11101_00111_0000000000000000; 	// mov
+memoria_instrucoes[69] = 32'b010100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[70] = 32'b100001_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[71] = 32'b111111_00000000000000000000000000; 	// halt

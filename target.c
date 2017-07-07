@@ -389,8 +389,9 @@ void geraCodigoVetor(Quadruple q) {
     /* Verifica se o índice é constante ou variável */
     if(q->op2.kind == String) {
         /* Lê o valor da posição do vetor em um registrador temporário */
-        printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, getTempRegName(q->op3), getMemLocation(reg->enderecamento.registrador), NULL)));
-        printCode(insertObjInst(createObjInst(_ADD, TYPE_R, getTempRegName(q->op3), reg, getOperandRegName(q->op2))));
+        InstOperand temp = getTempRegName(q->op3);
+        printCode(insertObjInst(createObjInst(_ADD, TYPE_R, temp, reg, getOperandRegName(q->op2))));
+        printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, temp, getMemIndexedLocation(temp->enderecamento.registrador, 0), NULL)));
     } else {
         printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, getTempRegName(q->op3), getMemIndexedLocation(reg->enderecamento.registrador, q->op2.contents.val), NULL)));
     }

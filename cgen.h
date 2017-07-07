@@ -80,4 +80,6 @@ Quadruple getCodigoIntermediario(void);
  */
 void codeGen(TreeNode * syntaxTree, char * codefile);
 
+void verificaFimInstrucaoAnterior(void);
+
 #endif

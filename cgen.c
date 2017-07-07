@@ -303,6 +303,7 @@ static void genExp(TreeNode * tree) {
             break; /* VectorK */
 
         case FunctionK:
+            verificaFimInstrucaoAnterior();
             emitComment("-> function declaration", indent);
             emitComment(tree->attr.name, indent);
 
@@ -537,6 +538,19 @@ static void cGen(TreeNode * tree) {
             if(paramHead->count == 0) {
                 cGen(tree->sibling);
             }
+        }
+    }
+}
+
+void verificaFimInstrucaoAnterior(void) {
+    if(head != NULL) {
+        Quadruple temp = head;
+        while(temp->next != NULL) {
+            temp = temp->next;
+        }
+        /* Insere um return forçadamente caso não haja no código de alto nível */
+        if(temp->instruction != RTN) {
+            insertQuad(createQuad(RTN, vazio, vazio, vazio));
         }
     }
 }
