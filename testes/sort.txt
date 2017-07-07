@@ -427,22 +427,6 @@
                     # <- vector: position
                     # <- vector
                     # -> constant
-                    # 0
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
-                # -> function call
-                # output
-                # -> function call: arguments
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 2
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                    # -> constant
                     # 1
                     # <- constant
                 # <- function call: arguments
@@ -454,7 +438,7 @@
                     # vetor
                     # -> vector: position
                         # -> constant
-                        # 3
+                        # 2
                         # <- constant
                     # <- vector: position
                     # <- vector
@@ -530,19 +514,14 @@
 58: (param_list, 2, _, _)
 59: (vector_value, vetor, 1, t23)
 60: (set_param, t23, _, _)
-61: (set_param, 0, _, _)
+61: (set_param, 1, _, _)
 62: (call, output, 2, t24)
 63: (param_list, 2, _, _)
 64: (vector_value, vetor, 2, t25)
 65: (set_param, t25, _, _)
-66: (set_param, 1, _, _)
+66: (set_param, 2, _, _)
 67: (call, output, 2, t26)
-68: (param_list, 2, _, _)
-69: (vector_value, vetor, 3, t27)
-70: (set_param, t27, _, _)
-71: (set_param, 2, _, _)
-72: (call, output, 2, t28)
-73: (halt, _, _, _)
+68: (halt, _, _, _)
 
 ********** Código objeto **********
 
@@ -615,17 +594,13 @@ main:
     57:	out	$a0, 0
     58:	lw	$t6, 1($s0)
     59:	mov	$a0, $t6
-    60:	li	$a1, 0
-    61:	out	$a0, 0
+    60:	li	$a1, 1
+    61:	out	$a0, 1
     62:	lw	$t7, 2($s0)
     63:	mov	$a0, $t7
-    64:	li	$a1, 1
-    65:	out	$a0, 1
-    66:	lw	$t8, 3($s0)
-    67:	mov	$a0, $t8
-    68:	li	$a1, 2
-    69:	out	$a0, 2
-    70:	halt	
+    64:	li	$a1, 2
+    65:	out	$a0, 2
+    66:	halt	
 
 ********** Código binário **********
 
@@ -690,14 +665,10 @@ memoria_instrucoes[57] = 32'b010100_00000_01000_0000000000000000; 	// li
 memoria_instrucoes[58] = 32'b100001_00000_00111_0000000000000000; 	// out
 memoria_instrucoes[59] = 32'b010011_01011_11011_0000000000000001; 	// lw
 memoria_instrucoes[60] = 32'b010010_11011_00111_0000000000000000; 	// mov
-memoria_instrucoes[61] = 32'b010100_00000_01000_0000000000000000; 	// li
-memoria_instrucoes[62] = 32'b100001_00000_00111_0000000000000000; 	// out
+memoria_instrucoes[61] = 32'b010100_00000_01000_0000000000000001; 	// li
+memoria_instrucoes[62] = 32'b100001_00000_00111_0000000000000001; 	// out
 memoria_instrucoes[63] = 32'b010011_01011_11100_0000000000000010; 	// lw
 memoria_instrucoes[64] = 32'b010010_11100_00111_0000000000000000; 	// mov
-memoria_instrucoes[65] = 32'b010100_00000_01000_0000000000000001; 	// li
-memoria_instrucoes[66] = 32'b100001_00000_00111_0000000000000001; 	// out
-memoria_instrucoes[67] = 32'b010011_01011_11101_0000000000000011; 	// lw
-memoria_instrucoes[68] = 32'b010010_11101_00111_0000000000000000; 	// mov
-memoria_instrucoes[69] = 32'b010100_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[70] = 32'b100001_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[71] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[65] = 32'b010100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[66] = 32'b100001_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[67] = 32'b111111_00000000000000000000000000; 	// halt

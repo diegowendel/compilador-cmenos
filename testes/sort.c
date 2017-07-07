@@ -30,7 +30,6 @@ void main(void){
     sort(vetor, 4);
 
     	output(vetor[0], 0);
-	output(vetor[1], 0);
-	output(vetor[2], 1);
-	output(vetor[3], 2);
+	output(vetor[1], 1);
+	output(vetor[2], 2);
 }

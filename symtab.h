@@ -115,4 +115,6 @@ int getQuantidadeVariaveis(TreeNode * functionNode);
  */
 int getTamanhoBlocoMemoriaEscopo(char * scopeName);
 
+int getTamanhoBlocoMemoriaEscopoGlobal(void);
+
 #endif

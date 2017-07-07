@@ -95,6 +95,20 @@ Scope sc_create(char * funcName) {
     return newScope;
 }
 
+Scope st_scopeVar(char * name) {
+    int h = hash(name);
+    Scope sc = sc_top();
+    while(sc != NULL) {
+        BucketList l = sc->hashTable[h];
+        while ((l != NULL) && (strcmp(name, l->name))) {
+            l = l->next;
+        }
+        if (l != NULL) return sc;
+        sc = sc->parent;
+    }
+    return NULL;
+}
+
 BucketList st_bucket(char * name) {
     int h = hash(name);
     Scope sc = sc_top();
@@ -217,9 +231,8 @@ BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode, int 
 } /* st_create */
 
 void st_add_lineno(TreeNode * treeNode) {
-	Scope top = sc_top();
     // Adiciona o escopo ao nó da árvore sintática
-    treeNode->scope = top;
+    treeNode->scope = st_scopeVar(treeNode->attr.name);
     int lineno = treeNode->lineno;
 	BucketList l = st_bucket(treeNode->attr.name);
   	LineList ll = l->lines;
@@ -330,6 +343,42 @@ int getTamanhoBlocoMemoriaEscopo(char * scopeName) {
         if(!strcmp(scopeName, scopes[i]->funcName)) {
             tamanho = scopes[i]->tamanhoBlocoMemoria;
             break;
+        }
+    }
+    return tamanho;
+}
+
+BucketList verificaGlobal(char * name) {
+    int j;
+    Scope global = scopes[0];
+    BucketList * hashTable = global->hashTable;
+    for (j = 0; j < SIZE; ++j) {
+		if (hashTable[j] != NULL) {
+			BucketList l = hashTable[j];
+      		while (l != NULL) {
+                if(!strcmp(name, l->name)) {
+                    return l;
+                }
+                l = l->next;
+            }
+        }
+    }
+    return NULL;
+}
+
+int getTamanhoBlocoMemoriaEscopoGlobal(void) {
+    int j, tamanho = 0;
+    Scope global = scopes[0];
+    BucketList * hashTable = global->hashTable;
+    for (j = 0; j < SIZE; ++j) {
+		if (hashTable[j] != NULL) {
+			BucketList l = hashTable[j];
+      		while (l != NULL) {
+                if(strcmp("Funcao", dataTypeToString(l->treeNode->kind.exp))) {
+                    tamanho += l->tamanho;
+                }
+                l = l->next;
+            }
         }
     }
     return tamanho;

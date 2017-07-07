@@ -37,6 +37,7 @@ InstOperand rtnValReg;
 InstOperand stackReg;
 InstOperand outputReg;
 InstOperand rzero;
+InstOperand globalReg;
 
 RegisterName tempReg[10] = {
     $t0, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9
@@ -143,6 +144,16 @@ InstOperand getStackOperandLocation(Operand op) {
     return operando;
 }
 
+InstOperand getGlobalOperandLocation(Operand op) {
+    int offset = getMemoryLocation(op.contents.variable.name, op.contents.variable.scope);
+    // Operando que representa o modo de endereçamento indexado
+    InstOperand operando = (InstOperand) malloc(sizeof(struct instOperand));
+    operando->tipoEnderecamento = INDEXADO;
+    operando->enderecamento.indexado.offset = offset;
+    operando->enderecamento.indexado.registrador = $gp;
+    return operando;
+}
+
 /* Retorna a posição da stack de acordo com o offset passado por parâmetro */
 InstOperand getStackLocation(int offset) {
     // Operando que representa o modo de endereçamento indexado
@@ -174,6 +185,10 @@ InstOperand getOperandRegName(Operand op) {
                 rs = getTempReg(escopoHead->tempRegCount++);
                 insertRegistrador(createRegistrador(op, rs->enderecamento.registrador));
                 printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, rs, getRegByName(op.contents.variable.name), NULL)));
+            } else if(op.contents.variable.scope == globalScope) {
+                rs = getSavedReg(escopoHead->savedRegCount++);
+                insertRegistrador(createRegistrador(op, rs->enderecamento.registrador));
+                printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, rs, getGlobalOperandLocation(op), NULL)));
             } else { // Scope não é nulo, então é uma variável e deve ser lida da memória
                 rs = getSavedReg(escopoHead->savedRegCount++);
                 insertRegistrador(createRegistrador(op, rs->enderecamento.registrador));
@@ -199,8 +214,13 @@ InstOperand getVectorRegName(Operand op) {
     if(reg == NULL) {
         reg = getSavedReg(escopoHead->savedRegCount++);
         insertRegistrador(createRegistrador(op, reg->enderecamento.registrador));
-        /* Lê o endereço de memória do início do vetor */
-        printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, reg, getStackOperandLocation(op), NULL)));
+        if(op.contents.variable.scope == globalScope) {
+            /* Lê o endereço de memória do início do vetor */
+            printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, reg, getGlobalOperandLocation(op), NULL)));
+        } else {
+            /* Lê o endereço de memória do início do vetor */
+            printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, reg, getStackOperandLocation(op), NULL)));
+        }
     }
     return reg;
 }
@@ -265,6 +285,20 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
         // Vetor com índice do acesso igual a uma variável
         InstOperand r = getRegByName(q->op1.contents.variable.name);
         printCode(insertObjInst(createObjInst(_STORE, TYPE_I, reg, getMemLocation(r->enderecamento.registrador), NULL)));
+    } else if(q->op1.contents.variable.scope == globalScope) {
+        if(q->op3.kind != Empty) {
+            // Vetor com índice de acesso igual a uma constante
+            InstOperand r = getOperandRegName(q->op1);
+            printCode(insertObjInst(createObjInst(_STORE, TYPE_I, reg, getMemIndexedLocation(r->enderecamento.registrador, q->op3.contents.val), NULL)));
+        } else {
+            // Variável comum
+            printCode(insertObjInst(createObjInst(_STORE, TYPE_I, reg, getGlobalOperandLocation(q->op1), NULL)));
+            /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
+            InstOperand regAux = getRegByName(q->op1.contents.variable.name);
+            if(regAux != NULL) {
+                removeRegistrador(regAux->enderecamento.registrador);
+            }
+        }
     } else {
         if(q->op3.kind != Empty) {
             // Vetor com índice de acesso igual a uma constante
@@ -421,7 +455,7 @@ void geraCodigoFuncao(Quadruple q) {
 
     if(!strcmp(escopoHead->nome, "main")) {
         /* Aloca o bloco de memória na stack */
-        pushStackSpace(escopoHead->tamanhoBlocoMemoria - 1);
+        pushStackSpace(escopoHead->tamanhoBlocoMemoria + getTamanhoBlocoMemoriaEscopoGlobal() - 1);
     } else {
         /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
         pushStackSpace(escopoHead->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
@@ -774,6 +808,10 @@ void preparaRegistradoresEspeciais(void) {
     rzero = (InstOperand) malloc(sizeof(struct instOperand));
     rzero->tipoEnderecamento = REGISTRADOR;
     rzero->enderecamento.registrador = $rz;
+    // Registrador para valores globais
+    globalReg = (InstOperand) malloc(sizeof(struct instOperand));
+    globalReg->tipoEnderecamento = REGISTRADOR;
+    globalReg->enderecamento.registrador = $gp;
 }
 
 InstOperand getImediato(int valor) {

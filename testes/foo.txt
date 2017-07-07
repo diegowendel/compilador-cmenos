@@ -1,0 +1,335 @@
+# Compilação C- para código intermediário
+# Arquivo: testes/foo.txt
+    # -> type int
+        # -> function declaration
+        # input
+        # <- function declaration
+    # <- type int
+
+    # -> type void
+        # -> function declaration
+        # output
+        # <- function declaration
+    # <- type void
+
+    # -> type int
+        # -> vector
+        # vetor
+        # -> vector: position
+            # -> constant
+            # 2
+            # <- constant
+        # <- vector: position
+        # <- vector
+    # <- type int
+
+    # -> type int
+        # -> identifier
+        # a
+        # <- identifier
+    # <- type int
+
+    # -> type int
+        # -> identifier
+        # b
+        # <- identifier
+    # <- type int
+
+    # -> type int
+        # -> identifier
+        # c
+        # <- identifier
+    # <- type int
+
+    # -> type int
+        # -> function declaration
+        # foo
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 0
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                    # -> constant
+                    # 0
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                    # -> constant
+                    # 1
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> assign
+                # -> assign: right argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 0
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> identifier
+                    # b
+                    # <- identifier
+                # <- assign: left argument
+                # <- assign
+                # -> assign
+                # -> assign: right argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 0
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # <- assign
+                # -> assign
+                # -> assign: right argument
+                    # -> identifier
+                    # b
+                    # <- identifier
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # <- assign
+        # <- function declaration
+    # <- type int
+
+    # -> type void
+        # -> function declaration
+        # main
+                # -> assign
+                # -> assign: right argument
+                    # -> constant
+                    # 13
+                    # <- constant
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 0
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # <- assign
+                # -> assign
+                # -> assign: right argument
+                    # -> constant
+                    # 54
+                    # <- constant
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                # <- assign: left argument
+                # <- assign
+                # -> function call
+                # foo
+                # -> function call: arguments
+                # <- function call: arguments
+                # <- function call
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 0
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                    # -> constant
+                    # 0
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> vector
+                    # vetor
+                    # -> vector: position
+                        # -> constant
+                        # 1
+                        # <- constant
+                    # <- vector: position
+                    # <- vector
+                    # -> constant
+                    # 1
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
+        # <- function declaration
+    # <- type void
+
+# Fim da execução.
+
+********** Código intermediário **********
+
+1: (function, foo, _, _)
+2: (param_list, 2, _, _)
+3: (vector_value, vetor, 0, t2)
+4: (set_param, t2, _, _)
+5: (set_param, 0, _, _)
+6: (call, output, 2, t3)
+7: (param_list, 2, _, _)
+8: (vector_value, vetor, 1, t4)
+9: (set_param, t4, _, _)
+10: (set_param, 1, _, _)
+11: (call, output, 2, t5)
+12: (vector_value, vetor, 0, t6)
+13: (assign, b, t6, _)
+14: (vector_value, vetor, 1, t7)
+15: (vector_address, vetor, 0, t8)
+16: (assign, vetor, t7, 0)
+17: (vector_address, vetor, 1, t9)
+18: (assign, vetor, b, 1)
+19: (return, _, _, _)
+20: (function, main, _, _)
+21: (vector_address, vetor, 0, t10)
+22: (assign, vetor, 13, 0)
+23: (vector_address, vetor, 1, t11)
+24: (assign, vetor, 54, 1)
+25: (param_list, 0, _, _)
+26: (call, foo, 0, t12)
+27: (param_list, 2, _, _)
+28: (vector_value, vetor, 0, t13)
+29: (set_param, t13, _, _)
+30: (set_param, 0, _, _)
+31: (call, output, 2, t14)
+32: (param_list, 2, _, _)
+33: (vector_value, vetor, 1, t15)
+34: (set_param, t15, _, _)
+35: (set_param, 1, _, _)
+36: (call, output, 2, t16)
+37: (halt, _, _, _)
+
+********** Código objeto **********
+
+foo:
+    0:	addi	$sp, $sp, 1
+    1:	la	$s0, 0($gp)
+    2:	lw	$t0, 0($s0)
+    3:	mov	$a0, $t0
+    4:	li	$a1, 0
+    5:	out	$a0, 0
+    6:	lw	$t1, 1($s0)
+    7:	mov	$a0, $t1
+    8:	li	$a1, 1
+    9:	out	$a0, 1
+    10:	lw	$t2, 0($s0)
+    11:	sw	$t2, 3($gp)
+    12:	lw	$t3, 1($s0)
+    13:	sw	$t3, 0($s0)
+    14:	lw	$s1, 3($gp)
+    15:	sw	$s1, 1($s0)
+    16:	jr	$ra
+
+main:
+    17:	addi	$sp, $sp, 5
+    18:	la	$s0, 0($gp)
+    19:	li	$t0, 13
+    20:	sw	$t0, 0($s0)
+    21:	li	$t1, 54
+    22:	sw	$t1, 1($s0)
+    23:	jal	foo
+    24:	mov	$t2, $v0
+    25:	subi	$sp, $sp, 1
+    26:	lw	$t3, 0($s0)
+    27:	mov	$a0, $t3
+    28:	li	$a1, 0
+    29:	out	$a0, 0
+    30:	lw	$t4, 1($s0)
+    31:	mov	$a0, $t4
+    32:	li	$a1, 1
+    33:	out	$a0, 1
+    34:	halt	
+
+********** Código binário **********
+
+memoria_instrucoes[0] = 32'b011101_00000000000000000000010010; 	// Jump to Main
+memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000001; 	// addi
+memoria_instrucoes[2] = 32'b010101_00101_01011_0000000000000000; 	// la
+memoria_instrucoes[3] = 32'b010011_01011_10101_0000000000000000; 	// lw
+memoria_instrucoes[4] = 32'b010010_10101_00111_0000000000000000; 	// mov
+memoria_instrucoes[5] = 32'b010100_00000_01000_0000000000000000; 	// li
+memoria_instrucoes[6] = 32'b100001_00000_00111_0000000000000000; 	// out
+memoria_instrucoes[7] = 32'b010011_01011_10110_0000000000000001; 	// lw
+memoria_instrucoes[8] = 32'b010010_10110_00111_0000000000000000; 	// mov
+memoria_instrucoes[9] = 32'b010100_00000_01000_0000000000000001; 	// li
+memoria_instrucoes[10] = 32'b100001_00000_00111_0000000000000001; 	// out
+memoria_instrucoes[11] = 32'b010011_01011_10111_0000000000000000; 	// lw
+memoria_instrucoes[12] = 32'b010110_00101_10111_0000000000000011; 	// sw
+memoria_instrucoes[13] = 32'b010011_01011_11000_0000000000000001; 	// lw
+memoria_instrucoes[14] = 32'b010110_01011_11000_0000000000000000; 	// sw
+memoria_instrucoes[15] = 32'b010011_00101_01100_0000000000000011; 	// lw
+memoria_instrucoes[16] = 32'b010110_01011_01100_0000000000000001; 	// sw
+memoria_instrucoes[17] = 32'b011111_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[18] = 32'b000010_00011_00011_0000000000000101; 	// addi
+memoria_instrucoes[19] = 32'b010101_00101_01011_0000000000000000; 	// la
+memoria_instrucoes[20] = 32'b010100_00000_10101_0000000000001101; 	// li
+memoria_instrucoes[21] = 32'b010110_01011_10101_0000000000000000; 	// sw
+memoria_instrucoes[22] = 32'b010100_00000_10110_0000000000110110; 	// li
+memoria_instrucoes[23] = 32'b010110_01011_10110_0000000000000001; 	// sw
+memoria_instrucoes[24] = 32'b011110_00000000000000000000000001; 	// jal
+memoria_instrucoes[25] = 32'b010010_00001_10111_0000000000000000; 	// mov
+memoria_instrucoes[26] = 32'b000100_00011_00011_0000000000000001; 	// subi
+memoria_instrucoes[27] = 32'b010011_01011_11000_0000000000000000; 	// lw
+memoria_instrucoes[28] = 32'b010010_11000_00111_0000000000000000; 	// mov
+memoria_instrucoes[29] = 32'b010100_00000_01000_0000000000000000; 	// li
+memoria_instrucoes[30] = 32'b100001_00000_00111_0000000000000000; 	// out
+memoria_instrucoes[31] = 32'b010011_01011_11001_0000000000000001; 	// lw
+memoria_instrucoes[32] = 32'b010010_11001_00111_0000000000000000; 	// mov
+memoria_instrucoes[33] = 32'b010100_00000_01000_0000000000000001; 	// li
+memoria_instrucoes[34] = 32'b100001_00000_00111_0000000000000001; 	// out
+memoria_instrucoes[35] = 32'b111111_00000000000000000000000000; 	// halt

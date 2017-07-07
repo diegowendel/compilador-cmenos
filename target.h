@@ -96,7 +96,7 @@ EscopoGerador createEscopoGerador(const char *);
 
 void pushEscopoGerador(EscopoGerador eg);
 
-void popEscopoGerador();
+void popEscopoGerador(void);
 
 Registrador createRegistrador(Operand op, RegisterName regName);
 
