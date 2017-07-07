@@ -356,8 +356,14 @@ void geraCodigoGetParam(Quadruple q) {
      * caso contrário, o excedente deve ser lido da stack
      */
     if(escopoHead->argRegCount < 4) {
-        insertRegistrador(createRegistrador(q->op1, getArgReg(escopoHead->argRegCount)->enderecamento.registrador));
+        InstOperand arg = getArgReg(escopoHead->argRegCount);
+        insertRegistrador(createRegistrador(q->op1, arg->enderecamento.registrador));
+        InstOperand saved = getSavedReg(escopoHead->savedRegCount);
+        insertRegistrador(createRegistrador(q->op1, saved->enderecamento.registrador));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, saved, arg, NULL)));
+        moveRegistrador(saved->enderecamento.registrador, arg->enderecamento.registrador);
         escopoHead->argRegCount++;
+        escopoHead->savedRegCount++;
     } else if(escopoHead->argRegCount >= 4) {
         insertRegistrador(createRegistrador(q->op1, getSavedReg(escopoHead->savedRegCount)->enderecamento.registrador));
         printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL)));

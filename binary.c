@@ -168,9 +168,6 @@ void geraCodigoBinario(Objeto codigoObjeto) {
             case TYPE_J:
                 if(obj->opcode == _JUMP || obj->opcode == _JUMPAL) {
                     strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op1->enderecamento.label), 26));
-                } else if(obj->opcode == _JUMPR) {
-                    strcat(temp, getZeros(21));
-                    strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                 } else { // HALT, NOP
                     strcat(temp, getZeros(26));
                 }

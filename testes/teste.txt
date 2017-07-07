@@ -12,156 +12,238 @@
         # <- function declaration
     # <- type void
 
-    # -> type void
+    # -> type int
         # -> function declaration
-        # main
+        # fibonacci
                 # -> type int
                     # -> identifier
-                    # a
+                    # c
+                    # <- identifier
+                # <- type int
+
+                # -> type int
+                    # -> identifier
+                    # next
+                    # <- identifier
+                # <- type int
+
+                # -> type int
+                    # -> identifier
+                    # first
+                    # <- identifier
+                # <- type int
+
+                # -> type int
+                    # -> identifier
+                    # second
                     # <- identifier
                 # <- type int
 
                 # -> assign
                 # -> assign: right argument
                     # -> constant
-                    # 11
+                    # 0
                     # <- constant
                 # <- assign: right argument
                 # -> assign: left argument
                     # -> identifier
-                    # a
+                    # first
                     # <- identifier
                 # <- assign: left argument
                 # <- assign
-                # -> if
-                # -> if: test expression
+                # -> assign
+                # -> assign: right argument
+                    # -> constant
+                    # 1
+                    # <- constant
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> identifier
+                    # second
+                    # <- identifier
+                # <- assign: left argument
+                # <- assign
+                # -> assign
+                # -> assign: right argument
+                    # -> constant
+                    # 0
+                    # <- constant
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> identifier
+                    # c
+                    # <- identifier
+                # <- assign: left argument
+                # <- assign
+                # -> while
+                # -> while: test expression
                     # -> arithmetic operator
                     # -> arithmetic operator: left argument
                         # -> identifier
-                        # a
+                        # c
                         # <- identifier
                     # <- arithmetic operator: left argument
                     # -> arithmetic operator: right argument
-                        # -> constant
-                        # 12
-                        # <- constant
-                    # <- arithmetic operator: right argument
-                    # relational operator: <=
-                    # <- Operator
-                # <- if: test expression
-                # -> if: if block
-                        # -> function call
-                        # output
-                        # -> function call: arguments
-                            # -> constant
-                            # 77
-                            # <- constant
-                            # -> constant
-                            # 0
-                            # <- constant
-                        # <- function call: arguments
-                        # <- function call
-                # <- if: if block
-                # -> if: else/end block
-                        # -> function call
-                        # output
-                        # -> function call: arguments
-                            # -> constant
-                            # 77
-                            # <- constant
-                            # -> constant
-                            # 1
-                            # <- constant
-                        # <- function call: arguments
-                        # <- function call
-                # <- if: else/end block
-                # <- if
-                # -> if
-                # -> if: test expression
-                    # -> arithmetic operator
-                    # -> arithmetic operator: left argument
                         # -> identifier
-                        # a
+                        # n
                         # <- identifier
-                    # <- arithmetic operator: left argument
-                    # -> arithmetic operator: right argument
-                        # -> constant
-                        # 10
-                        # <- constant
                     # <- arithmetic operator: right argument
                     # relational operator: <=
                     # <- Operator
-                # <- if: test expression
-                # -> if: if block
-                        # -> function call
-                        # output
-                        # -> function call: arguments
-                            # -> constant
-                            # 88
-                            # <- constant
-                            # -> constant
-                            # 0
-                            # <- constant
-                        # <- function call: arguments
-                        # <- function call
-                # <- if: if block
-                # -> if: else/end block
-                        # -> function call
-                        # output
-                        # -> function call: arguments
-                            # -> constant
-                            # 88
-                            # <- constant
-                            # -> constant
-                            # 1
-                            # <- constant
-                        # <- function call: arguments
-                        # <- function call
-                # <- if: else/end block
-                # <- if
-                # -> if
-                # -> if: test expression
-                    # -> arithmetic operator
-                    # -> arithmetic operator: left argument
+                # <- while: test expression
+                # -> while: while block
+                        # -> if
+                        # -> if: test expression
+                            # -> arithmetic operator
+                            # -> arithmetic operator: left argument
+                                # -> identifier
+                                # c
+                                # <- identifier
+                            # <- arithmetic operator: left argument
+                            # -> arithmetic operator: right argument
+                                # -> constant
+                                # 1
+                                # <- constant
+                            # <- arithmetic operator: right argument
+                            # relational operator: <=
+                            # <- Operator
+                        # <- if: test expression
+                        # -> if: if block
+                            # -> assign
+                            # -> assign: right argument
+                                # -> identifier
+                                # c
+                                # <- identifier
+                            # <- assign: right argument
+                            # -> assign: left argument
+                                # -> identifier
+                                # next
+                                # <- identifier
+                            # <- assign: left argument
+                            # <- assign
+                        # <- if: if block
+                        # -> if: else/end block
+                                # -> assign
+                                # -> assign: right argument
+                                    # -> arithmetic operator
+                                    # -> arithmetic operator: left argument
+                                        # -> identifier
+                                        # first
+                                        # <- identifier
+                                    # <- arithmetic operator: left argument
+                                    # -> arithmetic operator: right argument
+                                        # -> identifier
+                                        # second
+                                        # <- identifier
+                                    # <- arithmetic operator: right argument
+                                    # arithmetic operator: +
+                                    # <- Operator
+                                # <- assign: right argument
+                                # -> assign: left argument
+                                    # -> identifier
+                                    # next
+                                    # <- identifier
+                                # <- assign: left argument
+                                # <- assign
+                                # -> assign
+                                # -> assign: right argument
+                                    # -> identifier
+                                    # second
+                                    # <- identifier
+                                # <- assign: right argument
+                                # -> assign: left argument
+                                    # -> identifier
+                                    # first
+                                    # <- identifier
+                                # <- assign: left argument
+                                # <- assign
+                                # -> assign
+                                # -> assign: right argument
+                                    # -> identifier
+                                    # next
+                                    # <- identifier
+                                # <- assign: right argument
+                                # -> assign: left argument
+                                    # -> identifier
+                                    # second
+                                    # <- identifier
+                                # <- assign: left argument
+                                # <- assign
+                        # <- if: else/end block
+                        # <- if
+                        # -> assign
+                        # -> assign: right argument
+                            # -> arithmetic operator
+                            # -> arithmetic operator: left argument
+                                # -> identifier
+                                # c
+                                # <- identifier
+                            # <- arithmetic operator: left argument
+                            # -> arithmetic operator: right argument
+                                # -> constant
+                                # 1
+                                # <- constant
+                            # <- arithmetic operator: right argument
+                            # arithmetic operator: +
+                            # <- Operator
+                        # <- assign: right argument
+                        # -> assign: left argument
+                            # -> identifier
+                            # c
+                            # <- identifier
+                        # <- assign: left argument
+                        # <- assign
+                # <- while: while block
+                # <- while
+                # -> return
+                # -> return: expression
+                    # -> identifier
+                    # next
+                    # <- identifier
+                # <- return: expression
+                # <- return
+        # <- function declaration
+    # <- type int
+
+    # -> type void
+        # -> function declaration
+        # main
+                # -> type int
+                    # -> identifier
+                    # n
+                    # <- identifier
+                # <- type int
+
+                # -> assign
+                # -> assign: right argument
+                    # -> function call
+                    # input
+                    # -> function call: arguments
+                    # <- function call: arguments
+                    # <- function call
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> identifier
+                    # n
+                    # <- identifier
+                # <- assign: left argument
+                # <- assign
+                # -> function call
+                # output
+                # -> function call: arguments
+                    # -> function call
+                    # fibonacci
+                    # -> function call: arguments
                         # -> identifier
-                        # a
+                        # n
                         # <- identifier
-                    # <- arithmetic operator: left argument
-                    # -> arithmetic operator: right argument
-                        # -> constant
-                        # 11
-                        # <- constant
-                    # <- arithmetic operator: right argument
-                    # relational operator: <=
-                    # <- Operator
-                # <- if: test expression
-                # -> if: if block
-                        # -> function call
-                        # output
-                        # -> function call: arguments
-                            # -> constant
-                            # 99
-                            # <- constant
-                            # -> constant
-                            # 0
-                            # <- constant
-                        # <- function call: arguments
-                        # <- function call
-                # <- if: if block
-                # -> if: else/end block
-                        # -> function call
-                        # output
-                        # -> function call: arguments
-                            # -> constant
-                            # 99
-                            # <- constant
-                            # -> constant
-                            # 1
-                            # <- constant
-                        # <- function call: arguments
-                        # <- function call
-                # <- if: else/end block
-                # <- if
+                    # <- function call: arguments
+                    # <- function call
+                    # -> constant
+                    # 2
+                    # <- constant
+                # <- function call: arguments
+                # <- function call
         # <- function declaration
     # <- type void
 
@@ -169,123 +251,128 @@
 
 ********** Código intermediário **********
 
-1: (function, main, _, _)
-2: (assign, a, 11, _)
-3: (less_than_equal_to, a, 12, t1)
-4: (jump_if_false, t1, L1, _)
-5: (param_list, 2, _, _)
-6: (set_param, 77, _, _)
-7: (set_param, 0, _, _)
-8: (call, output, 2, t2)
-9: (goto, L2, _, _)
-10: (label, L1, _, _)
-11: (param_list, 2, _, _)
-12: (set_param, 77, _, _)
-13: (set_param, 1, _, _)
-14: (call, output, 2, t3)
-15: (label, L2, _, _)
-16: (less_than_equal_to, a, 10, t4)
-17: (jump_if_false, t4, L3, _)
-18: (param_list, 2, _, _)
-19: (set_param, 88, _, _)
-20: (set_param, 0, _, _)
-21: (call, output, 2, t5)
-22: (goto, L4, _, _)
-23: (label, L3, _, _)
-24: (param_list, 2, _, _)
-25: (set_param, 88, _, _)
-26: (set_param, 1, _, _)
-27: (call, output, 2, t6)
-28: (label, L4, _, _)
-29: (less_than_equal_to, a, 11, t7)
-30: (jump_if_false, t7, L5, _)
-31: (param_list, 2, _, _)
-32: (set_param, 99, _, _)
-33: (set_param, 0, _, _)
-34: (call, output, 2, t8)
-35: (goto, L6, _, _)
-36: (label, L5, _, _)
-37: (param_list, 2, _, _)
-38: (set_param, 99, _, _)
-39: (set_param, 1, _, _)
-40: (call, output, 2, t9)
-41: (label, L6, _, _)
-42: (halt, _, _, _)
+1: (function, fibonacci, _, _)
+2: (get_param, n, _, _)
+3: (assign, first, 0, _)
+4: (assign, second, 1, _)
+5: (assign, c, 0, _)
+6: (label, L1, _, _)
+7: (less_than_equal_to, c, n, t1)
+8: (jump_if_false, t1, L4, _)
+9: (less_than_equal_to, c, 1, t2)
+10: (jump_if_false, t2, L2, _)
+11: (assign, next, c, _)
+12: (goto, L3, _, _)
+13: (label, L2, _, _)
+14: (addition, first, second, t3)
+15: (assign, next, t3, _)
+16: (assign, first, second, _)
+17: (assign, second, next, _)
+18: (label, L3, _, _)
+19: (addition, c, 1, t4)
+20: (assign, c, t4, _)
+21: (goto, L1, _, _)
+22: (label, L4, _, _)
+23: (return, next, _, _)
+24: (function, main, _, _)
+25: (param_list, 0, _, _)
+26: (call, input, 0, t5)
+27: (assign, n, t5, _)
+28: (param_list, 2, _, _)
+29: (param_list, 1, _, _)
+30: (set_param, n, _, _)
+31: (call, fibonacci, 1, t6)
+32: (set_param, t6, _, _)
+33: (set_param, 2, _, _)
+34: (call, output, 2, t7)
+35: (halt, _, _, _)
 
 ********** Código objeto **********
 
-main:
-    0:	addi	$sp, $sp, 0
-    1:	li	$t0, 11
-    2:	sw	$t0, 0($sp)
-    3:	lw	$s0, 0($sp)
-    4:	li	$t1, 12
-    5:	blet	$s0, $t1, L1
-    6:	li	$a0, 77
-    7:	li	$a1, 0
-    8:	out	$a0, 0
-    9:	j	L2
+fibonacci:
+    0:	addi	$sp, $sp, 6
+    1:	mov	$s0, $a0
+    2:	li	$t0, 0
+    3:	sw	$t0, -1($sp)
+    4:	li	$t1, 1
+    5:	sw	$t1, 0($sp)
+    6:	li	$t2, 0
+    7:	sw	$t2, -3($sp)
 .L1	
-    10:	li	$a0, 77
-    11:	li	$a1, 1
-    12:	out	$a0, 1
+    8:	lw	$s1, -3($sp)
+    9:	blet	$s1, $s0, L4
+    10:	li	$t3, 1
+    11:	blet	$s1, $t3, L2
+    12:	sw	$s1, -2($sp)
+    13:	j	L3
 .L2	
-    13:	li	$t2, 10
-    14:	blet	$s0, $t2, L3
-    15:	li	$a0, 88
-    16:	li	$a1, 0
-    17:	out	$a0, 0
-    18:	j	L4
+    14:	lw	$s2, -1($sp)
+    15:	lw	$s3, 0($sp)
+    16:	add	$t4, $s2, $s3
+    17:	sw	$t4, -2($sp)
+    18:	sw	$s3, -1($sp)
+    19:	lw	$s4, -2($sp)
+    20:	sw	$s4, 0($sp)
 .L3	
-    19:	li	$a0, 88
-    20:	li	$a1, 1
-    21:	out	$a0, 1
+    21:	addi	$t5, $s1, 1
+    22:	sw	$t5, -3($sp)
+    23:	j	L1
 .L4	
-    22:	li	$t3, 11
-    23:	blet	$s0, $t3, L5
-    24:	li	$a0, 99
-    25:	li	$a1, 0
-    26:	out	$a0, 0
-    27:	j	L6
-.L5	
-    28:	li	$a0, 99
-    29:	li	$a1, 1
-    30:	out	$a0, 1
-.L6	
-    31:	halt	
+    24:	mov	$v0, $s4
+    25:	jr	$ra
+
+main:
+    26:	addi	$sp, $sp, 0
+    27:	in	$t0
+    28:	sw	$t0, 0($sp)
+    29:	lw	$s0, 0($sp)
+    30:	mov	$a0, $s0
+    31:	jal	fibonacci
+    32:	mov	$t1, $v0
+    33:	subi	$sp, $sp, 6
+    34:	mov	$a0, $t1
+    35:	li	$a1, 2
+    36:	out	$a0, 2
+    37:	halt	
 
 ********** Código binário **********
 
-memoria_instrucoes[0] = 32'b011101_00000000000000000000000001; 	// Jump to Main
-memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000000; 	// addi
-memoria_instrucoes[2] = 32'b010100_00000_10101_0000000000001011; 	// li
-memoria_instrucoes[3] = 32'b010110_00011_10101_0000000000000000; 	// sw
-memoria_instrucoes[4] = 32'b010011_00011_01011_0000000000000000; 	// lw
-memoria_instrucoes[5] = 32'b010100_00000_10110_0000000000001100; 	// li
-memoria_instrucoes[6] = 32'b011010_01011_10110_0000000000001011; 	// blet
-memoria_instrucoes[7] = 32'b010100_00000_00111_0000000001001101; 	// li
-memoria_instrucoes[8] = 32'b010100_00000_01000_0000000000000000; 	// li
-memoria_instrucoes[9] = 32'b100001_00000_00111_0000000000000000; 	// out
-memoria_instrucoes[10] = 32'b011101_00000000000000000000001110; 	// j
-memoria_instrucoes[11] = 32'b010100_00000_00111_0000000001001101; 	// li
-memoria_instrucoes[12] = 32'b010100_00000_01000_0000000000000001; 	// li
-memoria_instrucoes[13] = 32'b100001_00000_00111_0000000000000001; 	// out
-memoria_instrucoes[14] = 32'b010100_00000_10111_0000000000001010; 	// li
-memoria_instrucoes[15] = 32'b011010_01011_10111_0000000000010100; 	// blet
-memoria_instrucoes[16] = 32'b010100_00000_00111_0000000001011000; 	// li
-memoria_instrucoes[17] = 32'b010100_00000_01000_0000000000000000; 	// li
-memoria_instrucoes[18] = 32'b100001_00000_00111_0000000000000000; 	// out
-memoria_instrucoes[19] = 32'b011101_00000000000000000000010111; 	// j
-memoria_instrucoes[20] = 32'b010100_00000_00111_0000000001011000; 	// li
-memoria_instrucoes[21] = 32'b010100_00000_01000_0000000000000001; 	// li
-memoria_instrucoes[22] = 32'b100001_00000_00111_0000000000000001; 	// out
-memoria_instrucoes[23] = 32'b010100_00000_11000_0000000000001011; 	// li
-memoria_instrucoes[24] = 32'b011010_01011_11000_0000000000011101; 	// blet
-memoria_instrucoes[25] = 32'b010100_00000_00111_0000000001100011; 	// li
-memoria_instrucoes[26] = 32'b010100_00000_01000_0000000000000000; 	// li
-memoria_instrucoes[27] = 32'b100001_00000_00111_0000000000000000; 	// out
-memoria_instrucoes[28] = 32'b011101_00000000000000000000100000; 	// j
-memoria_instrucoes[29] = 32'b010100_00000_00111_0000000001100011; 	// li
-memoria_instrucoes[30] = 32'b010100_00000_01000_0000000000000001; 	// li
-memoria_instrucoes[31] = 32'b100001_00000_00111_0000000000000001; 	// out
-memoria_instrucoes[32] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[0] = 32'b011101_00000000000000000000011011; 	// Jump to Main
+memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000110; 	// addi
+memoria_instrucoes[2] = 32'b010010_00111_01011_0000000000000000; 	// mov
+memoria_instrucoes[3] = 32'b010100_00000_10101_0000000000000000; 	// li
+memoria_instrucoes[4] = 32'b010110_00011_10101_1111111111111111; 	// sw
+memoria_instrucoes[5] = 32'b010100_00000_10110_0000000000000001; 	// li
+memoria_instrucoes[6] = 32'b010110_00011_10110_0000000000000000; 	// sw
+memoria_instrucoes[7] = 32'b010100_00000_10111_0000000000000000; 	// li
+memoria_instrucoes[8] = 32'b010110_00011_10111_1111111111111101; 	// sw
+memoria_instrucoes[9] = 32'b010011_00011_01100_1111111111111101; 	// lw
+memoria_instrucoes[10] = 32'b011010_01100_01011_0000000000011001; 	// blet
+memoria_instrucoes[11] = 32'b010100_00000_11000_0000000000000001; 	// li
+memoria_instrucoes[12] = 32'b011010_01100_11000_0000000000001111; 	// blet
+memoria_instrucoes[13] = 32'b010110_00011_01100_1111111111111110; 	// sw
+memoria_instrucoes[14] = 32'b011101_00000000000000000000010110; 	// j
+memoria_instrucoes[15] = 32'b010011_00011_01101_1111111111111111; 	// lw
+memoria_instrucoes[16] = 32'b010011_00011_01110_0000000000000000; 	// lw
+memoria_instrucoes[17] = 32'b000001_01101_01110_11001_00000000000; 	// add
+memoria_instrucoes[18] = 32'b010110_00011_11001_1111111111111110; 	// sw
+memoria_instrucoes[19] = 32'b010110_00011_01110_1111111111111111; 	// sw
+memoria_instrucoes[20] = 32'b010011_00011_01111_1111111111111110; 	// lw
+memoria_instrucoes[21] = 32'b010110_00011_01111_0000000000000000; 	// sw
+memoria_instrucoes[22] = 32'b000010_01100_11010_0000000000000001; 	// addi
+memoria_instrucoes[23] = 32'b010110_00011_11010_1111111111111101; 	// sw
+memoria_instrucoes[24] = 32'b011101_00000000000000000000001001; 	// j
+memoria_instrucoes[25] = 32'b010010_01111_00001_0000000000000000; 	// mov
+memoria_instrucoes[26] = 32'b011111_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[27] = 32'b000010_00011_00011_0000000000000000; 	// addi
+memoria_instrucoes[28] = 32'b100000_00000_10101_0000000000000000; 	// in
+memoria_instrucoes[29] = 32'b010110_00011_10101_0000000000000000; 	// sw
+memoria_instrucoes[30] = 32'b010011_00011_01011_0000000000000000; 	// lw
+memoria_instrucoes[31] = 32'b010010_01011_00111_0000000000000000; 	// mov
+memoria_instrucoes[32] = 32'b011110_00000000000000000000000001; 	// jal
+memoria_instrucoes[33] = 32'b010010_00001_10110_0000000000000000; 	// mov
+memoria_instrucoes[34] = 32'b000100_00011_00011_0000000000000110; 	// subi
+memoria_instrucoes[35] = 32'b010010_10110_00111_0000000000000000; 	// mov
+memoria_instrucoes[36] = 32'b010100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[37] = 32'b100001_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[38] = 32'b111111_00000000000000000000000000; 	// halt
