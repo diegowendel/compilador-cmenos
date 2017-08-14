@@ -399,52 +399,31 @@
                     # <- constant
                 # <- function call: arguments
                 # <- function call
+                # -> assign
+                # -> assign: right argument
+                    # -> function call
+                    # input
+                    # -> function call: arguments
+                    # <- function call: arguments
+                    # <- function call
+                # <- assign: right argument
+                # -> assign: left argument
+                    # -> identifier
+                    # i
+                    # <- identifier
+                # <- assign: left argument
+                # <- assign
                 # -> function call
                 # output
                 # -> function call: arguments
                     # -> vector
                     # vetor
                     # -> vector: position
-                        # -> constant
-                        # 0
-                        # <- constant
+                        # -> identifier
+                        # i
+                        # <- identifier
                     # <- vector: position
                     # <- vector
-                    # -> constant
-                    # 0
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
-                # -> function call
-                # output
-                # -> function call: arguments
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 1
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                    # -> constant
-                    # 1
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
-                # -> function call
-                # output
-                # -> function call: arguments
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 2
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                    # -> constant
-                    # 2
-                    # <- constant
                 # <- function call: arguments
                 # <- function call
         # <- function declaration
@@ -506,22 +485,14 @@
 50: (set_param, vetor, _, _)
 51: (set_param, 4, _, _)
 52: (call, sort, 2, t20)
-53: (param_list, 2, _, _)
-54: (vector_value, vetor, 0, t21)
-55: (set_param, t21, _, _)
-56: (set_param, 0, _, _)
-57: (call, output, 2, t22)
-58: (param_list, 2, _, _)
-59: (vector_value, vetor, 1, t23)
-60: (set_param, t23, _, _)
-61: (set_param, 1, _, _)
-62: (call, output, 2, t24)
-63: (param_list, 2, _, _)
-64: (vector_value, vetor, 2, t25)
-65: (set_param, t25, _, _)
-66: (set_param, 2, _, _)
-67: (call, output, 2, t26)
-68: (halt, _, _, _)
+53: (param_list, 0, _, _)
+54: (call, input, 0, t21)
+55: (assign, i, t21, _)
+56: (param_list, 1, _, _)
+57: (vector_value, vetor, i, t22)
+58: (set_param, t22, _, _)
+59: (call, output, 1, t23)
+60: (halt, _, _, _)
 
 ********** Código objeto **********
 
@@ -588,19 +559,14 @@ main:
     51:	jal	sort
     52:	mov	$t4, $v0
     53:	subi	$sp, $sp, 7
-    54:	lw	$t5, 0($s0)
-    55:	mov	$a0, $t5
-    56:	li	$a1, 0
-    57:	out	$a0, 0
-    58:	lw	$t6, 1($s0)
+    54:	in	$t5
+    55:	sw	$t5, 0($sp)
+    56:	lw	$s1, 0($sp)
+    57:	add	$t6, $s0, $s1
+    58:	lw	$t6, 0($t6)
     59:	mov	$a0, $t6
-    60:	li	$a1, 1
-    61:	out	$a0, 1
-    62:	lw	$t7, 2($s0)
-    63:	mov	$a0, $t7
-    64:	li	$a1, 2
-    65:	out	$a0, 2
-    66:	halt	
+    60:	out	$a0, 0
+    61:	halt	
 
 ********** Código binário **********
 
@@ -659,16 +625,11 @@ memoria_instrucoes[51] = 32'b010100_00000_01000_0000000000000100; 	// li
 memoria_instrucoes[52] = 32'b011110_00000000000000000000000001; 	// jal
 memoria_instrucoes[53] = 32'b010010_00001_11001_0000000000000000; 	// mov
 memoria_instrucoes[54] = 32'b000100_00011_00011_0000000000000111; 	// subi
-memoria_instrucoes[55] = 32'b010011_01011_11010_0000000000000000; 	// lw
-memoria_instrucoes[56] = 32'b010010_11010_00111_0000000000000000; 	// mov
-memoria_instrucoes[57] = 32'b010100_00000_01000_0000000000000000; 	// li
-memoria_instrucoes[58] = 32'b100001_00000_00111_0000000000000000; 	// out
-memoria_instrucoes[59] = 32'b010011_01011_11011_0000000000000001; 	// lw
+memoria_instrucoes[55] = 32'b100000_00000_11010_0000000000000000; 	// in
+memoria_instrucoes[56] = 32'b010110_00011_11010_0000000000000000; 	// sw
+memoria_instrucoes[57] = 32'b010011_00011_01100_0000000000000000; 	// lw
+memoria_instrucoes[58] = 32'b000001_01011_01100_11011_00000000000; 	// add
+memoria_instrucoes[59] = 32'b010011_11011_11011_0000000000000000; 	// lw
 memoria_instrucoes[60] = 32'b010010_11011_00111_0000000000000000; 	// mov
-memoria_instrucoes[61] = 32'b010100_00000_01000_0000000000000001; 	// li
-memoria_instrucoes[62] = 32'b100001_00000_00111_0000000000000001; 	// out
-memoria_instrucoes[63] = 32'b010011_01011_11100_0000000000000010; 	// lw
-memoria_instrucoes[64] = 32'b010010_11100_00111_0000000000000000; 	// mov
-memoria_instrucoes[65] = 32'b010100_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[66] = 32'b100001_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[67] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[61] = 32'b100001_00000_00111_0000000000000000; 	// out
+memoria_instrucoes[62] = 32'b111111_00000000000000000000000000; 	// halt
