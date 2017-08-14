@@ -20,5 +20,5 @@ int foo(int x, int y, int z, int w){
 void main(void){
     vetor[0] = input();
     vetor[1] = foo(1, vetor[0], 3, 4);
-    output(vetor[1]);
+    output(vetor[1], 2);
 }

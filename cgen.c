@@ -145,7 +145,7 @@ static void genStmt(TreeNode * tree) {
             updateLocation(op2);
             popLocation();
 
-            if(p3 != NULL && p3->nodekind == StmtK && p3->kind.stmt == CompK) {
+            if(p3 != NULL) {
                 q = insertQuad(createQuad(GOTO, vazio, vazio, vazio));
                 pushLocation(createLocation(q));
             }
@@ -156,7 +156,7 @@ static void genStmt(TreeNode * tree) {
 
             cGen(p3);
 
-            if(p3 != NULL && p3->nodekind == StmtK && p3->kind.stmt == CompK) {
+            if(p3 != NULL) {
                 op1.kind = String;
                 op1.contents.variable.name = createLabel();
                 op1.contents.variable.scope = tree->scope;

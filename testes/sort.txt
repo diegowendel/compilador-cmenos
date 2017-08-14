@@ -424,6 +424,9 @@
                         # <- identifier
                     # <- vector: position
                     # <- vector
+                    # -> constant
+                    # 2
+                    # <- constant
                 # <- function call: arguments
                 # <- function call
         # <- function declaration
@@ -488,11 +491,12 @@
 53: (param_list, 0, _, _)
 54: (call, input, 0, t21)
 55: (assign, i, t21, _)
-56: (param_list, 1, _, _)
+56: (param_list, 2, _, _)
 57: (vector_value, vetor, i, t22)
 58: (set_param, t22, _, _)
-59: (call, output, 1, t23)
-60: (halt, _, _, _)
+59: (set_param, 2, _, _)
+60: (call, output, 2, t23)
+61: (halt, _, _, _)
 
 ********** Código objeto **********
 
@@ -565,8 +569,9 @@ main:
     57:	add	$t6, $s0, $s1
     58:	lw	$t6, 0($t6)
     59:	mov	$a0, $t6
-    60:	out	$a0, 0
-    61:	halt	
+    60:	li	$a1, 2
+    61:	out	$a0, 2
+    62:	halt	
 
 ********** Código binário **********
 
@@ -631,5 +636,6 @@ memoria_instrucoes[57] = 32'b010011_00011_01100_0000000000000000; 	// lw
 memoria_instrucoes[58] = 32'b000001_01011_01100_11011_00000000000; 	// add
 memoria_instrucoes[59] = 32'b010011_11011_11011_0000000000000000; 	// lw
 memoria_instrucoes[60] = 32'b010010_11011_00111_0000000000000000; 	// mov
-memoria_instrucoes[61] = 32'b100001_00000_00111_0000000000000000; 	// out
-memoria_instrucoes[62] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[61] = 32'b010100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[62] = 32'b100001_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[63] = 32'b111111_00000000000000000000000000; 	// halt

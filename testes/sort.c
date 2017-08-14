@@ -29,5 +29,5 @@ void main(void){
     vetor[3] = 7;
     sort(vetor, 4);
     i = input();
-    output(vetor[i]);
+    output(vetor[i], 2);
 }
