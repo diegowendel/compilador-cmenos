@@ -211,6 +211,7 @@ InstOperand getOperandRegName(Operand op) {
 
 InstOperand getVectorRegName(Operand op) {
     InstOperand reg = getRegByName(op.contents.variable.name);
+    TreeNode * treeNode;
     if(reg == NULL) {
         reg = getSavedReg(escopoHead->savedRegCount++);
         insertRegistrador(createRegistrador(op, reg->enderecamento.registrador));
@@ -218,8 +219,17 @@ InstOperand getVectorRegName(Operand op) {
             /* Lê o endereço de memória do início do vetor */
             printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, reg, getGlobalOperandLocation(op), NULL)));
         } else {
-            /* Lê o endereço de memória do início do vetor */
-            printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, reg, getStackOperandLocation(op), NULL)));
+            /**
+             * Verifica se o vetor foi declarado no mesmo escopo atual ou veio como parâmetro
+             */
+            treeNode = getVarFromSymtab(op.contents.variable.name, op.contents.variable.scope)->treeNode;
+            if(treeNode->varMemK == PARAM) {
+                /* Parâmetro - Lê o ponteiro para o vetor */
+                printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, reg, getStackOperandLocation(op), NULL)));
+            } else {
+                /* Escopo atual - Lê o endereço de memória do início do vetor */
+                printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, reg, getStackOperandLocation(op), NULL)));
+            }
         }
     }
     return reg;
@@ -328,6 +338,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(escopoHead->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
+        /* Remove todos registradores salvos para forçar o LOAD dos operandos ao voltar da chamada de função */
+        removeTodosRegistradoresSalvos();
         printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempRegName(q->op3), rtnValReg, NULL)));
         /* Desaloca o bloco de memória na stack */
@@ -335,7 +347,10 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
         printCode(insertObjInst(createObjInst(_STORE, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // sw $ra
+        /* Remove todos registradores salvos para forçar o LOAD dos operandos ao voltar da chamada de função */
+        removeTodosRegistradoresSalvos();
         printCode(insertObjInst(createObjInst(_JUMPAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
+        /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
         printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // lw $ra
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempRegName(q->op3), rtnValReg, NULL)));
@@ -357,7 +372,7 @@ void geraCodigoSetParam(Quadruple q) {
         /* Verifica se é uma constante ou variável */
         if(q->op1.kind == String) { // Variável
             if(var != NULL && var->treeNode->kind.exp == VectorK) { // Vetor
-                printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, getArgReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL)));
+                printCode(insertObjInst(createObjInst(_LOADA, TYPE_I, getArgReg(escopoHead->argRegCount), getStackOperandLocation(q->op1), NULL)));
             } else { // Variável
                 reg = getOperandRegName(q->op1);
                 if(getArgReg(escopoHead->argRegCount)->enderecamento.registrador != reg->enderecamento.registrador) { /* Só move se os registradores forem diferentes */
@@ -392,12 +407,9 @@ void geraCodigoGetParam(Quadruple q) {
     if(escopoHead->argRegCount < 4) {
         InstOperand arg = getArgReg(escopoHead->argRegCount);
         insertRegistrador(createRegistrador(q->op1, arg->enderecamento.registrador));
-        InstOperand saved = getSavedReg(escopoHead->savedRegCount);
-        insertRegistrador(createRegistrador(q->op1, saved->enderecamento.registrador));
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, saved, arg, NULL)));
-        moveRegistrador(saved->enderecamento.registrador, arg->enderecamento.registrador);
+        printCode(insertObjInst(createObjInst(_STORE, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
+        removeRegistrador(arg->enderecamento.registrador);
         escopoHead->argRegCount++;
-        escopoHead->savedRegCount++;
     } else if(escopoHead->argRegCount >= 4) {
         insertRegistrador(createRegistrador(q->op1, getSavedReg(escopoHead->savedRegCount)->enderecamento.registrador));
         printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, getSavedReg(escopoHead->savedRegCount), getStackOperandLocation(q->op1), NULL)));
@@ -656,14 +668,6 @@ void pushEscopoGerador(EscopoGerador eg) {
     }
 }
 
-void popEscopoGerador() {
-    if(escopoHead != NULL) {
-        EscopoGerador eg = escopoHead;
-        escopoHead = eg->next;
-        free(eg);
-    }
-}
-
 Registrador createRegistrador(Operand op, RegisterName regName) {
     Registrador r = (Registrador) malloc(sizeof(struct registrador));
     r->op = op;
@@ -723,6 +727,19 @@ void removeRegistrador(RegisterName name) {
     }
 }
 
+void removeTodosRegistradoresSalvos(void) {
+    Registrador temp;
+    if(escopoHead != NULL) {
+        while(escopoHead->regList != NULL) {
+            temp = escopoHead->regList;
+            escopoHead->regList = escopoHead->regList->next;
+            free(temp);
+        }
+    }
+    escopoHead->argRegCount = 0;
+    escopoHead->savedRegCount = 0;
+}
+
 Registrador getRegistrador(RegisterName name) {
     Registrador reg;
     if(escopoHead != NULL) {
@@ -752,15 +769,6 @@ InstOperand getRegByName(char * name) {
         reg = reg->next;
     }
     return NULL;
-}
-
-void freeParamList(Registrador head) {
-    Registrador temp;
-    while (head != NULL) {
-        temp = head;
-        head = head->next;
-        free(temp);
-    }
 }
 
 Objeto createObjInst(Opcode opcode, Type type, InstOperand op1, InstOperand op2, InstOperand op3) {

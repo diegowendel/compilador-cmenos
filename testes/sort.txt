@@ -502,140 +502,146 @@
 
 sort:
     0:	addi	$sp, $sp, 7
-    1:	mov	$s0, $a0
-    2:	mov	$s1, $a1
+    1:	sw	$a0, -5($sp)
+    2:	sw	$a1, -4($sp)
     3:	li	$t0, 0
     4:	sw	$t0, -3($sp)
 .L1	
-    5:	subi	$t1, $s1, 1
-    6:	lw	$s2, -3($sp)
-    7:	blt	$s2, $t1, L6
-    8:	sw	$s2, -1($sp)
-    9:	addi	$t2, $s2, 1
-    10:	sw	$t2, -2($sp)
+    5:	lw	$s0, -4($sp)
+    6:	subi	$t1, $s0, 1
+    7:	lw	$s1, -3($sp)
+    8:	blt	$s1, $t1, L6
+    9:	sw	$s1, -1($sp)
+    10:	addi	$t2, $s1, 1
+    11:	sw	$t2, -2($sp)
 .L2	
-    11:	lw	$s3, -2($sp)
-    12:	blt	$s3, $s1, L4
-    13:	add	$t3, $s0, $s3
-    14:	lw	$t3, 0($t3)
-    15:	lw	$s4, -1($sp)
-    16:	add	$t4, $s0, $s4
-    17:	lw	$t4, 0($t4)
-    18:	blt	$t3, $t4, L3
-    19:	sw	$s3, -1($sp)
+    12:	lw	$s2, -2($sp)
+    13:	blt	$s2, $s0, L4
+    14:	lw	$s3, -5($sp)
+    15:	add	$t3, $s3, $s2
+    16:	lw	$t3, 0($t3)
+    17:	lw	$s4, -1($sp)
+    18:	add	$t4, $s3, $s4
+    19:	lw	$t4, 0($t4)
+    20:	blt	$t3, $t4, L3
+    21:	sw	$s2, -1($sp)
 .L3	
-    20:	addi	$t5, $s3, 1
-    21:	sw	$t5, -2($sp)
-    22:	j	L2
+    22:	addi	$t5, $s2, 1
+    23:	sw	$t5, -2($sp)
+    24:	j	L2
 .L4	
-    23:	lw	$s5, -1($sp)
-    24:	bne	$s2, $s5, L5
-    25:	add	$t6, $s0, $s2
-    26:	lw	$t6, 0($t6)
-    27:	sw	$t6, 0($sp)
-    28:	add	$t7, $s0, $s5
-    29:	lw	$t7, 0($t7)
-    30:	add	$t8, $s0, $s2
-    31:	sw	$t7, 0($t8)
-    32:	add	$t9, $s0, $s5
-    33:	lw	$s6, 0($sp)
-    34:	sw	$s6, 0($t9)
+    25:	lw	$s5, -1($sp)
+    26:	bne	$s1, $s5, L5
+    27:	add	$t6, $s3, $s1
+    28:	lw	$t6, 0($t6)
+    29:	sw	$t6, 0($sp)
+    30:	add	$t7, $s3, $s5
+    31:	lw	$t7, 0($t7)
+    32:	add	$t8, $s3, $s1
+    33:	sw	$t7, 0($t8)
+    34:	add	$t9, $s3, $s5
+    35:	lw	$s6, 0($sp)
+    36:	sw	$s6, 0($t9)
 .L5	
-    35:	addi	$t0, $s2, 1
-    36:	sw	$t0, -3($sp)
-    37:	j	L1
+    37:	addi	$t0, $s1, 1
+    38:	sw	$t0, -3($sp)
+    39:	j	L1
 .L6	
-    38:	jr	$ra
+    40:	jr	$ra
 
 main:
-    39:	addi	$sp, $sp, 4
-    40:	la	$s0, -4($sp)
-    41:	li	$t0, 9
-    42:	sw	$t0, 0($s0)
-    43:	li	$t1, 6
-    44:	sw	$t1, 1($s0)
-    45:	li	$t2, 8
-    46:	sw	$t2, 2($s0)
-    47:	li	$t3, 7
-    48:	sw	$t3, 3($s0)
-    49:	la	$a1, -4($sp)
-    50:	li	$a1, 4
-    51:	jal	sort
-    52:	mov	$t4, $v0
-    53:	subi	$sp, $sp, 7
-    54:	in	$t5
-    55:	sw	$t5, 0($sp)
-    56:	lw	$s1, 0($sp)
-    57:	add	$t6, $s0, $s1
-    58:	lw	$t6, 0($t6)
-    59:	mov	$a0, $t6
-    60:	li	$a1, 2
-    61:	out	$a0, 2
-    62:	halt	
+    41:	addi	$sp, $sp, 4
+    42:	la	$s0, -4($sp)
+    43:	li	$t0, 9
+    44:	sw	$t0, 0($s0)
+    45:	li	$t1, 6
+    46:	sw	$t1, 1($s0)
+    47:	li	$t2, 8
+    48:	sw	$t2, 2($s0)
+    49:	li	$t3, 7
+    50:	sw	$t3, 3($s0)
+    51:	la	$a0, -4($sp)
+    52:	li	$a1, 4
+    53:	jal	sort
+    54:	mov	$t4, $v0
+    55:	subi	$sp, $sp, 7
+    56:	in	$t5
+    57:	sw	$t5, 0($sp)
+    58:	la	$s0, -4($sp)
+    59:	lw	$s1, 0($sp)
+    60:	add	$t6, $s0, $s1
+    61:	lw	$t6, 0($t6)
+    62:	mov	$a0, $t6
+    63:	li	$a1, 2
+    64:	out	$a0, 2
+    65:	halt	
 
 ********** Código binário **********
 
-memoria_instrucoes[0] = 32'b011101_00000000000000000000101000; 	// Jump to Main
+memoria_instrucoes[0] = 32'b011101_00000000000000000000101010; 	// Jump to Main
 memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000111; 	// addi
-memoria_instrucoes[2] = 32'b010010_00111_01011_0000000000000000; 	// mov
-memoria_instrucoes[3] = 32'b010010_01000_01100_0000000000000000; 	// mov
+memoria_instrucoes[2] = 32'b010110_00011_00111_1111111111111011; 	// sw
+memoria_instrucoes[3] = 32'b010110_00011_01000_1111111111111100; 	// sw
 memoria_instrucoes[4] = 32'b010100_00000_10101_0000000000000000; 	// li
 memoria_instrucoes[5] = 32'b010110_00011_10101_1111111111111101; 	// sw
-memoria_instrucoes[6] = 32'b000100_01100_10110_0000000000000001; 	// subi
-memoria_instrucoes[7] = 32'b010011_00011_01101_1111111111111101; 	// lw
-memoria_instrucoes[8] = 32'b011001_01101_10110_0000000000100111; 	// blt
-memoria_instrucoes[9] = 32'b010110_00011_01101_1111111111111111; 	// sw
-memoria_instrucoes[10] = 32'b000010_01101_10111_0000000000000001; 	// addi
-memoria_instrucoes[11] = 32'b010110_00011_10111_1111111111111110; 	// sw
-memoria_instrucoes[12] = 32'b010011_00011_01110_1111111111111110; 	// lw
-memoria_instrucoes[13] = 32'b011001_01110_01100_0000000000011000; 	// blt
-memoria_instrucoes[14] = 32'b000001_01011_01110_11000_00000000000; 	// add
-memoria_instrucoes[15] = 32'b010011_11000_11000_0000000000000000; 	// lw
-memoria_instrucoes[16] = 32'b010011_00011_01111_1111111111111111; 	// lw
-memoria_instrucoes[17] = 32'b000001_01011_01111_11001_00000000000; 	// add
-memoria_instrucoes[18] = 32'b010011_11001_11001_0000000000000000; 	// lw
-memoria_instrucoes[19] = 32'b011001_11000_11001_0000000000010101; 	// blt
-memoria_instrucoes[20] = 32'b010110_00011_01110_1111111111111111; 	// sw
-memoria_instrucoes[21] = 32'b000010_01110_11010_0000000000000001; 	// addi
-memoria_instrucoes[22] = 32'b010110_00011_11010_1111111111111110; 	// sw
-memoria_instrucoes[23] = 32'b011101_00000000000000000000001100; 	// j
-memoria_instrucoes[24] = 32'b010011_00011_10000_1111111111111111; 	// lw
-memoria_instrucoes[25] = 32'b011000_01101_10000_0000000000100100; 	// bne
-memoria_instrucoes[26] = 32'b000001_01011_01101_11011_00000000000; 	// add
-memoria_instrucoes[27] = 32'b010011_11011_11011_0000000000000000; 	// lw
-memoria_instrucoes[28] = 32'b010110_00011_11011_0000000000000000; 	// sw
-memoria_instrucoes[29] = 32'b000001_01011_10000_11100_00000000000; 	// add
-memoria_instrucoes[30] = 32'b010011_11100_11100_0000000000000000; 	// lw
-memoria_instrucoes[31] = 32'b000001_01011_01101_11101_00000000000; 	// add
-memoria_instrucoes[32] = 32'b010110_11101_11100_0000000000000000; 	// sw
-memoria_instrucoes[33] = 32'b000001_01011_10000_11110_00000000000; 	// add
-memoria_instrucoes[34] = 32'b010011_00011_10001_0000000000000000; 	// lw
-memoria_instrucoes[35] = 32'b010110_11110_10001_0000000000000000; 	// sw
-memoria_instrucoes[36] = 32'b000010_01101_10101_0000000000000001; 	// addi
-memoria_instrucoes[37] = 32'b010110_00011_10101_1111111111111101; 	// sw
-memoria_instrucoes[38] = 32'b011101_00000000000000000000000110; 	// j
-memoria_instrucoes[39] = 32'b011111_00000_11111_0000000000000000; 	// jr
-memoria_instrucoes[40] = 32'b000010_00011_00011_0000000000000100; 	// addi
-memoria_instrucoes[41] = 32'b010101_00011_01011_1111111111111100; 	// la
-memoria_instrucoes[42] = 32'b010100_00000_10101_0000000000001001; 	// li
-memoria_instrucoes[43] = 32'b010110_01011_10101_0000000000000000; 	// sw
-memoria_instrucoes[44] = 32'b010100_00000_10110_0000000000000110; 	// li
-memoria_instrucoes[45] = 32'b010110_01011_10110_0000000000000001; 	// sw
-memoria_instrucoes[46] = 32'b010100_00000_10111_0000000000001000; 	// li
-memoria_instrucoes[47] = 32'b010110_01011_10111_0000000000000010; 	// sw
-memoria_instrucoes[48] = 32'b010100_00000_11000_0000000000000111; 	// li
-memoria_instrucoes[49] = 32'b010110_01011_11000_0000000000000011; 	// sw
-memoria_instrucoes[50] = 32'b010101_00011_01000_1111111111111100; 	// la
-memoria_instrucoes[51] = 32'b010100_00000_01000_0000000000000100; 	// li
-memoria_instrucoes[52] = 32'b011110_00000000000000000000000001; 	// jal
-memoria_instrucoes[53] = 32'b010010_00001_11001_0000000000000000; 	// mov
-memoria_instrucoes[54] = 32'b000100_00011_00011_0000000000000111; 	// subi
-memoria_instrucoes[55] = 32'b100000_00000_11010_0000000000000000; 	// in
-memoria_instrucoes[56] = 32'b010110_00011_11010_0000000000000000; 	// sw
-memoria_instrucoes[57] = 32'b010011_00011_01100_0000000000000000; 	// lw
-memoria_instrucoes[58] = 32'b000001_01011_01100_11011_00000000000; 	// add
-memoria_instrucoes[59] = 32'b010011_11011_11011_0000000000000000; 	// lw
-memoria_instrucoes[60] = 32'b010010_11011_00111_0000000000000000; 	// mov
-memoria_instrucoes[61] = 32'b010100_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[62] = 32'b100001_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[63] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[6] = 32'b010011_00011_01011_1111111111111100; 	// lw
+memoria_instrucoes[7] = 32'b000100_01011_10110_0000000000000001; 	// subi
+memoria_instrucoes[8] = 32'b010011_00011_01100_1111111111111101; 	// lw
+memoria_instrucoes[9] = 32'b011001_01100_10110_0000000000101001; 	// blt
+memoria_instrucoes[10] = 32'b010110_00011_01100_1111111111111111; 	// sw
+memoria_instrucoes[11] = 32'b000010_01100_10111_0000000000000001; 	// addi
+memoria_instrucoes[12] = 32'b010110_00011_10111_1111111111111110; 	// sw
+memoria_instrucoes[13] = 32'b010011_00011_01101_1111111111111110; 	// lw
+memoria_instrucoes[14] = 32'b011001_01101_01011_0000000000011010; 	// blt
+memoria_instrucoes[15] = 32'b010011_00011_01110_1111111111111011; 	// lw
+memoria_instrucoes[16] = 32'b000001_01110_01101_11000_00000000000; 	// add
+memoria_instrucoes[17] = 32'b010011_11000_11000_0000000000000000; 	// lw
+memoria_instrucoes[18] = 32'b010011_00011_01111_1111111111111111; 	// lw
+memoria_instrucoes[19] = 32'b000001_01110_01111_11001_00000000000; 	// add
+memoria_instrucoes[20] = 32'b010011_11001_11001_0000000000000000; 	// lw
+memoria_instrucoes[21] = 32'b011001_11000_11001_0000000000010111; 	// blt
+memoria_instrucoes[22] = 32'b010110_00011_01101_1111111111111111; 	// sw
+memoria_instrucoes[23] = 32'b000010_01101_11010_0000000000000001; 	// addi
+memoria_instrucoes[24] = 32'b010110_00011_11010_1111111111111110; 	// sw
+memoria_instrucoes[25] = 32'b011101_00000000000000000000001101; 	// j
+memoria_instrucoes[26] = 32'b010011_00011_10000_1111111111111111; 	// lw
+memoria_instrucoes[27] = 32'b011000_01100_10000_0000000000100110; 	// bne
+memoria_instrucoes[28] = 32'b000001_01110_01100_11011_00000000000; 	// add
+memoria_instrucoes[29] = 32'b010011_11011_11011_0000000000000000; 	// lw
+memoria_instrucoes[30] = 32'b010110_00011_11011_0000000000000000; 	// sw
+memoria_instrucoes[31] = 32'b000001_01110_10000_11100_00000000000; 	// add
+memoria_instrucoes[32] = 32'b010011_11100_11100_0000000000000000; 	// lw
+memoria_instrucoes[33] = 32'b000001_01110_01100_11101_00000000000; 	// add
+memoria_instrucoes[34] = 32'b010110_11101_11100_0000000000000000; 	// sw
+memoria_instrucoes[35] = 32'b000001_01110_10000_11110_00000000000; 	// add
+memoria_instrucoes[36] = 32'b010011_00011_10001_0000000000000000; 	// lw
+memoria_instrucoes[37] = 32'b010110_11110_10001_0000000000000000; 	// sw
+memoria_instrucoes[38] = 32'b000010_01100_10101_0000000000000001; 	// addi
+memoria_instrucoes[39] = 32'b010110_00011_10101_1111111111111101; 	// sw
+memoria_instrucoes[40] = 32'b011101_00000000000000000000000110; 	// j
+memoria_instrucoes[41] = 32'b011111_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[42] = 32'b000010_00011_00011_0000000000000100; 	// addi
+memoria_instrucoes[43] = 32'b010101_00011_01011_1111111111111100; 	// la
+memoria_instrucoes[44] = 32'b010100_00000_10101_0000000000001001; 	// li
+memoria_instrucoes[45] = 32'b010110_01011_10101_0000000000000000; 	// sw
+memoria_instrucoes[46] = 32'b010100_00000_10110_0000000000000110; 	// li
+memoria_instrucoes[47] = 32'b010110_01011_10110_0000000000000001; 	// sw
+memoria_instrucoes[48] = 32'b010100_00000_10111_0000000000001000; 	// li
+memoria_instrucoes[49] = 32'b010110_01011_10111_0000000000000010; 	// sw
+memoria_instrucoes[50] = 32'b010100_00000_11000_0000000000000111; 	// li
+memoria_instrucoes[51] = 32'b010110_01011_11000_0000000000000011; 	// sw
+memoria_instrucoes[52] = 32'b010101_00011_00111_1111111111111100; 	// la
+memoria_instrucoes[53] = 32'b010100_00000_01000_0000000000000100; 	// li
+memoria_instrucoes[54] = 32'b011110_00000000000000000000000001; 	// jal
+memoria_instrucoes[55] = 32'b010010_00001_11001_0000000000000000; 	// mov
+memoria_instrucoes[56] = 32'b000100_00011_00011_0000000000000111; 	// subi
+memoria_instrucoes[57] = 32'b100000_00000_11010_0000000000000000; 	// in
+memoria_instrucoes[58] = 32'b010110_00011_11010_0000000000000000; 	// sw
+memoria_instrucoes[59] = 32'b010101_00011_01011_1111111111111100; 	// la
+memoria_instrucoes[60] = 32'b010011_00011_01100_0000000000000000; 	// lw
+memoria_instrucoes[61] = 32'b000001_01011_01100_11011_00000000000; 	// add
+memoria_instrucoes[62] = 32'b010011_11011_11011_0000000000000000; 	// lw
+memoria_instrucoes[63] = 32'b010010_11011_00111_0000000000000000; 	// mov
+memoria_instrucoes[64] = 32'b010100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[65] = 32'b100001_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[66] = 32'b111111_00000000000000000000000000; 	// halt

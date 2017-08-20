@@ -96,13 +96,13 @@ EscopoGerador createEscopoGerador(const char *);
 
 void pushEscopoGerador(EscopoGerador eg);
 
-void popEscopoGerador(void);
-
 Registrador createRegistrador(Operand op, RegisterName regName);
 
 void insertRegistrador(Registrador r);
 
 void removeRegistrador(RegisterName name);
+
+void removeTodosRegistradoresSalvos(void);
 
 Registrador getRegistrador(RegisterName name);
 
