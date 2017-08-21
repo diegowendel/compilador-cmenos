@@ -12,16 +12,17 @@
  */
 void printToken(TokenType token, const char* tokenString) {
     switch (token) {
-        case ELSE: fprintf(listing,"else\n"); break;
         case IF: fprintf(listing,"if\n"); break;
-        case INT: fprintf(listing,"int\n"); break;
-        case RETURN: fprintf(listing,"return\n"); break;
-        case VOID: fprintf(listing,"void\n"); break;
+        case ELSE: fprintf(listing,"else\n"); break;
         case WHILE: fprintf(listing,"while\n"); break;
+        case RETURN: fprintf(listing,"return\n"); break;
+        case INT: fprintf(listing,"int\n"); break;
+        case VOID: fprintf(listing,"void\n"); break;
         case MAIS: fprintf(listing,"+\n"); break;
         case MENOS: fprintf(listing,"-\n"); break;
         case VEZES: fprintf(listing,"*\n"); break;
         case DIVISAO: fprintf(listing,"/\n"); break;
+        case MODULO: fprintf(listing, "%%\n"); break;
         case MENOR: fprintf(listing, "<\n"); break;
         case MENORIGUAL: fprintf(listing, "<=\n"); break;
         case MAIOR: fprintf(listing, ">\n"); break;
@@ -136,12 +137,12 @@ void printTree( TreeNode * tree ) {
         printSpaces();
         if (tree->nodekind == StmtK) {
             switch (tree->kind.stmt) {
-                case IntegerK: fprintf(listing, "int\n"); break;
-                case VoidK: fprintf(listing, "void\n"); break;
                 case IfK: fprintf(listing, "if\n"); break;
                 case ElseK:	fprintf(listing, "else\n");	break;
-                case ReturnK: fprintf(listing, "return\n");	break;
                 case WhileK: fprintf(listing, "while\n"); break;
+                case ReturnK: fprintf(listing, "return\n");	break;
+                case IntegerK: fprintf(listing, "int\n"); break;
+                case VoidK: fprintf(listing, "void\n"); break;
                 case CompK: fprintf(listing, "Declaração Composta:\n");	break;
             }
         } else if (tree->nodekind == ExpK) {

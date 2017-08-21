@@ -53,7 +53,7 @@ RegisterName argReg[4] = {
 
 const char * toStringOpcode(Opcode op) {
     const char * strings[] = {
-        "add", "addi", "sub", "subi", "mul", "muli", "div", "divi",
+        "add", "addi", "sub", "subi", "mul", "muli", "div", "divi", "mod", "modi",
         "and", "andi", "or", "ori", "xor", "xori", "not",
         "sl", "sr",
         "mov", "lw", "li", "la", "sw",
@@ -558,6 +558,10 @@ void geraCodigoObjeto(Quadruple q) {
             case DIV:
                 geraCodigoInstrucaoAritmetica(q, _DIV);
                 break; /* DIV */
+
+            case MOD:
+                geraCodigoInstrucaoAritmetica(q, _MOD);
+                break; /* MOD */
 
             case EQ:
                 geraCodigoInstrucaoLogica(q, _BEQ, q->next->op2);

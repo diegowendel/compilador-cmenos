@@ -13,7 +13,7 @@
  * conforme o enum de parâmetro
  */
 const char * toString(enum instrucao i) {
-    const char * strings[] = {  "addition", "subtraction", "multiplication", "division",
+    const char * strings[] = {  "addition", "subtraction", "multiplication", "division", "modulo",
                    "vector_value", "vector_address",
                    "equal", "not_equal", "less_than", "less_than_equal_to",
                    "greater_than", "greater_than_equal_to", "assign",

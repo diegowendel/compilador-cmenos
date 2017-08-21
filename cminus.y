@@ -24,7 +24,7 @@ static TreeNode * insertIOFunctions();
 
 %token IF WHILE RETURN ELSE
 %token ID NUM
-%token ATRIBUICAO MAIOR MAIORIGUAL MENOR MENORIGUAL IGUAL DIFERENTE MAIS MENOS VEZES DIVISAO
+%token ATRIBUICAO MAIOR MAIORIGUAL MENOR MENORIGUAL IGUAL DIFERENTE MAIS MENOS VEZES DIVISAO MODULO
 %token LPAREN RPAREN SEMI LBRACKET RBRACKET COMMA LKEY RKEY
 %token ERROR
 %token INT VOID
@@ -311,6 +311,11 @@ mult 		: VEZES
 				$$ = newExpNode(OpK);
 				$$->attr.op = DIVISAO;
 			}
+            | MODULO
+            {
+                $$ = newExpNode(OpK);
+                $$->attr.op = MODULO;
+            }
 			;
 fator 			: LPAREN expressao RPAREN { $$ = $2; }
 			| var { $$ = $1; }

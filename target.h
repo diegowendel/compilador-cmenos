@@ -9,7 +9,7 @@
 
 #include "cgen.h"
 
-typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI,
+typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
       _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT,
       _SL, _SR,
       _MOV, _LOAD, _LOADI, _LOADA, _STORE,
@@ -21,7 +21,7 @@ typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI,
  * opcode_map mapeia todas posições dos enums de opcode, é utilizado para
  * encontrar opcodes em tempo de execução
  */
-static const enum opcode opcode_map[] = {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI,
+static const enum opcode opcode_map[] = {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
       _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT,
       _SL, _SR,
       _MOV, _LOAD, _LOADI, _LOADA, _STORE,

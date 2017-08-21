@@ -468,6 +468,11 @@ static void genExp(TreeNode * tree) {
                         /* Atribui o tipo de instrução */
                         instrucaoAtual = DIV;
                         break;
+                    case MODULO:
+                        emitComment("modulo operator: %", indent);
+                        /* Atribui o tipo de instrução */
+                        instrucaoAtual = MOD;
+                        break;
                     case MENOR:
                         emitComment("relational operator: <", indent);
                         /* Atribui o tipo de instrução */

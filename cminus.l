@@ -23,16 +23,17 @@ whitespace  [ \t\r]+
 
 %%
 
-"else"          {return ELSE;}
 "if"            {return IF;}
-"int"           {return INT;}
-"return"        {return RETURN;}
-"void"          {return VOID;}
+"else"          {return ELSE;}
 "while"         {return WHILE;}
+"return"        {return RETURN;}
+"int"           {return INT;}
+"void"          {return VOID;}
 "+"             {return MAIS;}
 "-"             {return MENOS;}
 "*"             {return VEZES;}
 "/"             {return DIVISAO;}
+"%"             {return MODULO;}
 "<"             {return MENOR;}
 "<="            {return MENORIGUAL;}
 ">"             {return MAIOR;}
@@ -52,7 +53,7 @@ whitespace  [ \t\r]+
 {identifier}    {return ID;}
 {newline}       {lineno++;}
 {whitespace}    {/* skip whitespace */}
-
+.               {return ERROR;}
 "/*"            {
     char c;
     do {
@@ -64,7 +65,7 @@ whitespace  [ \t\r]+
 		else comentario = 0;
     } while (comentario != 2);
 }
-.               {return ERROR;}
+
 %%
 
 TokenType getToken(void) {

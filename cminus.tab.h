@@ -62,17 +62,18 @@ extern int yydebug;
     MENOS = 272,
     VEZES = 273,
     DIVISAO = 274,
-    LPAREN = 275,
-    RPAREN = 276,
-    SEMI = 277,
-    LBRACKET = 278,
-    RBRACKET = 279,
-    COMMA = 280,
-    LKEY = 281,
-    RKEY = 282,
-    ERROR = 283,
-    INT = 284,
-    VOID = 285
+    MODULO = 275,
+    LPAREN = 276,
+    RPAREN = 277,
+    SEMI = 278,
+    LBRACKET = 279,
+    RBRACKET = 280,
+    COMMA = 281,
+    LKEY = 282,
+    RKEY = 283,
+    ERROR = 284,
+    INT = 285,
+    VOID = 286
   };
 #endif
 

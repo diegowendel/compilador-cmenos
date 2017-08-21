@@ -233,7 +233,8 @@ static void checkNode(TreeNode * t) {
 					} else if (	(t->attr.op == MAIS) ||
 							(t->attr.op == MENOS) ||
 							(t->attr.op == VEZES) ||
-							(t->attr.op == DIVISAO)) {
+							(t->attr.op == DIVISAO) ||
+                            (t->attr.op == MODULO)) {
 						t->type = Integer;
 					} else {
 						t->type = Void;
