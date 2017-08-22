@@ -223,9 +223,18 @@ static void checkNode(TreeNode * t) {
 		case ExpK:
       		switch (t->kind.exp) {
 				case OpK:
-					if (t->attr.op == ATRIBUICAO) {
-						if ((t->child[0]->type != Integer) ||
-							(t->child[1]->type != Integer)) {
+					if (t->attr.op == ATRIBUICAO ||
+                        (t->attr.op == ATRIB_MAIS) ||
+                        (t->attr.op == ATRIB_MENOS) ||
+                        (t->attr.op == ATRIB_VEZES) ||
+                        (t->attr.op == ATRIB_DIVISAO) ||
+                        (t->attr.op == ATRIB_MODULO) ||
+                        (t->attr.op == ATRIB_AND) ||
+                        (t->attr.op == ATRIB_OR) ||
+                        (t->attr.op == ATRIB_XOR) ||
+                        (t->attr.op == ATRIB_SHIFT_LEFT) ||
+                        (t->attr.op == ATRIB_SHIFT_RIGHT)) {
+						if ((t->child[0]->type != Integer) || (t->child[1]->type != Integer)) {
 							typeError(t,"Atribuição inválida");
 						} else  {
 							t->type = Integer;
@@ -234,7 +243,13 @@ static void checkNode(TreeNode * t) {
 							(t->attr.op == MENOS) ||
 							(t->attr.op == VEZES) ||
 							(t->attr.op == DIVISAO) ||
-                            (t->attr.op == MODULO)) {
+                            (t->attr.op == MODULO) ||
+                            (t->attr.op == SHIFT_LEFT) ||
+                            (t->attr.op == SHIFT_RIGHT) ||
+                            (t->attr.op == AND) ||
+                            (t->attr.op == OR) ||
+                            (t->attr.op == XOR) ||
+                            (t->attr.op == NOT)) {
 						t->type = Integer;
 					} else {
 						t->type = Void;

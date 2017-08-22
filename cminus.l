@@ -1,59 +1,100 @@
 /****************************************************/
 /* File: cminus.l                                   */
-/* Diego Wendel de Oliveira Ferreira		        */
-/* 86774                               		        */
+/* Especificação léxica para o C-                   */
+/* Diego Wendel de Oliveira Ferreira                */
 /****************************************************/
 
 %{
-#include "globals.h"
-#include "util.h"
-#include "scan.h"
-/* lexeme of identifier or reserved word */
-int comentario = 0;
-char tokenString[MAXTOKENLEN + 1];
-static int yylex(void);
+    #include "globals.h"
+    #include "util.h"
+    #include "scan.h"
+    /* lexeme of identifier or reserved word */
+    int comentario = 0;
+    char tokenString[MAXTOKENLEN + 1];
+    static int yylex(void);
 %}
 
 digit       [0-9]
 number      {digit}+
-letter      [a-zA-Z]
+letter      [a-zA-Z_]
 identifier  {letter}+
 newline     \n
 whitespace  [ \t\r]+
 
 %%
 
-"if"            {return IF;}
-"else"          {return ELSE;}
-"while"         {return WHILE;}
-"return"        {return RETURN;}
-"int"           {return INT;}
-"void"          {return VOID;}
-"+"             {return MAIS;}
-"-"             {return MENOS;}
-"*"             {return VEZES;}
-"/"             {return DIVISAO;}
-"%"             {return MODULO;}
-"<"             {return MENOR;}
-"<="            {return MENORIGUAL;}
-">"             {return MAIOR;}
-">="            {return MAIORIGUAL;}
-"=="            {return IGUAL;}
-"!="            {return DIFERENTE;}
-"="             {return ATRIBUICAO;}
-";"             {return SEMI;}
-","             {return COMMA;}
-"("             {return LPAREN;}
-")"             {return RPAREN;}
-"["             {return LBRACKET;}
-"]"             {return RBRACKET;}
-"{"             {return LKEY;}
-"}"             {return RKEY;}
-{number}        {return NUM;}
-{identifier}    {return ID;}
-{newline}       {lineno++;}
-{whitespace}    {/* skip whitespace */}
-.               {return ERROR;}
+"if"            { return IF; }
+"else"          { return ELSE; }
+"while"         { return WHILE; }
+"return"        { return RETURN; }
+"int"           { return INT; }
+"void"          { return VOID; }
+
+"+"             { return MAIS; }
+"-"             { return MENOS; }
+"*"             { return VEZES; }
+"/"             { return DIVISAO; }
+"%"             { return MODULO; }
+
+"<<"            { return SHIFT_LEFT; }
+">>"            { return SHIFT_RIGHT; }
+
+"&"             { return AND; }
+"|"             { return OR; }
+"^"             { return XOR; }
+"!"             { return NOT; }
+
+"&&"             { return LOGICAL_AND; }
+"||"             { return LOGICAL_OR; }
+
+"="             { return ATRIBUICAO; }
+"+="            { return ATRIB_MAIS; }
+"-="            { return ATRIB_MENOS; }
+"*="            { return ATRIB_VEZES; }
+"/="            { return ATRIB_DIVISAO; }
+"%="            { return ATRIB_MODULO; }
+"&="            { return ATRIB_AND; }
+"|="            { return ATRIB_OR; }
+"^="            { return ATRIB_XOR; }
+"<<="           { return ATRIB_SHIFT_LEFT; }
+">>="           { return ATRIB_SHIFT_RIGHT; }
+
+"<"             { return MENOR; }
+"<="            { return MENORIGUAL; }
+">"             { return MAIOR; }
+">="            { return MAIORIGUAL; }
+"=="            { return IGUAL; }
+"!="            { return DIFERENTE; }
+
+"?"             { return INTERROGACAO; }
+":"             { return COLON; }
+";"             { return SEMI; }
+","             { return COMMA; }
+"("             { return LPAREN; }
+")"             { return RPAREN; }
+"["             { return LBRACKET; }
+"]"             { return RBRACKET; }
+"{"             { return LKEY; }
+"}"             { return RKEY; }
+
+{number}        { return NUM; }
+{identifier}    { return ID; }
+{newline}       { lineno++; }
+{whitespace}    { /* skip whitespace */ }
+
+.               { return ERROR; }
+
+"//"            {
+    char c;
+    while (c = input()) {
+        if (c == EOF) break;
+        else if (c == '\n') {
+            lineno++;
+            break;
+        }
+    }
+}
+
 "/*"            {
     char c;
     do {

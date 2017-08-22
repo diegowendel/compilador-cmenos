@@ -1,0 +1,7 @@
+- Fix reset (probably are some bugs in temporary registers)
+- Fix clock
+- Fix inputs
+- Implement AND, OR, NOT
+- Fix negative numbers bug
+OK - Implement Comment with //
+OK - Implement += , -= etc

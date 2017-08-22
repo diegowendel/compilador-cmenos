@@ -23,13 +23,33 @@ void printToken(TokenType token, const char* tokenString) {
         case VEZES: fprintf(listing,"*\n"); break;
         case DIVISAO: fprintf(listing,"/\n"); break;
         case MODULO: fprintf(listing, "%%\n"); break;
+        case SHIFT_LEFT: fprintf(listing, "<<\n"); break;
+        case SHIFT_RIGHT: fprintf(listing, ">>\n"); break;
+        case AND: fprintf(listing, "&\n"); break;
+        case OR: fprintf(listing, "|\n"); break;
+        case XOR: fprintf(listing, "^\n"); break;
+        case NOT: fprintf(listing, "!\n"); break;
+        case LOGICAL_AND: fprintf(listing, "&&\n"); break;
+        case LOGICAL_OR: fprintf(listing, "||\n"); break;
+        case ATRIBUICAO: fprintf(listing, "=\n"); break;
+        case ATRIB_MAIS: fprintf(listing, "+=\n"); break;
+        case ATRIB_MENOS: fprintf(listing, "-=\n"); break;
+        case ATRIB_VEZES: fprintf(listing, "*=\n"); break;
+        case ATRIB_DIVISAO: fprintf(listing, "/=\n"); break;
+        case ATRIB_MODULO: fprintf(listing, "%%=\n"); break;
+        case ATRIB_AND: fprintf(listing, "&=\n"); break;
+        case ATRIB_OR: fprintf(listing, "|=\n"); break;
+        case ATRIB_XOR: fprintf(listing, "^=\n"); break;
+        case ATRIB_SHIFT_LEFT: fprintf(listing, "<<=\n"); break;
+        case ATRIB_SHIFT_RIGHT: fprintf(listing, ">>=\n"); break;
         case MENOR: fprintf(listing, "<\n"); break;
         case MENORIGUAL: fprintf(listing, "<=\n"); break;
         case MAIOR: fprintf(listing, ">\n"); break;
         case MAIORIGUAL: fprintf(listing, ">=\n"); break;
         case IGUAL: fprintf(listing, "==\n"); break;
         case DIFERENTE: fprintf(listing, "!=\n"); break;
-        case ATRIBUICAO: fprintf(listing, "=\n"); break;
+        case INTERROGACAO: fprintf(listing, "?\n"); break;
+        case COLON: fprintf(listing, ":\n"); break;
         case SEMI: fprintf(listing, ";\n"); break;
         case COMMA: fprintf(listing, ",\n"); break;
         case LPAREN: fprintf(listing, "(\n"); break;
@@ -100,7 +120,7 @@ char * copyString(char * s) {
     }
 
     n = strlen(s)+1;
-    t = malloc(n);
+    t = (char *) malloc(n);
 
     if (t == NULL) {
         fprintf(listing,"Out of memory error at line %d\n",lineno);

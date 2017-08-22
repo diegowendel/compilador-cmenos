@@ -1,10 +1,10 @@
 int fatorial(int number) {
     int result;
-    result = 1;
+   // result = 1;
 
-    while (number > 0) {
+    while (number > 0 && number < 99 && number < 98) {
         result = result * number;
-        number = number - 1;
+        number -= number - 1;
     }
 
     return result;
