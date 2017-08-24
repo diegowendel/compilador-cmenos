@@ -223,7 +223,7 @@ InstOperand getVectorRegName(Operand op) {
              * Verifica se o vetor foi declarado no mesmo escopo atual ou veio como parâmetro
              */
             treeNode = getVarFromSymtab(op.contents.variable.name, op.contents.variable.scope)->treeNode;
-            if(treeNode->varMemK == PARAM) {
+            if(treeNode->mem == PARAMK) {
                 /* Parâmetro - Lê o ponteiro para o vetor */
                 printCode(insertObjInst(createObjInst(_LOAD, TYPE_I, reg, getStackOperandLocation(op), NULL)));
             } else {

@@ -62,34 +62,38 @@ extern int lineno; /* source line number for listing */
 /***********   Syntax tree for parsing ************/
 /**************************************************/
 
-typedef enum {StmtK, ExpK} NodeKind;
-typedef enum {IntegerK, VoidK, IfK, ElseK, ReturnK, WhileK, CompK} StmtKind;
-typedef enum {OpK, ConstK, IdK, VectorK, FunctionK, CallK, IndexK} ExpKind;
-typedef enum {DECLARANDO, ACESSANDO} VarAccessK;
-typedef enum {PARAM, LOCAL, GLOBAL, FUNCAO} VarMemK;
+typedef enum {STMTK, EXPK, VARK} NodeKind;
+typedef enum {INTEGERK, VOIDK, IFK, WHILEK, RETURNK, COMPK} StmtKind;
+typedef enum {ATRIBK, RELK, ARITHK, LOGICK, UNARYK} ExpKind;
+typedef enum {IDK, VECTORK, CONSTK, FUNCTIONK, CALLK} VarKind;
+typedef enum {DECLK, ACCESSK} VarAccessK;
+typedef enum {LOCALK, PARAMK, GLOBALK, FUNCK} VarMemK;
 
 /* ExpType é usado para checagem de tipos */
-typedef enum exp {Void,Integer} ExpType;
+typedef enum exp {VOID_TYPE, INTEGER_TYPE} ExpType;
 
 #define MAXCHILDREN 3
 
 typedef struct treeNode {
     struct treeNode * child[MAXCHILDREN];
     struct treeNode * sibling;
+    NodeKind node;
     int lineno;
-    VarAccessK varAccess;
-    VarMemK varMemK;
-    NodeKind nodekind;
     union {
         StmtKind stmt;
-	    ExpKind exp;
+        ExpKind exp;
+        union {
+            VarKind kind;
+            VarMemK mem;
+            VarAccessK acesso;
+            struct ScopeRec * scope;
+            union {
+                int val;
+                char * name;
+            } attr;
+        } var;
     } kind;
-    struct {
-        TokenType op;
-        int val;
-        char * name;
-    } attr;
-    struct ScopeRec * scope;
+    TokenType op;
     ExpType type; /* for type checking of exps */
 } TreeNode;
 

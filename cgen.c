@@ -88,14 +88,14 @@ static void genStmt(TreeNode * tree) {
     Quadruple * q;
     switch (tree->kind.stmt) {
 
-        case VoidK:
+        case VOID:
             emitComment("-> type void", indent);
             p1 = tree->child[0];
             cGen(p1);
             emitComment("<- type void\n", indent);
             break;
 
-        case IntegerK:
+        case INTEGER_TYPE:
             emitComment("-> type int", indent);
             p1 = tree->child[0];
             cGen(p1);
@@ -169,9 +169,6 @@ static void genStmt(TreeNode * tree) {
             }
             emitComment("<- if: else/end block", indent);
             emitComment("<- if", indent);
-            break;
-
-        case ElseK:
             break;
 
         case WhileK:
@@ -294,7 +291,7 @@ static void genExp(TreeNode * tree) {
             /* Cria e insere uma nova representação em código intermediário, mas
              * somente se estiver acessando o vetor
              */
-            if(tree->varAccess == ACESSANDO) {
+            if(tree->acesso == ACCESSK) {
                 // Guarda a última instrução para manipular em caso de acesso ao endereço do vetor
                 ultimaQuadrupla = createQuad(instrucaoAtual, op1, op2, op3);
                 insertQuad(ultimaQuadrupla);
@@ -526,11 +523,11 @@ static void genExp(TreeNode * tree) {
  */
 static void cGen(TreeNode * tree) {
     if (tree != NULL) {
-        switch (tree->nodekind) {
-            case StmtK:
+        switch (tree->node) {
+            case NODE_STMT:
                 genStmt(tree);
                 break;
-            case ExpK:
+            case NODE_EXP:
                 genExp(tree);
                 break;
             default:

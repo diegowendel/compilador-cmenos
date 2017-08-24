@@ -21,13 +21,13 @@
     static TreeNode * insertIOFunctions();
 %}
 
-%token IF WHILE RETURN ELSE
+%token IF WHILE RETURN
 %token ID NUM
 %token MAIOR MAIORIGUAL MENOR MENORIGUAL IGUAL DIFERENTE MAIS MENOS VEZES DIVISAO MODULO
 %token SHIFT_LEFT SHIFT_RIGHT AND OR XOR NOT LOGICAL_AND LOGICAL_OR
 %token ATRIBUICAO ATRIB_MAIS ATRIB_MENOS ATRIB_VEZES ATRIB_DIVISAO ATRIB_MODULO
 %token ATRIB_AND ATRIB_OR ATRIB_XOR ATRIB_SHIFT_LEFT ATRIB_SHIFT_RIGHT
-%token LPAREN RPAREN SEMI LBRACKET RBRACKET COMMA LKEY RKEY INTERROGACAO COLON
+%token LPAREN RPAREN SEMI LBRACKET RBRACKET COMMA LKEY RKEY QUESTION COLON
 %token ERROR
 %token INT VOID
 %nonassoc RPAREN
@@ -35,471 +35,587 @@
 
 %% /* Gramática C- */
 
-programa                : declaracao_lista
-                            {
-                                savedTree = insertIOFunctions();
-                                savedTree->sibling->sibling = $1;
-                            }
-                        ;
-declaracao_lista        : declaracao_lista declaracao
-                            {
-                                YYSTYPE t = $1;
-                                if (t != NULL) {
-                                    while (t->sibling != NULL) {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $2;
-                                    $$ = $1;
-                                } else {
-                                    $$ = $2;
-                                }
-                            }
-                        | declaracao { $$ = $1; }
-                        ;
-declaracao              : var_declaracao { $$ = $1; }
-                        | fun_declaracao { $$ = $1; }
-                        ;
-var_declaracao          : tipo_especificador id SEMI
-                            {
-                                $$ = $1;
-                                $$->child[0] = $2;
-                                $$->child[0]->type = $$->type;
-                                $$->child[0]->varMemK = LOCAL;
-                            }
-                        | tipo_especificador id LBRACKET num RBRACKET SEMI
-                            {
-                                $$ = $1;
-                                $$->child[0] = $2;
-                                $$->child[0]->kind.exp = VectorK;
-                                $$->child[0]->type = $$->type;
-                                $$->child[0]->varMemK = LOCAL;
-                                $$->child[0]->child[0] = $4;
-                                $$->child[0]->child[0]->type = Integer;
-                            }
-                        ;
-tipo_especificador      : INT
-                            {
-                                $$ = newStmtNode(IntegerK);
-                                $$->attr.name = "int";
-                                $$->type = Integer;
-                            }
-                        | VOID
-                            {
-                                $$ = newStmtNode(VoidK);
-                                $$->attr.name = "void";
-                                $$->type = Void;
-                            }
-                        ;
-fun_declaracao          : tipo_especificador id LPAREN params RPAREN composto_decl
-                            {
-                                $$ = $1;
-                                $$->child[0] = $2;
-                                $$->child[0]->type = $$->type;
-                                $$->child[0]->kind.exp = FunctionK;
-                                $$->child[0]->varMemK = FUNCAO;
-                                $$->child[0]->child[0] = $4;
-                                $$->child[0]->child[1] = $6;
-                            }
-                        ;
-params                  : param_lista { $$ = $1; }
-                        | VOID { $$ = NULL; }
-                        ;
-param_lista             : param_lista COMMA param
-                            {
-                                YYSTYPE t = $1;
-                                if (t != NULL) {
-                                	while (t->sibling != NULL) {
-                                		t = t->sibling;
-                                	}
-                                	t->sibling = $3;
-                                	$$ = $1;
-                                } else {
-                                	$$ = $3;
-                                }
-                            }
-                        | param { $$ = $1; }
-                        ;
-param                   : tipo_especificador id
-                            {
-                                $$ = $1;
-                                $$->child[0] = $2;
-                                $$->child[0]->type = $$->type;
-                                $$->child[0]->varMemK = PARAM;
-                            }
-                        | tipo_especificador id LBRACKET RBRACKET
-                            {
-                                $$ = $1;
-                                $$->child[0] = $2;
-                                $$->child[0]->type = $$->type;
-                                $$->child[0]->varMemK = PARAM;
-                                $$->child[0]->kind.exp = VectorK;
-                            }
-                        ;
-composto_decl           : LKEY local_declaracoes statement_lista RKEY
-                            {
-                                $$ = newStmtNode(CompK);
-                                $$->child[0] = $2;
-                                $$->child[1] = $3;
-                            }
-                        ;
-local_declaracoes       : local_declaracoes var_declaracao
-                            {
-                            	YYSTYPE t = $1;
-                            	if (t != NULL) {
-                            		while (t->sibling != NULL) {
-                            			t = t->sibling;
-                            		}
-                            		t->sibling = $2;
-                            		$$ = $1;
-                            	} else {
-                            		$$ = $2;
-                            	}
-                            }
-                        | vazio { $$ = $1; }
-                        ;
-statement_lista         : statement_lista statement
-                            {
-                            	YYSTYPE t = $1;
-                            	if (t != NULL) {
-                            		while (t->sibling != NULL) {
-                            			t = t->sibling;
-                            		}
-                            		t->sibling = $2;
-                            		$$ = $1;
-                            	} else {
-                            		$$ = $2;
-                            	}
-                            }
-                        | vazio { $$ = $1; }
-                        ;
-statement               : expressao_decl { $$ = $1; }
-                        | composto_decl { $$ = $1; }
-                        | selecao_decl { $$ = $1; }
-                        | iteracao_decl { $$ = $1; }
-                        | retorno_decl { $$ = $1; }
-                        ;
-expressao_decl          : expressao SEMI { $$ = $1; }
-                        | SEMI { $$ = NULL; }
-                        ;
-selecao_decl            : IF LPAREN expressao RPAREN statement
-                            {
-                                $$ = newStmtNode(IfK);
-                                $$->child[0] = $3;
-                                $$->child[1] = $5;
-                            }
-                        | IF LPAREN expressao RPAREN statement ELSE statement
-                            {
-                                $$ = newStmtNode(IfK);
-                                $$->child[0] = $3;
-                                $$->child[1] = $5;
-                                $$->child[2] = $7;
-                            }
-                        ;
-iteracao_decl           : WHILE LPAREN expressao RPAREN statement
-                            {
-                            	$$ = newStmtNode(WhileK);
-                            	$$->child[0] = $3;
-                            	$$->child[1] = $5;
-                            }
-                        ;
-retorno_decl            : RETURN SEMI
-                            {
-                            	$$ = newStmtNode(ReturnK);
-                            }
-                        | RETURN expressao SEMI
-                            {
-                            	$$ = newStmtNode(ReturnK);
-                            	$$->child[0] = $2;
-                            }
-                        ;
-expressao               : var atribuicao_operador expressao
-                            {
-                                $$ = $2;
-                                $$->child[0] = $1;
-                            	$$->child[1] = $3;
-                            }
-                        | condicional_expressao { $$ = $1; }
-                        ;
-atribuicao_operador     : ATRIBUICAO
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIBUICAO;
-                            }
-                        | ATRIB_MAIS
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_MAIS;
-                            }
-                        | ATRIB_MENOS
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_MENOS;
-                            }
-                        | ATRIB_VEZES
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_VEZES;
-                            }
-                        | ATRIB_DIVISAO
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_DIVISAO;
-                            }
-                        | ATRIB_MODULO
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_MODULO;
-                            }
-                        | ATRIB_AND
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_AND;
-                            }
-                        | ATRIB_OR
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_OR;
-                            }
-                        | ATRIB_XOR
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_XOR;
-                            }
-                        | ATRIB_SHIFT_LEFT
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_SHIFT_LEFT;
-                            }
-                        | ATRIB_SHIFT_RIGHT
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = ATRIB_SHIFT_RIGHT;
-                            }
-                        ;
-var                     : id
-                            {
-                            	$$ = $1;
-                                $$->type = Integer;
-                                $$->varAccess = ACESSANDO;
-                            }
-                        | id LBRACKET expressao RBRACKET
-                            {
-                            	$$ = $1;
-                            	$$->kind.exp = VectorK;
-                                $$->type = Integer;
-                                $$->varAccess = ACESSANDO;
-                            	$$->child[0] = $3;
-                            }
-                        ;
-condicional_expressao   : or_logico_expressao INTERROGACAO expressao COLON condicional_expressao
-                            {
-                                $$ = newStmtNode(IfK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                                $$->child[2] = $5;
-                            }
-                        | or_logico_expressao { $$ = $1; }
-                        ;
-or_logico_expressao     : or_logico_expressao LOGICAL_OR and_logico_expressao
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = LOGICAL_OR;
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                            }
-                        | and_logico_expressao { $$ = $1; }
-                        ;
-and_logico_expressao    : and_logico_expressao LOGICAL_AND or_inclusivo_expressao
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = LOGICAL_AND;
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                            }
-                        | or_inclusivo_expressao { $$ = $1; }
-                        ;
-or_inclusivo_expressao  : or_inclusivo_expressao OR or_exclusivo_expressao
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = OR;
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                            }
-                        | or_exclusivo_expressao { $$ = $1; }
-                        ;
-or_exclusivo_expressao  : or_exclusivo_expressao XOR and_expressao
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = XOR;
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                            }
-                        | and_expressao { $$ = $1; }
-                        ;
-and_expressao           : and_expressao AND igualdade_expressao
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = AND;
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                            }
-                        | igualdade_expressao { $$ = $1; }
-                        ;
-igualdade_expressao     : igualdade_expressao igualdade_operador relacional_expressao
-                            {
-                                $$ = $2;
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                            }
-                        | relacional_expressao { $$ = $1; }
-                        ;
-igualdade_operador      : IGUAL
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = IGUAL;
-                            }
-                        | DIFERENTE
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = DIFERENTE;
-                            }
-                        ;
-relacional_expressao    : relacional_expressao relacional_operador shift_expressao
-                            {
-                            	$$ = $2;
-                            	$$->child[0] = $1;
-                            	$$->child[1] = $3;
-                            }
-                        | shift_expressao { $$ = $1; }
-                        ;
-relacional_operador     : MENORIGUAL
-                			{
-                				$$ = newExpNode(OpK);
-                				$$->attr.op = MENORIGUAL;
-                			}
-                        | MENOR
-                			{
-                				$$ = newExpNode(OpK);
-                				$$->attr.op = MENOR;
-                			}
-                        | MAIOR
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = MAIOR;
-                            }
-                        | MAIORIGUAL
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = MAIORIGUAL;
-                            }
-                        ;
-shift_expressao         : shift_expressao shift_operador soma_expressao
-                            {
-                                $$ = $2;
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                            }
-                        | soma_expressao { $$ = $1; }
-                        ;
-shift_operador          : SHIFT_LEFT
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = SHIFT_LEFT;
-                            }
-                        | SHIFT_RIGHT
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = SHIFT_RIGHT;
-                            }
-                        ;
-soma_expressao          : soma_expressao soma_operador mult_expressao
-                            {
-                            	$$ = $2;
-                            	$$->child[0] = $1;
-                            	$$->child[1] = $3;
-                            }
-            			| mult_expressao { $$ = $1; }
-            			;
-soma_operador           : MAIS
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = MAIS;
-                            }
-                        | MENOS
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = MENOS;
-                            }
-                        ;
-mult_expressao          : mult_expressao mult_operador fator
-                            {
-                            	$$ = $2;
-                            	$$->child[0] = $1;
-                            	$$->child[1] = $3;
-                            }
-                        | fator { $$ = $1; }
-                        ;
-mult_operador           : VEZES
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = VEZES;
-                            }
-                        | DIVISAO
-                            {
-                            	$$ = newExpNode(OpK);
-                            	$$->attr.op = DIVISAO;
-                            }
-                        | MODULO
-                            {
-                                $$ = newExpNode(OpK);
-                                $$->attr.op = MODULO;
-                            }
-                        ;
-fator                   : LPAREN expressao RPAREN { $$ = $2; }
-                        | var { $$ = $1; }
-                        | ativacao { $$ = $1; }
-                        | num { $$ = $1; }
-                        ;
-ativacao                : var LPAREN args RPAREN
-                            {
-                            	$$ = $1;
-                            	$$->kind.exp = CallK;
-                            	$$->child[0] = $3;
-                            }
-			            ;
-args                    : arg_lista { $$ = $1; }
-                        |   vazio { $$ = $1; }
-                        ;
-arg_lista               : arg_lista COMMA expressao
-                            {
-                            	YYSTYPE t = $1;
-                            	if (t != NULL) {
-                            		while (t->sibling != NULL) {
-                            			t = t->sibling;
-                            		}
-                            		t->sibling = $3;
-                            		$$ = $1;
-                            	} else {
-                            		$$ = $3;
-                            	}
-                            }
-                        | expressao { $$ = $1; }
-                        ;
-id                      : ID
-                            {
-                            	$$ = newExpNode(IdK);
-                            	$$->attr.name = copyString(tokenString);
-                                $$->varAccess = DECLARANDO;
-                            }
-                        ;
-num                     : NUM
-                			{
-                				$$ = newExpNode(ConstK);
-                				$$->attr.val = atoi(tokenString);
-                			}
-            			;
-vazio                   : { $$ = NULL; }
-            			;
+program
+    : declarationList
+        {
+            savedTree = insertIOFunctions();
+            savedTree->sibling->sibling = $1;
+        }
+    ;
+
+declarationList
+    : declarationList declaration
+        {
+            YYSTYPE t = $1;
+            if (t != NULL) {
+                while (t->sibling != NULL) {
+                    t = t->sibling;
+                }
+                t->sibling = $2;
+                $$ = $1;
+            } else {
+                $$ = $2;
+            }
+        }
+    | declaration { $$ = $1; }
+    ;
+
+declaration
+    : varDeclaration { $$ = $1; }
+    | funDeclaration { $$ = $1; }
+    ;
+
+varDeclaration
+    : typeSpecifier id SEMI
+        {
+            $$ = $1;
+            $$->child[0] = $2;
+            $$->child[0]->type = $$->type;
+            $$->child[0]->kind.var.mem = LOCALK;
+        }
+    | typeSpecifier id LBRACKET num RBRACKET SEMI
+        {
+            $$ = $1;
+            $$->child[0] = $2;
+            $$->child[0]->kind.exp = VectorK;
+            $$->child[0]->type = $$->type;
+            $$->child[0]->kind.var.mem = LOCALK;
+            $$->child[0]->child[0] = $4;
+            $$->child[0]->child[0]->type = INTEGER_TYPE;
+        }
+    ;
+
+typeSpecifier
+    : INT
+        {
+            $$ = newStmtNode(INTEGERK);
+            $$->type = INTEGER_TYPE;
+            $$->op = INT;
+        }
+    | VOID
+        {
+            $$ = newStmtNode(VOIDK);
+            $$->type = VOID_TYPE;
+            $$->op = VOID;
+        }
+    ;
+
+funDeclaration
+    : typeSpecifier id LPAREN params RPAREN compoundStmt
+        {
+            $$ = $1;
+            $$->child[0] = $2;
+            $$->child[0]->type = $$->type;
+            $$->child[0]->kind.var.kind = FUNCTIONK;
+            $$->child[0]->kind.var.mem = FUNCK;
+            $$->child[0]->child[0] = $4;
+            $$->child[0]->child[1] = $6;
+        }
+    ;
+
+params
+    : paramList { $$ = $1; }
+    | vazio { $$ = $1; }
+    ;
+
+paramList
+    : paramList COMMA param
+        {
+            YYSTYPE t = $1;
+            if (t != NULL) {
+            	while (t->sibling != NULL) {
+            		t = t->sibling;
+            	}
+            	t->sibling = $3;
+            	$$ = $1;
+            } else {
+            	$$ = $3;
+            }
+        }
+    | param { $$ = $1; }
+    ;
+
+param
+    : typeSpecifier id
+        {
+            $$ = $1;
+            $$->child[0] = $2;
+            $$->child[0]->kind.var.mem = PARAMK;
+        }
+    | typeSpecifier id LBRACKET RBRACKET
+        {
+            $$ = $1;
+            $$->child[0] = $2;
+            $$->child[0]->kind.var.mem = PARAMK;
+            $$->child[0]->kind.var.kind = VECTORK;
+        }
+    ;
+
+compoundStmt
+    : LKEY localDeclarations statementList RKEY
+        {
+            $$ = newStmtNode(COMPK);
+            $$->child[0] = $2;
+            $$->child[1] = $3;
+            $$->op = COMPK;
+        }
+    ;
+
+localDeclarations
+    : localDeclarations varDeclaration
+        {
+        	YYSTYPE t = $1;
+        	if (t != NULL) {
+        		while (t->sibling != NULL) {
+        			t = t->sibling;
+        		}
+        		t->sibling = $2;
+        		$$ = $1;
+        	} else {
+        		$$ = $2;
+        	}
+        }
+    | vazio { $$ = $1; }
+    ;
+
+statementList
+    : statementList statement
+        {
+        	YYSTYPE t = $1;
+        	if (t != NULL) {
+        		while (t->sibling != NULL) {
+        			t = t->sibling;
+        		}
+        		t->sibling = $2;
+        		$$ = $1;
+        	} else {
+        		$$ = $2;
+        	}
+        }
+    | vazio { $$ = $1; }
+    ;
+
+statement
+    : expressionStmt { $$ = $1; }
+    | compoundStmt { $$ = $1; }
+    | selectionStmt { $$ = $1; }
+    | iterationStmt { $$ = $1; }
+    | returnStmt { $$ = $1; }
+    ;
+
+expressionStmt
+    : expression SEMI { $$ = $1; }
+    | SEMI { $$ = NULL; }
+    ;
+
+selectionStmt
+    : IF LPAREN expression RPAREN statement
+        {
+            $$ = newStmtNode(IFK);
+            $$->child[0] = $3;
+            $$->child[1] = $5;
+            $$->op = IFK;
+        }
+    | IF LPAREN expression RPAREN statement ELSE statement
+        {
+            $$ = newStmtNode(IFK);
+            $$->child[0] = $3;
+            $$->child[1] = $5;
+            $$->child[2] = $7;
+            $$->op = IFK;
+        }
+    ;
+
+iterationStmt
+    : WHILE LPAREN expression RPAREN statement
+        {
+        	$$ = newStmtNode(WHILEK);
+        	$$->child[0] = $3;
+        	$$->child[1] = $5;
+            $$->op = WHILEK;
+        }
+    ;
+
+returnStmt
+    : RETURN SEMI
+        {
+        	$$ = newStmtNode(RETURNK);
+            $$->op = RETURNK;
+        }
+    | RETURN expression SEMI
+        {
+        	$$ = newStmtNode(RETURNK);
+        	$$->child[0] = $2;
+            $$->op = RETURNK;
+        }
+    ;
+
+expression
+    : var assigmentOperator expression
+        {
+            $$ = $2;
+            $$->child[0] = $1;
+        	$$->child[1] = $3;
+        }
+    | conditionalExpression { $$ = $1; }
+    ;
+
+assigmentOperator
+    : ATRIBUICAO
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIBUICAO;
+        }
+    | ATRIB_MAIS
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_MAIS;
+        }
+    | ATRIB_MENOS
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_MENOS;
+        }
+    | ATRIB_VEZES
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_VEZES;
+        }
+    | ATRIB_DIVISAO
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_DIVISAO;
+        }
+    | ATRIB_MODULO
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_MODULO;
+        }
+    | ATRIB_AND
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_AND;
+        }
+    | ATRIB_OR
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_OR;
+        }
+    | ATRIB_XOR
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_XOR;
+        }
+    | ATRIB_SHIFT_LEFT
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_SHIFT_LEFT;
+        }
+    | ATRIB_SHIFT_RIGHT
+        {
+        	$$ = newExpNode(ATRIBK);
+        	$$->op = ATRIB_SHIFT_RIGHT;
+        }
+    ;
+
+var
+    : id
+        {
+        	$$ = $1;
+            $$->kind.var.acesso = ACCESSK;
+        }
+    | id LBRACKET expression RBRACKET
+        {
+        	$$ = $1;
+        	$$->kind.var.kind = VECTORK;
+            $$->kind.var.acesso = ACCESSK;
+        	$$->child[0] = $3;
+        }
+    ;
+
+conditionalExpression
+    : logicalOrExpression QUESTION expression COLON conditionalExpression
+        {
+            $$ = newStmtNode(IFK);
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+            $$->child[2] = $5;
+            $$->op = IFK;
+        }
+    | logicalOrExpression { $$ = $1; }
+    ;
+
+logicalOrExpression
+    : logicalOrExpression LOGICAL_OR logicalAndExpression
+        {
+            $$ = newExpNode(LOGICK);
+            $$->op = LOGICAL_OR;
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+        }
+    | logicalAndExpression { $$ = $1; }
+    ;
+
+logicalAndExpression
+    : logicalAndExpression LOGICAL_AND inclusiveOrExpression
+        {
+            $$ = newExpNode(LOGICK);
+            $$->op = LOGICAL_AND;
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+        }
+    | inclusiveOrExpression { $$ = $1; }
+    ;
+
+inclusiveOrExpression
+    : inclusiveOrExpression OR exclusiveOrExpression
+        {
+            $$ = newExpNode(LOGICK);
+            $$->op = OR;
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+        }
+    | exclusiveOrExpression { $$ = $1; }
+    ;
+
+exclusiveOrExpression
+    : exclusiveOrExpression XOR andExpression
+        {
+            $$ = newExpNode(LOGICK);
+            $$->op = XOR;
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+        }
+    | andExpression { $$ = $1; }
+    ;
+
+andExpression
+    : andExpression AND equalityExpression
+        {
+            $$ = newExpNode(LOGICK);
+            $$->op = AND;
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+        }
+    | equalityExpression { $$ = $1; }
+    ;
+
+equalityExpression
+    : equalityExpression equalityOperator relationalExpression
+        {
+            $$ = $2;
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+        }
+    | relationalExpression { $$ = $1; }
+    ;
+
+equalityOperator
+    : IGUAL
+        {
+            $$ = newExpNode(RELK);
+            $$->op = IGUAL;
+        }
+    | DIFERENTE
+        {
+            $$ = newExpNode(RELK);
+            $$->op = DIFERENTE;
+        }
+    ;
+
+relationalExpression
+    : relationalExpression relationalOperator shiftExpression
+        {
+        	$$ = $2;
+        	$$->child[0] = $1;
+        	$$->child[1] = $3;
+        }
+    | shiftExpression { $$ = $1; }
+    ;
+
+relationalOperator
+    : MENORIGUAL
+		{
+			$$ = newExpNode(RELK);
+			$$->op = MENORIGUAL;
+		}
+    | MENOR
+		{
+			$$ = newExpNode(RELK);
+			$$->op = MENOR;
+		}
+    | MAIOR
+        {
+        	$$ = newExpNode(RELK);
+        	$$->op = MAIOR;
+        }
+    | MAIORIGUAL
+        {
+        	$$ = newExpNode(RELK);
+        	$$->op = MAIORIGUAL;
+        }
+    ;
+
+shiftExpression
+    : shiftExpression shiftOperator additiveExpression
+        {
+            $$ = $2;
+            $$->child[0] = $1;
+            $$->child[1] = $3;
+        }
+    | additiveExpression { $$ = $1; }
+    ;
+
+shiftOperator
+    : SHIFT_LEFT
+        {
+            $$ = newExpNode(ARITHK);
+            $$->op = SHIFT_LEFT;
+        }
+    | SHIFT_RIGHT
+        {
+            $$ = newExpNode(ARITHK);
+            $$->op = SHIFT_RIGHT;
+        }
+    ;
+
+additiveExpression
+    : additiveExpression additiveOperator multiplicativeExpression
+        {
+        	$$ = $2;
+        	$$->child[0] = $1;
+        	$$->child[1] = $3;
+        }
+	| multiplicativeExpression { $$ = $1; }
+	;
+
+additiveOperator
+    : MAIS
+        {
+        	$$ = newExpNode(ARITHK);
+        	$$->op = MAIS;
+        }
+    | MENOS
+        {
+        	$$ = newExpNode(ARITHK);
+        	$$->op = MENOS;
+        }
+    ;
+
+multiplicativeExpression
+    : multiplicativeExpression multiplicativeOperator unaryExpression
+        {
+        	$$ = $2;
+        	$$->child[0] = $1;
+        	$$->child[1] = $3;
+        }
+    | unaryExpression { $$ = $1; }
+    ;
+
+multiplicativeOperator
+    : VEZES
+        {
+        	$$ = newExpNode(ARITHK);
+        	$$->op = VEZES;
+        }
+    | DIVISAO
+        {
+        	$$ = newExpNode(ARITHK);
+        	$$->op = DIVISAO;
+        }
+    | MODULO
+        {
+            $$ = newExpNode(ARITHK);
+            $$->op = MODULO;
+        }
+    ;
+
+unaryExpression
+    : unaryOperator unaryExpression
+        {
+            $$ = $1;
+            $$->child[0] = $2;
+        }
+    | LPAREN expression RPAREN { $$ = $2; }
+    | var { $$ = $1; }
+    | ativacao { $$ = $1; }
+    | num { $$ = $1; }
+    ;
+
+unaryOperator
+    : AND
+        {
+            $$ = newExpNode(UNARYK);
+            $$->op = AND;
+        }
+    | NOT
+        {
+            $$ = newExpNode(UNARYK);
+            $$->op = NOT;
+        }
+    | MENOS
+        {
+            $$ = newExpNode(UNARYK);
+            $$->op = MENOS;
+        }
+    ;
+
+ativacao
+    : var LPAREN args RPAREN
+        {
+        	$$ = $1;
+        	$$->kind.var.kind = CALLK;
+        	$$->child[0] = $3;
+            $$->op = CALLK;
+        }
+    ;
+
+args
+    : arg_lista { $$ = $1; }
+    | vazio { $$ = $1; }
+    ;
+
+arg_lista
+    : arg_lista COMMA expression
+        {
+        	YYSTYPE t = $1;
+        	if (t != NULL) {
+        		while (t->sibling != NULL) {
+        			t = t->sibling;
+        		}
+        		t->sibling = $3;
+        		$$ = $1;
+        	} else {
+        		$$ = $3;
+        	}
+        }
+    | expression { $$ = $1; }
+    ;
+
+id
+    : ID
+        {
+        	$$ = newVarNode(IDK);
+        	$$->kind.var.attr.name = copyString(tokenString);
+            $$->op = IDK;
+            $$->type = INTEGER_TYPE;
+        }
+    ;
+
+num
+    : NUM
+		{
+            $$ = newVarNode(CONSTK);
+            $$->kind.var.attr.val = atoi(tokenString);
+            $$->op = CONSTK;
+            $$->type = INTEGER_TYPE;
+		}
+	;
+
+vazio
+    : { $$ = NULL; }
+    ;
+
 %%
 
 static int yyerror(char * message) {
@@ -527,25 +643,25 @@ static TreeNode * insertIOFunctions() {
     /*********** Output **********/
     TreeNode * output = newExpNode(FunctionK);
     output->attr.name = "output";
-    output->type = Void;
-    output->varMemK = FUNCAO;
+    output->type = VOID;
+    output->mem = FUNCTIONK;
     output->lineno = 0;
 
-    TreeNode * voidNode = newStmtNode(VoidK);
+    TreeNode * voidNode = newStmtNode(VOID);
     voidNode->attr.name = "void";
-    voidNode->type = Void;
+    voidNode->type = VOID;
     voidNode->child[0] = output;
 
     /********** Input **********/
     TreeNode * input = newExpNode(FunctionK);
     input->attr.name = "input";
-    input->type = Integer;
-    input->varMemK = FUNCAO;
+    input->type = INTEGER_TYPE;
+    input->mem = FUNCTIONK;
     input->lineno = 0;
 
-    TreeNode * intNode = newStmtNode(IntegerK);
+    TreeNode * intNode = newStmtNode(INTEGER_TYPE);
     intNode->attr.name = "int";
-    intNode->type = Integer;
+    intNode->type = INTEGER_TYPE;
     intNode->child[0] = input;
 
     /********** Adicionando na árvore **********/

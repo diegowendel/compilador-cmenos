@@ -24,7 +24,6 @@ whitespace  [ \t\r]+
 %%
 
 "if"            { return IF; }
-"else"          { return ELSE; }
 "while"         { return WHILE; }
 "return"        { return RETURN; }
 "int"           { return INT; }
@@ -66,7 +65,7 @@ whitespace  [ \t\r]+
 "=="            { return IGUAL; }
 "!="            { return DIFERENTE; }
 
-"?"             { return INTERROGACAO; }
+"?"             { return QUESTION; }
 ":"             { return COLON; }
 ";"             { return SEMI; }
 ","             { return COMMA; }

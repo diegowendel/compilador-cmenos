@@ -23,6 +23,8 @@ TreeNode * newStmtNode(StmtKind);
  */
 TreeNode * newExpNode(ExpKind);
 
+TreeNode * newVarNode(VarKind);
+
 /* Function copyString allocates and makes a new
  * copy of an existing string
  */

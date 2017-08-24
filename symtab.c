@@ -38,32 +38,20 @@ static int hash (char * key) {
     return temp;
 }
 
-/* Função toString do enum ExpType */
-const char * expTypeToString(enum exp e) {
-    const char * strings[] = {"Void", "Inteiro"};
+const char * toStringVarKind(VarKind e) {
+    const char * strings[] = {"Variavel", "Vetor", "Constante", "Funcao", "Chamada de funcao"};
     return strings[e];
 }
 
-const char * dataTypeToString(ExpKind k) {
-    if(k == IdK) {
-        return "Variavel";
-    } else if(k == VectorK) {
-        return "Vetor";
-    } else {
-        return "Funcao";
-    }
+const char * toStringVarMemK(VarMemK e) {
+    const char * strings[] = {"Local", "Parametro", "Global", "-"};
+    return strings[e];
 }
 
-const char * varOrigemToString(VarMemK k) {
-    if(k == PARAM) {
-        return "Parametro";
-    } else if(k == LOCAL) {
-        return "Local";
-    } else if(k == GLOBAL){
-        return "Global";
-    } else {
-        return "-";
-    }
+/* Função toString do enum ExpType */
+const char * toStringExpType(ExpType e) {
+    const char * strings[] = {"void", "inteiro"};
+    return strings[e];
 }
 
 Scope sc_top(void) {
@@ -124,10 +112,10 @@ BucketList st_bucket(char * name) {
 }
 
 int verifyGlobalScope(TreeNode * treeNode) {
-    int h = hash(treeNode->attr.name);
+    int h = hash(treeNode->kind.var.attr.name);
     Scope sc = globalScope;
     BucketList l = sc->hashTable[h];
-    while ((l != NULL) && (strcmp(treeNode->attr.name, l->name))) {
+    while ((l != NULL) && (strcmp(treeNode->kind.var.attr.name, l->name))) {
         l = l->next;
     }
     if (l != NULL) {
@@ -198,9 +186,9 @@ void st_insert(char * name, int lineno, int loc, TreeNode * treeNode, int tamanh
 
     if(top->hashTable[h] == NULL) {
         // Adiciona o escopo ao nó da árvore sintática
-        treeNode->scope = top;
+        treeNode->kind.var.scope = top;
         top->hashTable[h] = st_create(name, lineno, loc, treeNode, tamanho);
-        treeNode->scope->tamanhoBlocoMemoria += tamanho;
+        treeNode->kind.var.scope->tamanhoBlocoMemoria += tamanho;
         return;
     } else {
         BucketList l = top->hashTable[h];
@@ -209,10 +197,10 @@ void st_insert(char * name, int lineno, int loc, TreeNode * treeNode, int tamanh
         }
         if (l->next == NULL && (strcmp(name, l->name))) { /* Variável ainda não existente na tabela */
             // Adiciona o escopo ao nó da árvore sintática
-            treeNode->scope = top;
+            treeNode->kind.var.scope = top;
             // Adiciona um novo item na tabela de símbolos
             l->next = st_create(name, lineno, loc, treeNode, tamanho);
-            treeNode->scope->tamanhoBlocoMemoria += tamanho;
+            treeNode->kind.var.scope->tamanhoBlocoMemoria += tamanho;
         }
     }
 } /* st_insert */
@@ -232,9 +220,9 @@ BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode, int 
 
 void st_add_lineno(TreeNode * treeNode) {
     // Adiciona o escopo ao nó da árvore sintática
-    treeNode->scope = st_scopeVar(treeNode->attr.name);
+    treeNode->kind.var.scope = st_scopeVar(treeNode->kind.var.attr.name);
     int lineno = treeNode->lineno;
-	BucketList l = st_bucket(treeNode->attr.name);
+	BucketList l = st_bucket(treeNode->kind.var.attr.name);
   	LineList ll = l->lines;
   	while (ll->next != NULL) {
 		ll = ll->next;
@@ -256,7 +244,7 @@ void st_insert_func(char * name, int lineno, TreeNode * treeNode) {
     }
   	if (l == NULL) { /* Variável ainda não existente na tabela */
         // Adiciona o escopo ao nó da árvore sintática
-        treeNode->scope = top;
+        treeNode->kind.var.scope = top;
         // Adiciona um novo item na tabela de símbolos
   		l = (BucketList) malloc(sizeof(struct BucketListRec));
     	l->name = name;
@@ -374,7 +362,7 @@ int getTamanhoBlocoMemoriaEscopoGlobal(void) {
 		if (hashTable[j] != NULL) {
 			BucketList l = hashTable[j];
       		while (l != NULL) {
-                if(strcmp("Funcao", dataTypeToString(l->treeNode->kind.exp))) {
+                if(l->treeNode->kind.var.kind == FUNCTIONK) {
                     tamanho += l->tamanho;
                 }
                 l = l->next;
@@ -393,8 +381,8 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
       		while (l != NULL) {
 				LineList t = l->lines;
         		fprintf(listing, "%-18s", l->name);
-				fprintf(listing, "%-10s", expTypeToString(l->treeNode->type));
-                fprintf(listing, "%-12s", dataTypeToString(l->treeNode->kind.exp));
+				fprintf(listing, "%-10s", toStringExpType(l->treeNode->type));
+                fprintf(listing, "%-12s", toStringVarKind(l->treeNode->kind.var.kind));
 
                 /*
                  * Verifica se o item armazenado nessa posição da tabela de
@@ -402,7 +390,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                  * parâmetros
                  */
                 if(escopo == ESCOPO_GLOBAL) {
-                    if(strcmp("Funcao", dataTypeToString(l->treeNode->kind.exp)) == 0) {
+                    if(l->treeNode->kind.var.kind == FUNCTIONK) {
                         int numParams = getQuantidadeParametros(l->treeNode);
                         fprintf(listing, "%-15d", numParams);
 
@@ -412,12 +400,12 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                             fprintf(listing, "%-17s", "int");
                         }
                     } else {
-                        l->treeNode->varMemK = GLOBAL;
+                        l->treeNode->kind.var.mem = GLOBALK;
                         fprintf(listing, "%-32s", "");
                     }
                 }
 
-                fprintf(listing, "%-17s", varOrigemToString(l->treeNode->varMemK));
+                fprintf(listing, "%-17s", toStringVarMemK(l->treeNode->kind.var.mem));
                 fprintf(listing, "%-9d", l->tamanho);
 
                 if(l->memloc == -1) {

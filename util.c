@@ -13,7 +13,6 @@
 void printToken(TokenType token, const char* tokenString) {
     switch (token) {
         case IF: fprintf(listing,"if\n"); break;
-        case ELSE: fprintf(listing,"else\n"); break;
         case WHILE: fprintf(listing,"while\n"); break;
         case RETURN: fprintf(listing,"return\n"); break;
         case INT: fprintf(listing,"int\n"); break;
@@ -48,7 +47,7 @@ void printToken(TokenType token, const char* tokenString) {
         case MAIORIGUAL: fprintf(listing, ">=\n"); break;
         case IGUAL: fprintf(listing, "==\n"); break;
         case DIFERENTE: fprintf(listing, "!=\n"); break;
-        case INTERROGACAO: fprintf(listing, "?\n"); break;
+        case QUESTION: fprintf(listing, "?\n"); break;
         case COLON: fprintf(listing, ":\n"); break;
         case SEMI: fprintf(listing, ";\n"); break;
         case COMMA: fprintf(listing, ",\n"); break;
@@ -80,9 +79,9 @@ TreeNode * newStmtNode(StmtKind kind) {
             t->child[i] = NULL;
         }
         t->sibling = NULL;
-        t->nodekind = StmtK;
-        t->kind.stmt = kind;
+        t->node = STMTK;
         t->lineno = lineno;
+        t->kind.stmt = kind;
     }
     return t;
 }
@@ -100,10 +99,28 @@ TreeNode * newExpNode(ExpKind kind) {
             t->child[i] = NULL;
         }
         t->sibling = NULL;
-        t->nodekind = ExpK;
-        t->kind.exp = kind;
+        t->node = EXPK;
         t->lineno = lineno;
-        t->type = Void;
+        t->kind.exp = kind;
+    }
+    return t;
+}
+
+TreeNode * newVarNode(VarKind kind) {
+    TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
+    int i;
+    if (t == NULL) {
+        fprintf(listing,"Out of memory error at line %d\n",lineno);
+    } else {
+        for (i = 0; i < MAXCHILDREN; i++) {
+            t->child[i] = NULL;
+        }
+        t->sibling = NULL;
+        t->node = VARK;
+        t->lineno = lineno;
+        t->kind.var.kind = kind;
+        t->kind.var.acesso = DECLK;
+        t->kind.var.scope = NULL;
     }
     return t;
 }
@@ -155,28 +172,31 @@ void printTree( TreeNode * tree ) {
     INDENT;
     while (tree != NULL) {
         printSpaces();
-        if (tree->nodekind == StmtK) {
+        if (tree->node == STMTK) {
             switch (tree->kind.stmt) {
-                case IfK: fprintf(listing, "if\n"); break;
-                case ElseK:	fprintf(listing, "else\n");	break;
-                case WhileK: fprintf(listing, "while\n"); break;
-                case ReturnK: fprintf(listing, "return\n");	break;
-                case IntegerK: fprintf(listing, "int\n"); break;
-                case VoidK: fprintf(listing, "void\n"); break;
-                case CompK: fprintf(listing, "Declaração Composta:\n");	break;
+                case INTEGERK: fprintf(listing, "int\n"); break;
+                case VOIDK: fprintf(listing, "void\n"); break;
+                case IFK: fprintf(listing, "if\n"); break;
+                case WHILEK: fprintf(listing, "while\n"); break;
+                case RETURNK: fprintf(listing, "return\n");	break;
+                case COMPK: fprintf(listing, "Declaração Composta:\n");	break;
             }
-        } else if (tree->nodekind == ExpK) {
+        } else if (tree->node == EXPK) {
             switch (tree->kind.exp) {
-                case OpK: fprintf(listing, "Op: "); printToken(tree->attr.op,"\0"); break;
-                case ConstK: fprintf(listing, "Const: %d\n", tree->attr.val); break;
-                case CallK: fprintf(listing, "Chamada de função: %s\n", tree->attr.name); break;
-                case IdK: fprintf(listing, "Id: %s\n", tree->attr.name); break;
-                case VectorK: fprintf(listing, "Vector: %s\n", tree->attr.name); break;
-                case FunctionK: fprintf(listing, "Function: %s\n", tree->attr.name); break;
-                default: fprintf(listing,"ExpNode desconhecido\n"); break;
+                case ATRIBK: fprintf(listing, "Atrib Op: "); printToken(tree->op, "\0"); break;
+                case RELK: fprintf(listing, "Rel Op: "); printToken(tree->op, "\0"); break;
+                case ARITHK: fprintf(listing, "Arith Op: "); printToken(tree->op, "\0"); break;
+                case LOGICK: fprintf(listing, "Logic Op: "); printToken(tree->op, "\0"); break;
+                case UNARYK: fprintf(listing, "Unary Op: "); printToken(tree->op, "\0"); break;
             }
-        } else {
-            fprintf(listing, "Tipo desconhecido\n");
+        } else if (tree->node == VARK) {
+            switch (tree->kind.var.kind) {
+                case IDK: fprintf(listing, "Id: %s\n", tree->kind.var.attr.name); break;
+                case VECTORK: fprintf(listing, "Vector: %s\n", tree->kind.var.attr.name); break;
+                case CONSTK: fprintf(listing, "Const: %d\n", tree->kind.var.attr.val); break;
+                case FUNCTIONK: fprintf(listing, "Function: %s\n", tree->kind.var.attr.name); break;
+                case CALLK: fprintf(listing, "Function call: %s\n", tree->kind.var.attr.name); break;
+            }
         }
         for (i = 0; i < MAXCHILDREN; i++) {
             printTree(tree->child[i]);
