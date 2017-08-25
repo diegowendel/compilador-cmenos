@@ -21,7 +21,7 @@
     static TreeNode * insertIOFunctions();
 %}
 
-%token IF WHILE RETURN
+%token IF ELSE WHILE RETURN
 %token ID NUM
 %token MAIOR MAIORIGUAL MENOR MENORIGUAL IGUAL DIFERENTE MAIS MENOS VEZES DIVISAO MODULO
 %token SHIFT_LEFT SHIFT_RIGHT AND OR XOR NOT LOGICAL_AND LOGICAL_OR
@@ -77,9 +77,9 @@ varDeclaration
         {
             $$ = $1;
             $$->child[0] = $2;
-            $$->child[0]->kind.exp = VectorK;
             $$->child[0]->type = $$->type;
             $$->child[0]->kind.var.mem = LOCALK;
+            $$->child[0]->kind.var.varKind = VECTORK;
             $$->child[0]->child[0] = $4;
             $$->child[0]->child[0]->type = INTEGER_TYPE;
         }
@@ -106,8 +106,8 @@ funDeclaration
             $$ = $1;
             $$->child[0] = $2;
             $$->child[0]->type = $$->type;
-            $$->child[0]->kind.var.kind = FUNCTIONK;
-            $$->child[0]->kind.var.mem = FUNCK;
+            $$->child[0]->kind.var.varKind = FUNCTIONK;
+            $$->child[0]->kind.var.mem = FUNCTION_MEM;
             $$->child[0]->child[0] = $4;
             $$->child[0]->child[1] = $6;
         }
@@ -115,7 +115,7 @@ funDeclaration
 
 params
     : paramList { $$ = $1; }
-    | vazio { $$ = $1; }
+    | VOID { $$ = NULL; }
     ;
 
 paramList
@@ -147,7 +147,7 @@ param
             $$ = $1;
             $$->child[0] = $2;
             $$->child[0]->kind.var.mem = PARAMK;
-            $$->child[0]->kind.var.kind = VECTORK;
+            $$->child[0]->kind.var.varKind = VECTORK;
         }
     ;
 
@@ -327,7 +327,7 @@ var
     | id LBRACKET expression RBRACKET
         {
         	$$ = $1;
-        	$$->kind.var.kind = VECTORK;
+        	$$->kind.var.varKind = VECTORK;
             $$->kind.var.acesso = ACCESSK;
         	$$->child[0] = $3;
         }
@@ -564,7 +564,7 @@ ativacao
     : var LPAREN args RPAREN
         {
         	$$ = $1;
-        	$$->kind.var.kind = CALLK;
+        	$$->kind.var.varKind = CALLK;
         	$$->child[0] = $3;
             $$->op = CALLK;
         }
@@ -597,7 +597,6 @@ id
         {
         	$$ = newVarNode(IDK);
         	$$->kind.var.attr.name = copyString(tokenString);
-            $$->op = IDK;
             $$->type = INTEGER_TYPE;
         }
     ;
@@ -607,7 +606,6 @@ num
 		{
             $$ = newVarNode(CONSTK);
             $$->kind.var.attr.val = atoi(tokenString);
-            $$->op = CONSTK;
             $$->type = INTEGER_TYPE;
 		}
 	;
@@ -641,26 +639,28 @@ TreeNode * parse(void) {
 /* Insere as funções input e output na árvore sintática */
 static TreeNode * insertIOFunctions() {
     /*********** Output **********/
-    TreeNode * output = newExpNode(FunctionK);
-    output->attr.name = "output";
-    output->type = VOID;
-    output->mem = FUNCTIONK;
+    TreeNode * output = newVarNode(FUNCTIONK);
     output->lineno = 0;
+    output->op = ID;
+    output->type = VOID_TYPE;
+    output->kind.var.mem = FUNCTION_MEM;
+    output->kind.var.attr.name = "output";
 
-    TreeNode * voidNode = newStmtNode(VOID);
-    voidNode->attr.name = "void";
-    voidNode->type = VOID;
+    TreeNode * voidNode = newStmtNode(VOIDK);
+    voidNode->op = VOID;
+    voidNode->type = VOID_TYPE;
     voidNode->child[0] = output;
 
     /********** Input **********/
-    TreeNode * input = newExpNode(FunctionK);
-    input->attr.name = "input";
-    input->type = INTEGER_TYPE;
-    input->mem = FUNCTIONK;
+    TreeNode * input = newVarNode(FUNCTIONK);
     input->lineno = 0;
+    input->op = ID;
+    input->type = INTEGER_TYPE;
+    input->kind.var.mem = FUNCTION_MEM;
+    input->kind.var.attr.name = "input";
 
-    TreeNode * intNode = newStmtNode(INTEGER_TYPE);
-    intNode->attr.name = "int";
+    TreeNode * intNode = newStmtNode(INTEGERK);
+    intNode->op = INT;
     intNode->type = INTEGER_TYPE;
     intNode->child[0] = input;
 

@@ -362,7 +362,7 @@ int getTamanhoBlocoMemoriaEscopoGlobal(void) {
 		if (hashTable[j] != NULL) {
 			BucketList l = hashTable[j];
       		while (l != NULL) {
-                if(l->treeNode->kind.var.kind == FUNCTIONK) {
+                if(l->treeNode->kind.var.varKind == FUNCTIONK) {
                     tamanho += l->tamanho;
                 }
                 l = l->next;
@@ -382,7 +382,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
 				LineList t = l->lines;
         		fprintf(listing, "%-18s", l->name);
 				fprintf(listing, "%-10s", toStringExpType(l->treeNode->type));
-                fprintf(listing, "%-12s", toStringVarKind(l->treeNode->kind.var.kind));
+                fprintf(listing, "%-12s", toStringVarKind(l->treeNode->kind.var.varKind));
 
                 /*
                  * Verifica se o item armazenado nessa posição da tabela de
@@ -390,7 +390,7 @@ void printSymTabRows(BucketList *hashTable, FILE *listing, int escopo) {
                  * parâmetros
                  */
                 if(escopo == ESCOPO_GLOBAL) {
-                    if(l->treeNode->kind.var.kind == FUNCTIONK) {
+                    if(l->treeNode->kind.var.varKind == FUNCTIONK) {
                         int numParams = getQuantidadeParametros(l->treeNode);
                         fprintf(listing, "%-15d", numParams);
 

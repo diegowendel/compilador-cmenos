@@ -55,14 +55,14 @@ static void varError(TreeNode * t, const char * message) {
 static void insertNode(TreeNode * t) {
     BucketList l;
     if (t->node == VARK) {
-        switch (t->kind.var.kind) {
+        switch (t->kind.var.varKind) {
             case IDK:
                 if(t->kind.var.acesso == ACCESSK) {
                     /* Verifica se existe alguma entrada com o respectivo nome da variável */
                     l = st_bucket(t->kind.var.attr.name);
                     /* Se retornar algum resultado então existe */
                     if (l != NULL) {
-                        if(l->treeNode->kind.var.kind == FUNCTIONK) {
+                        if(l->treeNode->kind.var.varKind == FUNCTIONK) {
                             varError(t, "Não é possível referenciar uma função como variável");
                             break;
                         } else {
@@ -79,7 +79,7 @@ static void insertNode(TreeNode * t) {
                     if(l != NULL) {
                         if (l->treeNode != NULL) {
                             /* Se o resultado for do tipo FUNCTIONK, já foi declarado como função */
-                            if (l->treeNode->kind.var.kind == FUNCTIONK) {
+                            if (l->treeNode->kind.var.varKind == FUNCTIONK) {
                                 declError(t, "Nome da variável já é usado para declarar uma função");
                                 break;
                             }
@@ -108,7 +108,7 @@ static void insertNode(TreeNode * t) {
                     l = st_bucket(t->kind.var.attr.name);
                     /* Se retornar algum resultado então existe */
                     if (l != NULL) {
-                        if(l->treeNode->kind.var.kind == FUNCTIONK) {
+                        if(l->treeNode->kind.var.varKind == FUNCTIONK) {
                             varError(t, "Não é possível referenciar uma função como variável");
                             break;
                         } else {
@@ -125,7 +125,7 @@ static void insertNode(TreeNode * t) {
                     if(l != NULL) {
                         if (l->treeNode != NULL) {
                             /* Se o resultado for do tipo FunctionK, já foi declarado como função */
-                            if (l->treeNode->kind.var.kind == FUNCTIONK) {
+                            if (l->treeNode->kind.var.varKind == FUNCTIONK) {
                                 declError(t, "Nome da variável já é usado para declarar uma função");
                                 break;
                             }
@@ -212,7 +212,7 @@ static void typeError(TreeNode * t, const char * message) {
 
 static void beforeCheckNode(TreeNode * t) {
 	if (t->node == EXPK) {
-		if (t->kind.var.kind == FUNCTIONK) {
+		if (t->kind.var.varKind == FUNCTIONK) {
 			funcName = t->kind.var.attr.name;
 		}
   	}
@@ -226,7 +226,7 @@ static void checkNode(TreeNode * t) {
         switch (t->kind.stmt) {
             case INTEGERK: t->child[0]->type = INTEGER_TYPE; break;
             case VOIDK:
-                if (t->child[0]->kind.var.kind == IDK) {
+                if (t->child[0]->kind.var.varKind == IDK) {
                     typeError(t, "Variável não pode ser do tipo void");
                 } else {
                     t->child[0]->type = VOID_TYPE;
@@ -252,7 +252,7 @@ static void checkNode(TreeNode * t) {
             case UNARYK: t->type = INTEGER_TYPE; break;
         }
     } else {
-        switch (t->kind.var.kind) {
+        switch (t->kind.var.varKind) {
             case IDK: t->type = INTEGER_TYPE; break;
             case VECTORK: t->type = INTEGER_TYPE; break;
             case CONSTK: t->type = INTEGER_TYPE; break;

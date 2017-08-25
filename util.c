@@ -13,6 +13,7 @@
 void printToken(TokenType token, const char* tokenString) {
     switch (token) {
         case IF: fprintf(listing,"if\n"); break;
+        case ELSE: fprintf(listing, "else\n"); break;
         case WHILE: fprintf(listing,"while\n"); break;
         case RETURN: fprintf(listing,"return\n"); break;
         case INT: fprintf(listing,"int\n"); break;
@@ -118,7 +119,7 @@ TreeNode * newVarNode(VarKind kind) {
         t->sibling = NULL;
         t->node = VARK;
         t->lineno = lineno;
-        t->kind.var.kind = kind;
+        t->kind.var.varKind = kind;
         t->kind.var.acesso = DECLK;
         t->kind.var.scope = NULL;
     }
@@ -190,7 +191,7 @@ void printTree( TreeNode * tree ) {
                 case UNARYK: fprintf(listing, "Unary Op: "); printToken(tree->op, "\0"); break;
             }
         } else if (tree->node == VARK) {
-            switch (tree->kind.var.kind) {
+            switch (tree->kind.var.varKind) {
                 case IDK: fprintf(listing, "Id: %s\n", tree->kind.var.attr.name); break;
                 case VECTORK: fprintf(listing, "Vector: %s\n", tree->kind.var.attr.name); break;
                 case CONSTK: fprintf(listing, "Const: %d\n", tree->kind.var.attr.val); break;

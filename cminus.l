@@ -24,6 +24,7 @@ whitespace  [ \t\r]+
 %%
 
 "if"            { return IF; }
+"else"          { return ELSE; }
 "while"         { return WHILE; }
 "return"        { return RETURN; }
 "int"           { return INT; }

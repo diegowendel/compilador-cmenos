@@ -67,12 +67,23 @@ typedef enum {INTEGERK, VOIDK, IFK, WHILEK, RETURNK, COMPK} StmtKind;
 typedef enum {ATRIBK, RELK, ARITHK, LOGICK, UNARYK} ExpKind;
 typedef enum {IDK, VECTORK, CONSTK, FUNCTIONK, CALLK} VarKind;
 typedef enum {DECLK, ACCESSK} VarAccessK;
-typedef enum {LOCALK, PARAMK, GLOBALK, FUNCK} VarMemK;
+typedef enum {LOCALK, PARAMK, GLOBALK, FUNCTION_MEM} VarMemK;
 
 /* ExpType é usado para checagem de tipos */
 typedef enum exp {VOID_TYPE, INTEGER_TYPE} ExpType;
 
 #define MAXCHILDREN 3
+
+typedef struct Identifier {
+    VarKind varKind;
+    VarMemK mem;
+    VarAccessK acesso;
+    struct ScopeRec * scope;
+    union {
+        int val;
+        char * name;
+    } attr;
+} Identifier;
 
 typedef struct treeNode {
     struct treeNode * child[MAXCHILDREN];
@@ -82,16 +93,7 @@ typedef struct treeNode {
     union {
         StmtKind stmt;
         ExpKind exp;
-        union {
-            VarKind kind;
-            VarMemK mem;
-            VarAccessK acesso;
-            struct ScopeRec * scope;
-            union {
-                int val;
-                char * name;
-            } attr;
-        } var;
+        struct Identifier var;
     } kind;
     TokenType op;
     ExpType type; /* for type checking of exps */
