@@ -99,7 +99,7 @@ int main( int argc, char * argv[] ) {
         typeCheck(syntaxTree);
         if (TraceAnalyze) fprintf(listing, "\nChecagem de tipos concluída!\n");
     }
-#if NO_CODE
+#if !NO_CODE
     if (! Error) {
         char * codefile;
         int fnlen = strcspn(pgm, ".");
@@ -118,7 +118,7 @@ int main( int argc, char * argv[] ) {
         // Código intermediário gerado com sucesso
         codigoIntermediarioGerarado = TRUE;
     }
-#if NO_TARGET_CODE
+#if !NO_TARGET_CODE
     if(codigoIntermediarioGerarado) {
         char * codefile;
         int fnlen = strcspn(pgm, ".");

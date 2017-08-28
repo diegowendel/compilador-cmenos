@@ -13,10 +13,11 @@
 typedef enum {Empty, IntConst, String} OperandKind;
 
 typedef enum instrucao {ADD, SUB, MULT, DIV, MOD,
-      VEC, VEC_ADDR,
-      EQ, NE, LT, LET, GT, GET, ASN,
-      FUNC, RTN, GET_PARAM, SET_PARAM, CALL, PARAM_LIST,
-      JPF, GOTO, LBL, HALT} InstructionKind;
+    BITW_AND, BITW_OR, BITW_XOR, BITW_NOT, LOGIC_AND, LOGIC_OR,
+    SHFT_LF, SHFT_RT, VEC, VEC_ADDR,
+    EQ, NE, LT, LET, GT, GET, ASN,
+    FUNC, RTN, GET_PARAM, SET_PARAM, CALL, PARAM_LIST,
+    JPF, GOTO, LBL, HALT} InstructionKind;
 
 typedef struct  {
     OperandKind kind;

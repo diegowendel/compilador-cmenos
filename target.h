@@ -10,24 +10,24 @@
 #include "cgen.h"
 
 typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
-      _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT,
-      _SL, _SR,
-      _MOV, _LOAD, _LOADI, _LOADA, _STORE,
-      _BEQ, _BNE, _BLT, _BLET, _BGT, _BGET, _JUMP, _JUMPAL, _JUMPR,
-      _NOP, _HALT, _RESET,
-      _IN, _OUT} Opcode;
+    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _NOTI, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
+    _SL, _SLI, _SR, _SRI,
+    _MOV, _LOAD, _LOADI, _LOADA, _STORE,
+    _EQ, _NE, _LT, _LET, _GT, _GET, _JUMP, _JUMPF, _JUMPAL, _JUMPR,
+    _NOP, _HALT, _RESET,
+    _IN, _OUT} Opcode;
 
 /**
  * opcode_map mapeia todas posições dos enums de opcode, é utilizado para
  * encontrar opcodes em tempo de execução
  */
 static const enum opcode opcode_map[] = {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
-      _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT,
-      _SL, _SR,
-      _MOV, _LOAD, _LOADI, _LOADA, _STORE,
-      _BEQ, _BNE, _BLT, _BLET, _BGT, _BGET, _JUMP, _JUMPAL, _JUMPR,
-      _NOP, _HALT, _RESET,
-      _IN, _OUT};
+    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _NOTI, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
+    _SL, _SLI, _SR, _SRI,
+    _MOV, _LOAD, _LOADI, _LOADA, _STORE,
+    _EQ, _NE, _LT, _LET, _GT, _GET, _JUMP, _JUMPF, _JUMPAL, _JUMPR,
+    _NOP, _HALT, _RESET,
+    _IN, _OUT};
 
 typedef enum type {
     TYPE_R, TYPE_I, TYPE_J

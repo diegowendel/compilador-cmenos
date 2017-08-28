@@ -1,182 +1,5 @@
 # Compilação C- para código intermediário
 # Arquivo: testes/fatorial.txt
-    # -> type int
-        # -> function declaration
-        # input
-        # <- function declaration
-    # <- type int
-
-    # -> type void
-        # -> function declaration
-        # output
-        # <- function declaration
-    # <- type void
-
-    # -> type int
-        # -> function declaration
-        # fatorial
-                # -> type int
-                    # -> identifier
-                    # result
-                    # <- identifier
-                # <- type int
-
-                # -> while
-                # -> while: test expression
-                    # -> arithmetic operator
-                    # -> arithmetic operator: left argument
-                        # -> arithmetic operator
-                        # -> arithmetic operator: left argument
-                            # -> arithmetic operator
-                            # -> arithmetic operator: left argument
-                                # -> identifier
-                                # number
-                                # <- identifier
-                            # <- arithmetic operator: left argument
-                            # -> arithmetic operator: right argument
-                                # -> constant
-                                # 0
-                                # <- constant
-                            # <- arithmetic operator: right argument
-                            # relational operator: >
-                            # <- Operator
-                        # <- arithmetic operator: left argument
-                        # -> arithmetic operator: right argument
-                            # -> arithmetic operator
-                            # -> arithmetic operator: left argument
-                                # -> identifier
-                                # number
-                                # <- identifier
-                            # <- arithmetic operator: left argument
-                            # -> arithmetic operator: right argument
-                                # -> constant
-                                # 99
-                                # <- constant
-                            # <- arithmetic operator: right argument
-                            # relational operator: <
-                            # <- Operator
-                        # <- arithmetic operator: right argument
-                        # BUG: Unknown operator
-                        # <- Operator
-                    # <- arithmetic operator: left argument
-                    # -> arithmetic operator: right argument
-                        # -> arithmetic operator
-                        # -> arithmetic operator: left argument
-                            # -> identifier
-                            # number
-                            # <- identifier
-                        # <- arithmetic operator: left argument
-                        # -> arithmetic operator: right argument
-                            # -> constant
-                            # 98
-                            # <- constant
-                        # <- arithmetic operator: right argument
-                        # relational operator: <
-                        # <- Operator
-                    # <- arithmetic operator: right argument
-                    # BUG: Unknown operator
-                    # <- Operator
-                # <- while: test expression
-                # -> while: while block
-                        # -> assign
-                        # -> assign: right argument
-                            # -> arithmetic operator
-                            # -> arithmetic operator: left argument
-                                # -> identifier
-                                # result
-                                # <- identifier
-                            # <- arithmetic operator: left argument
-                            # -> arithmetic operator: right argument
-                                # -> identifier
-                                # number
-                                # <- identifier
-                            # <- arithmetic operator: right argument
-                            # arithmetic operator: *
-                            # <- Operator
-                        # <- assign: right argument
-                        # -> assign: left argument
-                            # -> identifier
-                            # result
-                            # <- identifier
-                        # <- assign: left argument
-                        # <- assign
-                        # -> arithmetic operator
-                        # -> arithmetic operator: left argument
-                            # -> identifier
-                            # number
-                            # <- identifier
-                        # <- arithmetic operator: left argument
-                        # -> arithmetic operator: right argument
-                            # -> arithmetic operator
-                            # -> arithmetic operator: left argument
-                                # -> identifier
-                                # number
-                                # <- identifier
-                            # <- arithmetic operator: left argument
-                            # -> arithmetic operator: right argument
-                                # -> constant
-                                # 1
-                                # <- constant
-                            # <- arithmetic operator: right argument
-                            # arithmetic operator: -
-                            # <- Operator
-                        # <- arithmetic operator: right argument
-                        # BUG: Unknown operator
-                        # <- Operator
-                # <- while: while block
-                # <- while
-                # -> return
-                # -> return: expression
-                    # -> identifier
-                    # result
-                    # <- identifier
-                # <- return: expression
-                # <- return
-        # <- function declaration
-    # <- type int
-
-    # -> type void
-        # -> function declaration
-        # main
-                # -> type int
-                    # -> identifier
-                    # number
-                    # <- identifier
-                # <- type int
-
-                # -> assign
-                # -> assign: right argument
-                    # -> function call
-                    # input
-                    # -> function call: arguments
-                    # <- function call: arguments
-                    # <- function call
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> identifier
-                    # number
-                    # <- identifier
-                # <- assign: left argument
-                # <- assign
-                # -> function call
-                # output
-                # -> function call: arguments
-                    # -> function call
-                    # fatorial
-                    # -> function call: arguments
-                        # -> identifier
-                        # number
-                        # <- identifier
-                    # <- function call: arguments
-                    # <- function call
-                    # -> constant
-                    # 2
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
-        # <- function declaration
-    # <- type void
-
 # Fim da execução.
 
 ********** Código intermediário **********
@@ -186,26 +9,65 @@
 3: (label, L1, _, _)
 4: (greater_than, number, 0, t1)
 5: (less_than, number, 99, t2)
-6: (less_than, t1, t2, t3)
+6: (logical_and, t1, t2, t3)
 7: (less_than, number, 98, t4)
-8: (less_than, t3, t4, t5)
+8: (logical_and, t3, t4, t5)
 9: (jump_if_false, t5, L2, _)
 10: (multiplication, result, number, t6)
 11: (assign, result, t6, _)
 12: (subtraction, number, 1, t7)
-13: (subtraction, number, t7, t8)
+13: (assign, number, t7, _)
 14: (goto, L1, _, _)
 15: (label, L2, _, _)
 16: (return, result, _, _)
 17: (function, main, _, _)
 18: (param_list, 0, _, _)
-19: (call, input, 0, t9)
-20: (assign, number, t9, _)
+19: (call, input, 0, t8)
+20: (assign, number, number, _)
 21: (param_list, 2, _, _)
 22: (param_list, 1, _, _)
 23: (set_param, number, _, _)
-24: (call, fatorial, 1, t10)
-25: (set_param, t10, _, _)
+24: (call, fatorial, 1, t9)
+25: (set_param, t9, _, _)
 26: (set_param, 2, _, _)
-27: (call, output, 2, t11)
+27: (call, output, 2, t10)
 28: (halt, _, _, _)
+
+********** Código objeto **********
+
+fatorial:
+    0:	addi	$sp, $sp, 3
+    1:	sw	$a0, -1($sp)
+.L1	
+    2:	lw	$s0, -1($sp)
+    3:	gt	$t0, $s0, 0
+    4:	lt	$t1, $s0, 99
+    5:	land	$t2, $t0, $t1
+    6:	lt	$t3, $s0, 98
+    7:	land	$t4, $t2, $t3
+    8:	jf	$t4, L2
+    9:	lw	$s1, 0($sp)
+    10:	mul	$t5, $s1, $s0
+    11:	sw	$t5, 0($sp)
+    12:	subi	$t6, $s0, 1
+    13:	sw	$t6, -1($sp)
+    14:	j	L1
+.L2	
+    15:	lw	$s2, 0($sp)
+    16:	mov	$v0, $s2
+    17:	jr	$ra
+
+main:
+    18:	addi	$sp, $sp, 0
+    19:	in	$t0
+    20:	lw	$s0, 0($sp)
+    21:	sw	$s0, 0($sp)
+    22:	lw	$s1, 0($sp)
+    23:	mov	$a0, $s1
+    24:	jal	fatorial
+    25:	mov	$t1, $v0
+    26:	subi	$sp, $sp, 3
+    27:	mov	$a0, $t1
+    28:	li	$a1, 2
+    29:	out	$a0, 2
+    30:	halt	

@@ -3,8 +3,8 @@ int fatorial(int number) {
    // result = 1;
 
     while (number > 0 && number < 99 && number < 98) {
-        result = result * number;
-        number -= number - 1;
+        result *= number;
+        number -= 1;
     }
 
     return result;
