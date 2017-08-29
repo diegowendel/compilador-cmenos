@@ -10,7 +10,7 @@
 #include "cgen.h"
 
 typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
-    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _NOTI, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
+    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
     _SL, _SLI, _SR, _SRI,
     _MOV, _LOAD, _LOADI, _LOADA, _STORE,
     _EQ, _NE, _LT, _LET, _GT, _GET, _JUMP, _JUMPF, _JUMPAL, _JUMPR,
@@ -22,7 +22,7 @@ typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD,
  * encontrar opcodes em tempo de execução
  */
 static const enum opcode opcode_map[] = {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
-    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _NOTI, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
+    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
     _SL, _SLI, _SR, _SRI,
     _MOV, _LOAD, _LOADI, _LOADA, _STORE,
     _EQ, _NE, _LT, _LET, _GT, _GET, _JUMP, _JUMPF, _JUMPAL, _JUMPR,

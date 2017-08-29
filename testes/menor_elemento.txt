@@ -1,313 +1,5 @@
 # Compilação C- para código intermediário
 # Arquivo: testes/menor_elemento.txt
-    # -> type int
-        # -> function declaration
-        # input
-        # <- function declaration
-    # <- type int
-
-    # -> type void
-        # -> function declaration
-        # output
-        # <- function declaration
-    # <- type void
-
-    # -> type int
-        # -> function declaration
-        # findMin
-                # -> type int
-                    # -> identifier
-                    # i
-                    # <- identifier
-                # <- type int
-
-                # -> type int
-                    # -> identifier
-                    # pos
-                    # <- identifier
-                # <- type int
-
-                # -> type int
-                    # -> identifier
-                    # min
-                    # <- identifier
-                # <- type int
-
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 0
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> identifier
-                    # i
-                    # <- identifier
-                # <- assign: left argument
-                # <- assign
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 99
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> identifier
-                    # min
-                    # <- identifier
-                # <- assign: left argument
-                # <- assign
-                # -> while
-                # -> while: test expression
-                    # -> arithmetic operator
-                    # -> arithmetic operator: left argument
-                        # -> identifier
-                        # i
-                        # <- identifier
-                    # <- arithmetic operator: left argument
-                    # -> arithmetic operator: right argument
-                        # -> identifier
-                        # tam
-                        # <- identifier
-                    # <- arithmetic operator: right argument
-                    # relational operator: <
-                    # <- Operator
-                # <- while: test expression
-                # -> while: while block
-                        # -> if
-                        # -> if: test expression
-                            # -> arithmetic operator
-                            # -> arithmetic operator: left argument
-                                # -> identifier
-                                # min
-                                # <- identifier
-                            # <- arithmetic operator: left argument
-                            # -> arithmetic operator: right argument
-                                # -> vector
-                                # vetor
-                                # -> vector: position
-                                    # -> identifier
-                                    # i
-                                    # <- identifier
-                                # <- vector: position
-                                # <- vector
-                            # <- arithmetic operator: right argument
-                            # relational operator: >
-                            # <- Operator
-                        # <- if: test expression
-                        # -> if: if block
-                                # -> assign
-                                # -> assign: right argument
-                                    # -> vector
-                                    # vetor
-                                    # -> vector: position
-                                        # -> identifier
-                                        # i
-                                        # <- identifier
-                                    # <- vector: position
-                                    # <- vector
-                                # <- assign: right argument
-                                # -> assign: left argument
-                                    # -> identifier
-                                    # min
-                                    # <- identifier
-                                # <- assign: left argument
-                                # <- assign
-                                # -> assign
-                                # -> assign: right argument
-                                    # -> identifier
-                                    # i
-                                    # <- identifier
-                                # <- assign: right argument
-                                # -> assign: left argument
-                                    # -> identifier
-                                    # pos
-                                    # <- identifier
-                                # <- assign: left argument
-                                # <- assign
-                        # <- if: if block
-                        # -> if: else/end block
-                        # <- if: else/end block
-                        # <- if
-                        # -> assign
-                        # -> assign: right argument
-                            # -> arithmetic operator
-                            # -> arithmetic operator: left argument
-                                # -> identifier
-                                # i
-                                # <- identifier
-                            # <- arithmetic operator: left argument
-                            # -> arithmetic operator: right argument
-                                # -> constant
-                                # 1
-                                # <- constant
-                            # <- arithmetic operator: right argument
-                            # arithmetic operator: +
-                            # <- Operator
-                        # <- assign: right argument
-                        # -> assign: left argument
-                            # -> identifier
-                            # i
-                            # <- identifier
-                        # <- assign: left argument
-                        # <- assign
-                # <- while: while block
-                # <- while
-                # -> function call
-                # output
-                # -> function call: arguments
-                    # -> identifier
-                    # pos
-                    # <- identifier
-                    # -> constant
-                    # 1
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
-                # -> function call
-                # output
-                # -> function call: arguments
-                    # -> identifier
-                    # min
-                    # <- identifier
-                    # -> constant
-                    # 2
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
-        # <- function declaration
-    # <- type int
-
-    # -> type void
-        # -> function declaration
-        # main
-                # -> type int
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 6
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                # <- type int
-
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 10
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 0
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                # <- assign: left argument
-                # <- assign
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 41
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 1
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                # <- assign: left argument
-                # <- assign
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 23
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 2
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                # <- assign: left argument
-                # <- assign
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 98
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 3
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                # <- assign: left argument
-                # <- assign
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 33
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 4
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                # <- assign: left argument
-                # <- assign
-                # -> assign
-                # -> assign: right argument
-                    # -> constant
-                    # 21
-                    # <- constant
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> vector
-                    # vetor
-                    # -> vector: position
-                        # -> constant
-                        # 5
-                        # <- constant
-                    # <- vector: position
-                    # <- vector
-                # <- assign: left argument
-                # <- assign
-                # -> function call
-                # findMin
-                # -> function call: arguments
-                    # -> identifier
-                    # vetor
-                    # <- identifier
-                    # -> constant
-                    # 6
-                    # <- constant
-                # <- function call: arguments
-                # <- function call
-        # <- function declaration
-    # <- type void
-
 # Fim da execução.
 
 ********** Código intermediário **********
@@ -315,8 +7,8 @@
 1: (function, findMin, _, _)
 2: (get_param, vetor, _, _)
 3: (get_param, tam, _, _)
-4: (assign, i, 0, _)
-5: (assign, min, 99, _)
+4: (assign, i, i, _)
+5: (assign, min, min, _)
 6: (label, L1, _, _)
 7: (less_than, i, tam, t1)
 8: (jump_if_false, t1, L3, _)
@@ -324,11 +16,11 @@
 10: (greater_than, min, t2, t3)
 11: (jump_if_false, t3, L2, _)
 12: (vector_value, vetor, i, t4)
-13: (assign, min, t4, _)
-14: (assign, pos, i, _)
+13: (assign, min, min, _)
+14: (assign, pos, pos, _)
 15: (label, L2, _, _)
 16: (addition, i, 1, t5)
-17: (assign, i, t5, _)
+17: (assign, i, i, _)
 18: (goto, L1, _, _)
 19: (label, L3, _, _)
 20: (param_list, 2, _, _)
@@ -342,17 +34,17 @@
 28: (return, _, _, _)
 29: (function, main, _, _)
 30: (vector_address, vetor, 0, t9)
-31: (assign, vetor, 10, 0)
+31: (assign, vetor, t9, 0)
 32: (vector_address, vetor, 1, t10)
-33: (assign, vetor, 41, 1)
+33: (assign, vetor, t10, 1)
 34: (vector_address, vetor, 2, t11)
-35: (assign, vetor, 23, 2)
+35: (assign, vetor, t11, 2)
 36: (vector_address, vetor, 3, t12)
-37: (assign, vetor, 98, 3)
+37: (assign, vetor, t12, 3)
 38: (vector_address, vetor, 4, t13)
-39: (assign, vetor, 33, 4)
+39: (assign, vetor, t13, 4)
 40: (vector_address, vetor, 5, t14)
-41: (assign, vetor, 21, 5)
+41: (assign, vetor, t14, 5)
 42: (param_list, 2, _, _)
 43: (set_param, vetor, _, _)
 44: (set_param, 6, _, _)
@@ -365,111 +57,117 @@ findMin:
     0:	addi	$sp, $sp, 6
     1:	sw	$a0, -4($sp)
     2:	sw	$a1, -3($sp)
-    3:	li	$t0, 0
-    4:	sw	$t0, -2($sp)
-    5:	li	$t1, 99
-    6:	sw	$t1, 0($sp)
+    3:	lw	$s0, -2($sp)
+    4:	sw	$s0, -2($sp)
+    5:	lw	$s1, 0($sp)
+    6:	sw	$s1, 0($sp)
 .L1	
-    7:	lw	$s0, -2($sp)
-    8:	lw	$s1, -3($sp)
-    9:	blt	$s0, $s1, L3
-    10:	lw	$s2, -4($sp)
-    11:	add	$t2, $s2, $s0
-    12:	lw	$t2, 0($t2)
-    13:	lw	$s3, 0($sp)
-    14:	bgt	$s3, $t2, L2
-    15:	add	$t3, $s2, $s0
-    16:	lw	$t3, 0($t3)
-    17:	sw	$t3, 0($sp)
-    18:	sw	$s0, -1($sp)
+    7:	lw	$s2, -2($sp)
+    8:	lw	$s3, -3($sp)
+    9:	lt	$t0, $s2, $s3
+    10:	jf	$t0, L3
+    11:	lw	$s4, -4($sp)
+    12:	add	$t1, $s4, $s2
+    13:	lw	$t1, 0($t1)
+    14:	lw	$s5, 0($sp)
+    15:	gt	$t2, $s5, $t1
+    16:	jf	$t2, L2
+    17:	add	$t3, $s4, $s2
+    18:	lw	$t3, 0($t3)
+    19:	sw	$s5, 0($sp)
+    20:	lw	$s6, -1($sp)
+    21:	sw	$s6, -1($sp)
 .L2	
-    19:	addi	$t4, $s0, 1
-    20:	sw	$t4, -2($sp)
-    21:	j	L1
+    22:	addi	$t4, $s2, 1
+    23:	sw	$s2, -2($sp)
+    24:	j	L1
 .L3	
-    22:	lw	$s4, -1($sp)
-    23:	mov	$a0, $s4
-    24:	li	$a1, 1
-    25:	out	$a0, 1
-    26:	lw	$s5, 0($sp)
-    27:	mov	$a0, $s5
-    28:	li	$a1, 2
-    29:	out	$a0, 2
-    30:	jr	$ra
+    25:	lw	$s7, -1($sp)
+    26:	mov	$a0, $s7
+    27:	li	$a1, 1
+    28:	out	$a0, 1
+    29:	lw	$s8, 0($sp)
+    30:	mov	$a0, $s8
+    31:	li	$a1, 2
+    32:	out	$a0, 2
+    33:	jr	$ra
 
 main:
-    31:	addi	$sp, $sp, 5
-    32:	la	$s0, -5($sp)
-    33:	li	$t0, 10
-    34:	sw	$t0, 0($s0)
-    35:	li	$t1, 41
-    36:	sw	$t1, 1($s0)
-    37:	li	$t2, 23
-    38:	sw	$t2, 2($s0)
-    39:	li	$t3, 98
-    40:	sw	$t3, 3($s0)
-    41:	li	$t4, 33
-    42:	sw	$t4, 4($s0)
-    43:	li	$t5, 21
-    44:	sw	$t5, 5($s0)
-    45:	la	$a0, -5($sp)
-    46:	li	$a1, 6
-    47:	jal	findMin
-    48:	mov	$t6, $v0
-    49:	subi	$sp, $sp, 6
-    50:	halt	
+    34:	addi	$sp, $sp, 5
+    35:	la	$s0, -5($sp)
+    36:	lw	$t0, $t0
+    37:	sw	$t0, 0($s0)
+    38:	lw	$t1, $t1
+    39:	sw	$t1, 1($s0)
+    40:	lw	$t2, $t2
+    41:	sw	$t2, 2($s0)
+    42:	lw	$t3, $t3
+    43:	sw	$t3, 3($s0)
+    44:	lw	$t4, $t4
+    45:	sw	$t4, 4($s0)
+    46:	lw	$t5, $t5
+    47:	sw	$t5, 5($s0)
+    48:	la	$a0, -5($sp)
+    49:	li	$a1, 6
+    50:	jal	findMin
+    51:	mov	$t6, $v0
+    52:	subi	$sp, $sp, 6
+    53:	halt	
 
 ********** Código binário **********
 
-memoria_instrucoes[0] = 32'b011111_00000000000000000000100000; 	// Jump to Main
+memoria_instrucoes[0] = 32'b100101_00000000000000000000100011;		// Jump to Main
 memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000110; 	// addi
-memoria_instrucoes[2] = 32'b011000_00011_00111_1111111111111100; 	// sw
-memoria_instrucoes[3] = 32'b011000_00011_01000_1111111111111101; 	// sw
-memoria_instrucoes[4] = 32'b010110_00000_10101_0000000000000000; 	// li
-memoria_instrucoes[5] = 32'b011000_00011_10101_1111111111111110; 	// sw
-memoria_instrucoes[6] = 32'b010110_00000_10110_0000000001100011; 	// li
-memoria_instrucoes[7] = 32'b011000_00011_10110_0000000000000000; 	// sw
-memoria_instrucoes[8] = 32'b010101_00011_01011_1111111111111110; 	// lw
-memoria_instrucoes[9] = 32'b010101_00011_01100_1111111111111101; 	// lw
-memoria_instrucoes[10] = 32'b011011_01011_01100_0000000000010111; 	// blt
-memoria_instrucoes[11] = 32'b010101_00011_01101_1111111111111100; 	// lw
-memoria_instrucoes[12] = 32'b000001_01101_01011_10111_00000000000; 	// add
-memoria_instrucoes[13] = 32'b010101_10111_10111_0000000000000000; 	// lw
-memoria_instrucoes[14] = 32'b010101_00011_01110_0000000000000000; 	// lw
-memoria_instrucoes[15] = 32'b011101_01110_10111_0000000000010100; 	// bgt
-memoria_instrucoes[16] = 32'b000001_01101_01011_11000_00000000000; 	// add
-memoria_instrucoes[17] = 32'b010101_11000_11000_0000000000000000; 	// lw
-memoria_instrucoes[18] = 32'b011000_00011_11000_0000000000000000; 	// sw
-memoria_instrucoes[19] = 32'b011000_00011_01011_1111111111111111; 	// sw
-memoria_instrucoes[20] = 32'b000010_01011_11001_0000000000000001; 	// addi
-memoria_instrucoes[21] = 32'b011000_00011_11001_1111111111111110; 	// sw
-memoria_instrucoes[22] = 32'b011111_00000000000000000000001000; 	// j
-memoria_instrucoes[23] = 32'b010101_00011_01111_1111111111111111; 	// lw
-memoria_instrucoes[24] = 32'b010100_01111_00111_0000000000000000; 	// mov
-memoria_instrucoes[25] = 32'b010110_00000_01000_0000000000000001; 	// li
-memoria_instrucoes[26] = 32'b100011_00000_00111_0000000000000001; 	// out
-memoria_instrucoes[27] = 32'b010101_00011_10000_0000000000000000; 	// lw
-memoria_instrucoes[28] = 32'b010100_10000_00111_0000000000000000; 	// mov
-memoria_instrucoes[29] = 32'b010110_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[30] = 32'b100011_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[31] = 32'b100001_00000_11111_0000000000000000; 	// jr
-memoria_instrucoes[32] = 32'b000010_00011_00011_0000000000000101; 	// addi
-memoria_instrucoes[33] = 32'b010111_00011_01011_1111111111111011; 	// la
-memoria_instrucoes[34] = 32'b010110_00000_10101_0000000000001010; 	// li
-memoria_instrucoes[35] = 32'b011000_01011_10101_0000000000000000; 	// sw
-memoria_instrucoes[36] = 32'b010110_00000_10110_0000000000101001; 	// li
-memoria_instrucoes[37] = 32'b011000_01011_10110_0000000000000001; 	// sw
-memoria_instrucoes[38] = 32'b010110_00000_10111_0000000000010111; 	// li
-memoria_instrucoes[39] = 32'b011000_01011_10111_0000000000000010; 	// sw
-memoria_instrucoes[40] = 32'b010110_00000_11000_0000000001100010; 	// li
-memoria_instrucoes[41] = 32'b011000_01011_11000_0000000000000011; 	// sw
-memoria_instrucoes[42] = 32'b010110_00000_11001_0000000000100001; 	// li
-memoria_instrucoes[43] = 32'b011000_01011_11001_0000000000000100; 	// sw
-memoria_instrucoes[44] = 32'b010110_00000_11010_0000000000010101; 	// li
-memoria_instrucoes[45] = 32'b011000_01011_11010_0000000000000101; 	// sw
-memoria_instrucoes[46] = 32'b010111_00011_00111_1111111111111011; 	// la
-memoria_instrucoes[47] = 32'b010110_00000_01000_0000000000000110; 	// li
-memoria_instrucoes[48] = 32'b100000_00000000000000000000000001; 	// jal
-memoria_instrucoes[49] = 32'b010100_00001_11011_0000000000000000; 	// mov
-memoria_instrucoes[50] = 32'b000100_00011_00011_0000000000000110; 	// subi
-memoria_instrucoes[51] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[2] = 32'b011110_00011_00111_1111111111111100; 	// sw
+memoria_instrucoes[3] = 32'b011110_00011_01000_1111111111111101; 	// sw
+memoria_instrucoes[4] = 32'b011011_00011_01011_1111111111111110; 	// lw
+memoria_instrucoes[5] = 32'b011110_00011_01011_1111111111111110; 	// sw
+memoria_instrucoes[6] = 32'b011011_00011_01100_0000000000000000; 	// lw
+memoria_instrucoes[7] = 32'b011110_00011_01100_0000000000000000; 	// sw
+memoria_instrucoes[8] = 32'b011011_00011_01101_1111111111111110; 	// lw
+memoria_instrucoes[9] = 32'b011011_00011_01110_1111111111111101; 	// lw
+memoria_instrucoes[10] = 32'b100001_01101_01110_10101_00000000000; 	// lt
+memoria_instrucoes[11] = 32'b100110_10101_00000_0000000000011010; 	// jf
+memoria_instrucoes[12] = 32'b011011_00011_01111_1111111111111100; 	// lw
+memoria_instrucoes[13] = 32'b000001_01111_01101_10110_00000000000; 	// add
+memoria_instrucoes[14] = 32'b011011_10110_10110_0000000000000000; 	// lw
+memoria_instrucoes[15] = 32'b011011_00011_10000_0000000000000000; 	// lw
+memoria_instrucoes[16] = 32'b100011_10000_10110_10111_00000000000; 	// gt
+memoria_instrucoes[17] = 32'b100110_10111_00000_0000000000010111; 	// jf
+memoria_instrucoes[18] = 32'b000001_01111_01101_11000_00000000000; 	// add
+memoria_instrucoes[19] = 32'b011011_11000_11000_0000000000000000; 	// lw
+memoria_instrucoes[20] = 32'b011110_00011_10000_0000000000000000; 	// sw
+memoria_instrucoes[21] = 32'b011011_00011_10001_1111111111111111; 	// lw
+memoria_instrucoes[22] = 32'b011110_00011_10001_1111111111111111; 	// sw
+memoria_instrucoes[23] = 32'b000010_01101_11001_0000000000000001; 	// addi
+memoria_instrucoes[24] = 32'b011110_00011_01101_1111111111111110; 	// sw
+memoria_instrucoes[25] = 32'b100101_00000000000000000000001000; 	// j
+memoria_instrucoes[26] = 32'b011011_00011_10010_1111111111111111; 	// lw
+memoria_instrucoes[27] = 32'b011010_10010_00111_0000000000000000; 	// mov
+memoria_instrucoes[28] = 32'b011100_00000_01000_0000000000000001; 	// li
+memoria_instrucoes[29] = 32'b101010_00000_00111_0000000000000001; 	// out
+memoria_instrucoes[30] = 32'b011011_00011_10011_0000000000000000; 	// lw
+memoria_instrucoes[31] = 32'b011010_10011_00111_0000000000000000; 	// mov
+memoria_instrucoes[32] = 32'b011100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[33] = 32'b101010_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[34] = 32'b101000_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[35] = 32'b000010_00011_00011_0000000000000101; 	// addi
+memoria_instrucoes[36] = 32'b011101_00011_01011_1111111111111011; 	// la
+memoria_instrucoes[37] = 32'b011011_10101_10101_0000000000000000; 	// lw
+memoria_instrucoes[38] = 32'b011110_01011_10101_0000000000000000; 	// sw
+memoria_instrucoes[39] = 32'b011011_10110_10110_0000000000000000; 	// lw
+memoria_instrucoes[40] = 32'b011110_01011_10110_0000000000000001; 	// sw
+memoria_instrucoes[41] = 32'b011011_10111_10111_0000000000000000; 	// lw
+memoria_instrucoes[42] = 32'b011110_01011_10111_0000000000000010; 	// sw
+memoria_instrucoes[43] = 32'b011011_11000_11000_0000000000000000; 	// lw
+memoria_instrucoes[44] = 32'b011110_01011_11000_0000000000000011; 	// sw
+memoria_instrucoes[45] = 32'b011011_11001_11001_0000000000000000; 	// lw
+memoria_instrucoes[46] = 32'b011110_01011_11001_0000000000000100; 	// sw
+memoria_instrucoes[47] = 32'b011011_11010_11010_0000000000000000; 	// lw
+memoria_instrucoes[48] = 32'b011110_01011_11010_0000000000000101; 	// sw
+memoria_instrucoes[49] = 32'b011101_00011_00111_1111111111111011; 	// la
+memoria_instrucoes[50] = 32'b011100_00000_01000_0000000000000110; 	// li
+memoria_instrucoes[51] = 32'b100111_00000000000000000000000001; 	// jal
+memoria_instrucoes[52] = 32'b011010_00001_11011_0000000000000000; 	// mov
+memoria_instrucoes[53] = 32'b000100_00011_00011_0000000000000110; 	// subi
+memoria_instrucoes[54] = 32'b111111_00000000000000000000000000; 	// halt

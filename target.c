@@ -54,7 +54,7 @@ RegisterName argReg[4] = {
 const char * toStringOpcode(Opcode op) {
     const char * strings[] = {
         "add", "addi", "sub", "subi", "mul", "muli", "div", "divi", "mod", "modi",
-        "and", "andi", "or", "ori", "xor", "xori", "not", "noti", "land", "landi", "lor", "lori",
+        "and", "andi", "or", "ori", "xor", "xori", "not", "land", "landi", "lor", "lori",
         "sl", "sli", "sr", "sri",
         "mov", "lw", "li", "la", "sw",
         "eq", "ne", "lt", "let", "gt", "get", "j", "jf", "jal", "jr",

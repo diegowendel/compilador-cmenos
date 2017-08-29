@@ -1,110 +1,5 @@
 # Compilação C- para código intermediário
 # Arquivo: testes/par_ou_impar.txt
-    # -> type int
-        # -> function declaration
-        # input
-        # <- function declaration
-    # <- type int
-
-    # -> type void
-        # -> function declaration
-        # output
-        # <- function declaration
-    # <- type void
-
-    # -> type void
-        # -> function declaration
-        # parOuImpar
-                # -> if
-                # -> if: test expression
-                    # -> arithmetic operator
-                    # -> arithmetic operator: left argument
-                        # -> arithmetic operator
-                        # -> arithmetic operator: left argument
-                            # -> identifier
-                            # n
-                            # <- identifier
-                        # <- arithmetic operator: left argument
-                        # -> arithmetic operator: right argument
-                            # -> constant
-                            # 2
-                            # <- constant
-                        # <- arithmetic operator: right argument
-                        # modulo operator: %
-                        # <- Operator
-                    # <- arithmetic operator: left argument
-                    # -> arithmetic operator: right argument
-                        # -> constant
-                        # 0
-                        # <- constant
-                    # <- arithmetic operator: right argument
-                    # relational operator: ==
-                    # <- Operator
-                # <- if: test expression
-                # -> if: if block
-                    # -> function call
-                    # output
-                    # -> function call: arguments
-                        # -> constant
-                        # 2
-                        # <- constant
-                        # -> constant
-                        # 2
-                        # <- constant
-                    # <- function call: arguments
-                    # <- function call
-                # <- if: if block
-                # -> if: else/end block
-                    # -> function call
-                    # output
-                    # -> function call: arguments
-                        # -> constant
-                        # 1
-                        # <- constant
-                        # -> constant
-                        # 2
-                        # <- constant
-                    # <- function call: arguments
-                    # <- function call
-                # <- if: else/end block
-                # <- if
-        # <- function declaration
-    # <- type void
-
-    # -> type void
-        # -> function declaration
-        # main
-                # -> type int
-                    # -> identifier
-                    # n
-                    # <- identifier
-                # <- type int
-
-                # -> assign
-                # -> assign: right argument
-                    # -> function call
-                    # input
-                    # -> function call: arguments
-                    # <- function call: arguments
-                    # <- function call
-                # <- assign: right argument
-                # -> assign: left argument
-                    # -> identifier
-                    # n
-                    # <- identifier
-                # <- assign: left argument
-                # <- assign
-                # -> function call
-                # parOuImpar
-                # -> function call: arguments
-                    # -> identifier
-                    # n
-                    # <- identifier
-                # <- function call: arguments
-                # <- function call
-        # <- function declaration
-    # <- type void
-
 # Fim da execução.
 
 ********** Código intermediário **********
@@ -129,7 +24,7 @@
 18: (function, main, _, _)
 19: (param_list, 0, _, _)
 20: (call, input, 0, t5)
-21: (assign, n, t5, _)
+21: (assign, n, n, _)
 22: (param_list, 1, _, _)
 23: (set_param, n, _, _)
 24: (call, parOuImpar, 1, t6)
@@ -142,8 +37,8 @@ parOuImpar:
     1:	sw	$a0, 0($sp)
     2:	lw	$s0, 0($sp)
     3:	modi	$t0, $s0, 2
-    4:	li	$t1, 0
-    5:	beq	$t0, $t1, L1
+    4:	eq	$t1, $t0, 0
+    5:	jf	$t1, L1
     6:	li	$a0, 2
     7:	li	$a1, 2
     8:	out	$a0, 2
@@ -158,37 +53,39 @@ parOuImpar:
 main:
     14:	addi	$sp, $sp, 0
     15:	in	$t0
-    16:	sw	$t0, 0($sp)
-    17:	lw	$s0, 0($sp)
-    18:	mov	$a0, $s0
-    19:	jal	parOuImpar
-    20:	mov	$t1, $v0
-    21:	subi	$sp, $sp, 2
-    22:	halt	
+    16:	lw	$s0, 0($sp)
+    17:	sw	$s0, 0($sp)
+    18:	lw	$s1, 0($sp)
+    19:	mov	$a0, $s1
+    20:	jal	parOuImpar
+    21:	mov	$t1, $v0
+    22:	subi	$sp, $sp, 2
+    23:	halt	
 
 ********** Código binário **********
 
-memoria_instrucoes[0] = 32'b011111_00000000000000000000001111; 	// Jump to Main
+memoria_instrucoes[0] = 32'b100101_00000000000000000000001111;		// Jump to Main
 memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000010; 	// addi
-memoria_instrucoes[2] = 32'b011000_00011_00111_0000000000000000; 	// sw
-memoria_instrucoes[3] = 32'b010101_00011_01011_0000000000000000; 	// lw
+memoria_instrucoes[2] = 32'b011110_00011_00111_0000000000000000; 	// sw
+memoria_instrucoes[3] = 32'b011011_00011_01011_0000000000000000; 	// lw
 memoria_instrucoes[4] = 32'b001010_01011_10101_0000000000000010; 	// modi
-memoria_instrucoes[5] = 32'b010110_00000_10110_0000000000000000; 	// li
-memoria_instrucoes[6] = 32'b011001_10101_10110_0000000000001011; 	// beq
-memoria_instrucoes[7] = 32'b010110_00000_00111_0000000000000010; 	// li
-memoria_instrucoes[8] = 32'b010110_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[9] = 32'b100011_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[10] = 32'b011111_00000000000000000000001110; 	// j
-memoria_instrucoes[11] = 32'b010110_00000_00111_0000000000000001; 	// li
-memoria_instrucoes[12] = 32'b010110_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[13] = 32'b100011_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[14] = 32'b100001_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[5] = 32'b011111_10101_10110_0000000000000000; 	// eq
+memoria_instrucoes[6] = 32'b100110_10110_00000_0000000000001011; 	// jf
+memoria_instrucoes[7] = 32'b011100_00000_00111_0000000000000010; 	// li
+memoria_instrucoes[8] = 32'b011100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[9] = 32'b101010_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[10] = 32'b100101_00000000000000000000001110; 	// j
+memoria_instrucoes[11] = 32'b011100_00000_00111_0000000000000001; 	// li
+memoria_instrucoes[12] = 32'b011100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[13] = 32'b101010_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[14] = 32'b101000_00000_11111_0000000000000000; 	// jr
 memoria_instrucoes[15] = 32'b000010_00011_00011_0000000000000000; 	// addi
-memoria_instrucoes[16] = 32'b100010_00000_10101_0000000000000000; 	// in
-memoria_instrucoes[17] = 32'b011000_00011_10101_0000000000000000; 	// sw
-memoria_instrucoes[18] = 32'b010101_00011_01011_0000000000000000; 	// lw
-memoria_instrucoes[19] = 32'b010100_01011_00111_0000000000000000; 	// mov
-memoria_instrucoes[20] = 32'b100000_00000000000000000000000001; 	// jal
-memoria_instrucoes[21] = 32'b010100_00001_10110_0000000000000000; 	// mov
-memoria_instrucoes[22] = 32'b000100_00011_00011_0000000000000010; 	// subi
-memoria_instrucoes[23] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[16] = 32'b101001_00000_10101_0000000000000000; 	// in
+memoria_instrucoes[17] = 32'b011011_00011_01011_0000000000000000; 	// lw
+memoria_instrucoes[18] = 32'b011110_00011_01011_0000000000000000; 	// sw
+memoria_instrucoes[19] = 32'b011011_00011_01100_0000000000000000; 	// lw
+memoria_instrucoes[20] = 32'b011010_01100_00111_0000000000000000; 	// mov
+memoria_instrucoes[21] = 32'b100111_00000000000000000000000001; 	// jal
+memoria_instrucoes[22] = 32'b011010_00001_10110_0000000000000000; 	// mov
+memoria_instrucoes[23] = 32'b000100_00011_00011_0000000000000010; 	// subi
+memoria_instrucoes[24] = 32'b111111_00000000000000000000000000; 	// halt

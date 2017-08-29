@@ -134,7 +134,7 @@ int main( int argc, char * argv[] ) {
         // Código objeto gerado com sucesso
         codigoObjetoGerado = TRUE;
     }
-#if NO_BINARY_CODE
+#if !NO_BINARY_CODE
     if(codigoObjetoGerado) {
         char * codefile;
         int fnlen = strcspn(pgm, ".");
