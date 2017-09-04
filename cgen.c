@@ -229,9 +229,8 @@ static void genExp(TreeNode * tree) {
                  }
             }
 
-            if(tree->op == ATRIBUICAO) {
+            if(tree->op != ATRIBUICAO) {
                 instrucaoAtual = ASN;
-            } else {
                 switch (tree->op) {
                     case ATRIB_MAIS:
                         instrucaoAtual = ADD;
@@ -268,7 +267,7 @@ static void genExp(TreeNode * tree) {
                 insertQuad(createQuad(instrucaoAtual, op1, op2, operandoAtual));
             }
             instrucaoAtual = ASN;
-            insertQuad(createQuad(instrucaoAtual, op1, operandoAtual, op3));
+            insertQuad(createQuad(instrucaoAtual, op1, op2, op3));
             break; /* ATRIBK */
 
         case RELK:

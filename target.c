@@ -273,19 +273,10 @@ void geraCodigoInstrucaoRelacional(Quadruple q, Opcode op) {
     op1 = getOperandRegName(q->op1);
     /* Atribui um registrador para o resultado da expressão */
     op3 = getTempRegName(q->op3);
-
-    /* OPERANDO 2 */
-    if(q->op2.kind == String) { /* Registrador */
-        /* Busca ou atribui o registrador do operando 2 */
-        op2 = getOperandRegName(q->op2);
-        /* Imprime a instrução aritmética */
-        printCode(insertObjInst(createObjInst(op, TYPE_R, op3, op1, op2)));
-    } else { /* Valor Imediato */
-        // Valor imediato
-        op2 = getImediato(q->op2.contents.val);
-        /* Imprime a instrução aritmética, versão imediato */
-        printCode(insertObjInst(createObjInst(op, TYPE_I, op3, op1, op2)));
-    }
+    /* Busca ou atribui o registrador do operando 2 */
+    op2 = getOperandRegName(q->op2);
+    /* Imprime a instrução aritmética */
+    printCode(insertObjInst(createObjInst(op, TYPE_R, op3, op1, op2)));
 }
 
 void geraCodigoInstrucaoAtribuicao(Quadruple q) {

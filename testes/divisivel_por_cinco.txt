@@ -22,7 +22,7 @@
 16: (function, main, _, _)
 17: (param_list, 0, _, _)
 18: (call, input, 0, t4)
-19: (assign, number, number, _)
+19: (assign, number, t4, _)
 20: (param_list, 2, _, _)
 21: (param_list, 1, _, _)
 22: (set_param, number, _, _)
@@ -38,73 +38,75 @@ isDivisibleByFive:
     0:	addi	$sp, $sp, 2
     1:	sw	$a0, 0($sp)
     2:	lw	$s0, 0($sp)
-    3:	eq	$t0, $s0, 0
-    4:	jf	$t0, L1
-    5:	li	$t1, 2
-    6:	mov	$v0, $t1
-    7:	jr	$ra
+    3:	li	$t1, 0
+    4:	eq	$t0, $s0, $t1
+    5:	jf	$t0, L1
+    6:	li	$t2, 2
+    7:	mov	$v0, $t2
+    8:	jr	$ra
 .L1	
-    8:	modi	$t2, $s0, 5
-    9:	eq	$t3, $t2, 0
-    10:	jf	$t3, L2
-    11:	li	$t4, 1
-    12:	mov	$v0, $t4
-    13:	jr	$ra
-    14:	j	L3
+    9:	modi	$t3, $s0, 5
+    10:	li	$t5, 0
+    11:	eq	$t4, $t3, $t5
+    12:	jf	$t4, L2
+    13:	li	$t6, 1
+    14:	mov	$v0, $t6
+    15:	jr	$ra
+    16:	j	L3
 .L2	
-    15:	li	$t5, 2
-    16:	mov	$v0, $t5
-    17:	jr	$ra
+    17:	li	$t7, 2
+    18:	mov	$v0, $t7
+    19:	jr	$ra
 .L3	
-    18:	jr	$ra
+    20:	jr	$ra
 
 main:
-    19:	addi	$sp, $sp, 0
-    20:	in	$t0
-    21:	lw	$s0, 0($sp)
-    22:	sw	$s0, 0($sp)
-    23:	lw	$s1, 0($sp)
-    24:	mov	$a0, $s1
-    25:	jal	isDivisibleByFive
-    26:	mov	$t1, $v0
-    27:	subi	$sp, $sp, 2
-    28:	mov	$a0, $t1
-    29:	li	$a1, 2
-    30:	out	$a0, 2
-    31:	halt	
+    21:	addi	$sp, $sp, 0
+    22:	in	$t0
+    23:	sw	$t0, 0($sp)
+    24:	lw	$s0, 0($sp)
+    25:	mov	$a0, $s0
+    26:	jal	isDivisibleByFive
+    27:	mov	$t1, $v0
+    28:	subi	$sp, $sp, 2
+    29:	mov	$a0, $t1
+    30:	li	$a1, 2
+    31:	out	$a0, 2
+    32:	halt	
 
 ********** Código binário **********
 
-memoria_instrucoes[0] = 32'b100101_00000000000000000000010100;		// Jump to Main
+memoria_instrucoes[0] = 32'b100101_00000000000000000000010110;		// Jump to Main
 memoria_instrucoes[1] = 32'b000010_00011_00011_0000000000000010; 	// addi
 memoria_instrucoes[2] = 32'b011110_00011_00111_0000000000000000; 	// sw
 memoria_instrucoes[3] = 32'b011011_00011_01011_0000000000000000; 	// lw
-memoria_instrucoes[4] = 32'b011111_01011_10101_0000000000000000; 	// eq
-memoria_instrucoes[5] = 32'b100110_10101_00000_0000000000001001; 	// jf
-memoria_instrucoes[6] = 32'b011100_00000_10110_0000000000000010; 	// li
-memoria_instrucoes[7] = 32'b011010_10110_00001_0000000000000000; 	// mov
-memoria_instrucoes[8] = 32'b101000_00000_11111_0000000000000000; 	// jr
-memoria_instrucoes[9] = 32'b001010_01011_10111_0000000000000101; 	// modi
-memoria_instrucoes[10] = 32'b011111_10111_11000_0000000000000000; 	// eq
-memoria_instrucoes[11] = 32'b100110_11000_00000_0000000000010000; 	// jf
-memoria_instrucoes[12] = 32'b011100_00000_11001_0000000000000001; 	// li
-memoria_instrucoes[13] = 32'b011010_11001_00001_0000000000000000; 	// mov
-memoria_instrucoes[14] = 32'b101000_00000_11111_0000000000000000; 	// jr
-memoria_instrucoes[15] = 32'b100101_00000000000000000000010011; 	// j
-memoria_instrucoes[16] = 32'b011100_00000_11010_0000000000000010; 	// li
-memoria_instrucoes[17] = 32'b011010_11010_00001_0000000000000000; 	// mov
-memoria_instrucoes[18] = 32'b101000_00000_11111_0000000000000000; 	// jr
-memoria_instrucoes[19] = 32'b101000_00000_11111_0000000000000000; 	// jr
-memoria_instrucoes[20] = 32'b000010_00011_00011_0000000000000000; 	// addi
-memoria_instrucoes[21] = 32'b101001_00000_10101_0000000000000000; 	// in
-memoria_instrucoes[22] = 32'b011011_00011_01011_0000000000000000; 	// lw
-memoria_instrucoes[23] = 32'b011110_00011_01011_0000000000000000; 	// sw
-memoria_instrucoes[24] = 32'b011011_00011_01100_0000000000000000; 	// lw
-memoria_instrucoes[25] = 32'b011010_01100_00111_0000000000000000; 	// mov
-memoria_instrucoes[26] = 32'b100111_00000000000000000000000001; 	// jal
-memoria_instrucoes[27] = 32'b011010_00001_10110_0000000000000000; 	// mov
-memoria_instrucoes[28] = 32'b000100_00011_00011_0000000000000010; 	// subi
-memoria_instrucoes[29] = 32'b011010_10110_00111_0000000000000000; 	// mov
-memoria_instrucoes[30] = 32'b011100_00000_01000_0000000000000010; 	// li
-memoria_instrucoes[31] = 32'b101010_00000_00111_0000000000000010; 	// out
-memoria_instrucoes[32] = 32'b111111_00000000000000000000000000; 	// halt
+memoria_instrucoes[4] = 32'b011100_00000_10110_0000000000000000; 	// li
+memoria_instrucoes[5] = 32'b011111_01011_10110_10101_00000000000; 	// eq
+memoria_instrucoes[6] = 32'b100110_10101_00000_0000000000001010; 	// jf
+memoria_instrucoes[7] = 32'b011100_00000_10111_0000000000000010; 	// li
+memoria_instrucoes[8] = 32'b011010_10111_00001_0000000000000000; 	// mov
+memoria_instrucoes[9] = 32'b101000_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[10] = 32'b001010_01011_11000_0000000000000101; 	// modi
+memoria_instrucoes[11] = 32'b011100_00000_11010_0000000000000000; 	// li
+memoria_instrucoes[12] = 32'b011111_11000_11010_11001_00000000000; 	// eq
+memoria_instrucoes[13] = 32'b100110_11001_00000_0000000000010010; 	// jf
+memoria_instrucoes[14] = 32'b011100_00000_11011_0000000000000001; 	// li
+memoria_instrucoes[15] = 32'b011010_11011_00001_0000000000000000; 	// mov
+memoria_instrucoes[16] = 32'b101000_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[17] = 32'b100101_00000000000000000000010101; 	// j
+memoria_instrucoes[18] = 32'b011100_00000_11100_0000000000000010; 	// li
+memoria_instrucoes[19] = 32'b011010_11100_00001_0000000000000000; 	// mov
+memoria_instrucoes[20] = 32'b101000_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[21] = 32'b101000_00000_11111_0000000000000000; 	// jr
+memoria_instrucoes[22] = 32'b000010_00011_00011_0000000000000000; 	// addi
+memoria_instrucoes[23] = 32'b101001_00000_10101_0000000000000000; 	// in
+memoria_instrucoes[24] = 32'b011110_00011_10101_0000000000000000; 	// sw
+memoria_instrucoes[25] = 32'b011011_00011_01011_0000000000000000; 	// lw
+memoria_instrucoes[26] = 32'b011010_01011_00111_0000000000000000; 	// mov
+memoria_instrucoes[27] = 32'b100111_00000000000000000000000001; 	// jal
+memoria_instrucoes[28] = 32'b011010_00001_10110_0000000000000000; 	// mov
+memoria_instrucoes[29] = 32'b000100_00011_00011_0000000000000010; 	// subi
+memoria_instrucoes[30] = 32'b011010_10110_00111_0000000000000000; 	// mov
+memoria_instrucoes[31] = 32'b011100_00000_01000_0000000000000010; 	// li
+memoria_instrucoes[32] = 32'b101010_00000_00111_0000000000000010; 	// out
+memoria_instrucoes[33] = 32'b111111_00000000000000000000000000; 	// halt
