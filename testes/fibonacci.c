@@ -7,9 +7,9 @@ int fibonacci(int n){
     second = 1;
     c = 0;
     while(c <= n){
-        if(c <= 1)
+        if(c <= 1) {
             next = c;
-        else{
+        }else{
             next = first + second;
             first = second;
             second = next; /* Estava second = first */

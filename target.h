@@ -9,25 +9,25 @@
 
 #include "cgen.h"
 
-typedef enum opcode {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
-    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
-    _SL, _SLI, _SR, _SRI,
-    _MOV, _LOAD, _LOADI, _LOADA, _STORE,
-    _EQ, _NE, _LT, _LET, _GT, _GET, _JUMP, _JUMPF, _JUMPAL, _JUMPR,
-    _NOP, _HALT, _RESET,
-    _IN, _OUT} Opcode;
+typedef enum opcode {
+    _ADDI, _SUBI, _MULI, _DIVI, _MODI,
+    _ANDI, _ORI, _XORI, _NOT, _LANDI, _LORI,
+    _SLLI, _SRLI,
+    _MOV, _LW, _LI, _LA, _SW,
+    _IN, _OUT,
+    _JF,
+    _J, _JAL, _HALT,
+    _RTYPE
+} Opcode;
 
-/**
- * opcode_map mapeia todas posições dos enums de opcode, é utilizado para
- * encontrar opcodes em tempo de execução
- */
-static const enum opcode opcode_map[] = {_ADD, _ADDI, _SUB, _SUBI, _MULT, _MULTI, _DIV, _DIVI, _MOD, _MODI,
-    _AND, _ANDI, _OR, _ORI, _XOR, _XORI, _NOT, _LOGICAND, _LOGICANDI, _LOGICOR, _LOGICORI,
-    _SL, _SLI, _SR, _SRI,
-    _MOV, _LOAD, _LOADI, _LOADA, _STORE,
-    _EQ, _NE, _LT, _LET, _GT, _GET, _JUMP, _JUMPF, _JUMPAL, _JUMPR,
-    _NOP, _HALT, _RESET,
-    _IN, _OUT};
+typedef enum function {
+    _ADD, _SUB, _MUL, _DIV, _MOD,
+    _AND, _OR, _XOR, _LAND, _LOR,
+    _SLL, _SRL,
+    _EQ, _NE, _LT, _LET, _GT, _GET,
+    _JR,
+    _DONT_CARE
+} Function;
 
 typedef enum type {
     TYPE_R, TYPE_I, TYPE_J
@@ -77,6 +77,7 @@ typedef struct registrador {
 
 typedef struct objeto {
     Opcode opcode;
+    Function func;
     Type type;
     InstOperand op1;
     InstOperand op2;
@@ -91,6 +92,8 @@ typedef struct label {
 } * Label;
 
 const char * toStringOpcode(enum opcode op);
+
+const char * toStringFunction(Function func);
 
 EscopoGerador createEscopoGerador(const char *);
 
@@ -113,6 +116,8 @@ InstOperand getRegByName(char * name);
 void geraCodigoObjeto(Quadruple q);
 
 void printCode(Objeto instrucao);
+
+Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, InstOperand op1, InstOperand op2, InstOperand op3);
 
 Objeto createObjInst(Opcode opcode, Type type, InstOperand op1, InstOperand op2, InstOperand op3);
 

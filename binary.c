@@ -12,22 +12,42 @@ char temp[100];
 
 const char * toBinaryOpcode(Opcode op) {
     const char * strings[] = {
-        // "add", "addi",   "sub",    "subi",   "mul",    "muli",   "div",    "divi",   "mod",    "modi",
-        "000001", "000010", "000011", "000100", "000101", "000110", "000111", "001000", "001001", "001010",
-        // "and", "andi",   "or",     "ori",    "xor",    "xori",   "not",    "land",   "landi",  "lor",    "lori",
-        "001011", "001100", "001101", "001110", "001111", "010000", "010001", "010010", "010011", "010100", "010101",
-        // "sl",  "sli",    "sr",     "sri",
-        "010110", "010111", "011000", "011001",
-        // "mov", "lw",     "li",     "la",     "sw",
-        "011010", "011011", "011100", "011101", "011110",
-        // "eq",  "ne",     "lt",     "let",    "gt",     "get",    "j",      "jf",     "jal",    "jr",
-        "011111", "100000", "100001", "100010", "100011", "100100", "100101", "100110", "100111", "101000",
-        // "nop", "halt",   "reset",
-        "000000", "111111", "111110",
-        // "in",  "out"
-        "101001", "101010"
+        // addi,  subi,     muli,     divi,     modi
+        "000001", "000010", "000011", "000100", "000101",
+        // andi,  ori,      xori,     not,      landi,    lori
+        "000110", "000111", "001000", "001001", "001010", "001011",
+        // slli,  srli,
+        "001100", "001101",
+        // mov,   lw,       li,       la,       sw
+        "001110", "001111", "010000", "010001", "010010",
+        // in,    out,
+        "010011", "010100",
+        // jf,
+        "010101",
+        // j,     jal,      halt
+        "010110", "010111", "011000",
+        // rtype
+        "000000"
     };
     return strings[op];
+}
+
+const char * toBinaryFunction(Function func) {
+    const char * strings[] = {
+        // add,   sub,      mul,      div,      mod
+        "000000", "000001", "000010", "000011", "000100",
+        // and,   or,       xor,      land,     lor,
+        "000101", "000110", "000111", "001000", "001001",
+        // sll,   srl
+        "001010", "001011",
+        // eq,    ne,       lt,       let,      gt,       get
+        "001100", "001101", "001110", "001111", "010000", "010010",
+        // jr
+        "010010",
+        // dont_care,
+        "XXXXXX"
+    };
+    return strings[func];
 }
 
 const char * toBinaryRegister(RegisterName rn) {
@@ -78,11 +98,11 @@ void geraCodigoBinario(Objeto codigoObjeto) {
     // Limpa o vetor de caracteres auxiliar
     memset(temp, '\0', sizeof(temp));
     // Boilerplate
-    strcat(temp, "memoria_instrucoes[");
+    strcat(temp, "assign rom[");
     sprintf(str, "%d", linha++);
     strcat(temp, str);
     strcat(temp, "] = 32'b");
-    strcat(temp, toBinaryOpcode(_JUMP));
+    strcat(temp, toBinaryOpcode(_J));
     strcat(temp, "_");
     strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
     strcat(temp, ";\t\t// Jump to Main");
@@ -92,7 +112,7 @@ void geraCodigoBinario(Objeto codigoObjeto) {
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
         // Boilerplate
-        strcat(temp, "memoria_instrucoes[");
+        strcat(temp, "assign rom[");
         sprintf(str, "%d", linha++);
         strcat(temp, str);
         strcat(temp, "] = 32'b");
@@ -103,23 +123,37 @@ void geraCodigoBinario(Objeto codigoObjeto) {
 
         switch(obj->type) {
             case TYPE_R:
+                if(obj->func == _JR) {
+                    strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
+                    strcat(temp, "_");
+                    strcat(temp, getZeros(5));
+                    strcat(temp, "_");
+                    strcat(temp, getZeros(5));
+                    strcat(temp, "_");
+                    strcat(temp, getZeros(5));
+                    strcat(temp, "_");
+                    strcat(temp, toBinaryFunction(obj->func));
+                    break;
+                }
                 strcat(temp, toBinaryRegister(obj->op2->enderecamento.registrador));
                 strcat(temp, "_");
                 strcat(temp, toBinaryRegister(obj->op3->enderecamento.registrador));
                 strcat(temp, "_");
                 strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                 strcat(temp, "_");
-                strcat(temp, getZeros(11));
+                strcat(temp, getZeros(5));
+                strcat(temp, "_");
+                strcat(temp, toBinaryFunction(obj->func));
                 break;
             case TYPE_I:
-                if(obj->opcode == _LOADI) {
+                if(obj->opcode == _LI) {
                     strcat(temp, getZeros(5));
                     strcat(temp, "_");
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                     strcat(temp, "_");
                     strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.imediato, 16));
                     break;
-                } else if(obj->opcode == _JUMPF) {
+                } else if(obj->opcode == _JF) {
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                     strcat(temp, "_");
                     strcat(temp, getZeros(5));
@@ -165,7 +199,7 @@ void geraCodigoBinario(Objeto codigoObjeto) {
 
                 break;
             case TYPE_J:
-                if(obj->opcode == _JUMP || obj->opcode == _JUMPAL) {
+                if(obj->opcode == _J || obj->opcode == _JAL) {
                     strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op1->enderecamento.label), 26));
                 } else { // HALT, NOP
                     strcat(temp, getZeros(26));
@@ -173,7 +207,7 @@ void geraCodigoBinario(Objeto codigoObjeto) {
                 break;
         }
         strcat(temp, "; \t// ");
-        strcat(temp, toStringOpcode(obj->opcode));
+        strcat(temp, obj->func == _DONT_CARE ? toStringOpcode(obj->opcode) : toStringFunction(obj->func));
         emitCode(temp);
         obj = obj->next;
     }
