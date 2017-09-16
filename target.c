@@ -79,10 +79,10 @@ const char * toStringFunction(Function func) {
 
 const char * toStringRegName(RegisterName rn) {
     const char * strings[] = {
-    "$rz", "$v0", "$out", "$sp", "$inv", "$gp", "$fp", "$a0",
-	"$a1", "$a2", "$a3", "$s0", "$s1", "$s2", "$s3", "$s4",
-	"$s5", "$s6", "$s7", "$s8", "$s9", "$t0", "$t1", "$t2",
-	"$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9", "$ra"
+    "$rz", "$v0", "$out", "$inv", "$gp", "$fp", "$a0", "$a1",
+    "$a2", "$a3", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5",
+    "$s6", "$s7", "$s8", "$s9", "$t0", "$t1", "$t2", "$t3",
+    "$t4", "$t5", "$t6", "$t7", "$t8", "$t9", "$sp", "$ra"
     };
     return strings[rn];
 }
@@ -494,10 +494,8 @@ void geraCodigoFuncao(Quadruple q) {
 
     if(!strcmp(escopoHead->nome, "main")) {
         int tamanho = getTamanhoBlocoMemoriaEscopoGlobal();
-        //if(tamanho > 0) {
-            /* Aloca o bloco de memória na stack */
-            pushStackSpace(escopoHead->tamanhoBlocoMemoria + tamanho);
-        //}
+        /* Aloca o bloco de memória na stack */
+        pushStackSpace(escopoHead->tamanhoBlocoMemoria + tamanho);
     } else {
         /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
         pushStackSpace(escopoHead->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
