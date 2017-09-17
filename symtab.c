@@ -189,7 +189,6 @@ void st_insert(char * name, int lineno, int loc, TreeNode * treeNode, int tamanh
         treeNode->kind.var.scope = top;
         top->hashTable[h] = st_create(name, lineno, loc, treeNode, tamanho);
         treeNode->kind.var.scope->tamanhoBlocoMemoria += tamanho;
-        return;
     } else {
         BucketList l = top->hashTable[h];
         while ((l->next != NULL) && (strcmp(name, l->name))) {

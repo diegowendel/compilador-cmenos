@@ -180,7 +180,7 @@ static void insertNode(TreeNode * t) {
 }
 
 static void afterInsertNode(TreeNode * t) {
-	if (t->op == FUNCTIONK) {
+	if (t->kind.var.varKind == FUNCTIONK) {
 		if(t->kind.var.attr.name != NULL) {
 			sc_pop();
         }

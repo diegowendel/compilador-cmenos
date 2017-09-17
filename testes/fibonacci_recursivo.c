@@ -1,11 +1,16 @@
 int fib(int x) {
+	int a;
+	int b;
     if (x == 0)
         return 0;
 
     if (x == 1)
         return 1;
 
-    return fib(x-1) + fib(x-2);
+	a = fib(x-1);
+	b = fib(x-2);
+
+    return  a+b ;
 }
 
 void main(void) {

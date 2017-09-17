@@ -44,8 +44,8 @@ whitespace  [ \t\r]+
 "^"             { return XOR; }
 "!"             { return NOT; }
 
-"&&"             { return LOGICAL_AND; }
-"||"             { return LOGICAL_OR; }
+"&&"            { return LOGICAL_AND; }
+"||"            { return LOGICAL_OR; }
 
 "="             { return ATRIBUICAO; }
 "+="            { return ATRIB_MAIS; }

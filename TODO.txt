@@ -1,8 +1,5 @@
-- Fix reset (probably are some bugs in temporary registers)
 - Fix clock
 - Fix inputs
-- Remove shift in CPU
-OK - Implement AND, OR, NOT
 - Fix negative numbers bug
-OK - Implement Comment with //
-OK - Implement += , -= etc
+- Test logical and ; logical or
+- Investigar fibonnaci recursivo onde o problema possivelmente esta em registradores temporarios $t

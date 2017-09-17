@@ -1,8 +1,8 @@
 int fatorial(int number) {
     int result;
-   // result = 1;
+    result = 1;
 
-    while (number > 0 && number < 99 && number < 98) {
+    while (number > 0) {
         result *= number;
         number -= 1;
     }
@@ -12,7 +12,6 @@ int fatorial(int number) {
 
 void main(void) {
     int number;
-
     number = input();
     output(fatorial(number), 2);
 }

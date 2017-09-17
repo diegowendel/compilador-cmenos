@@ -1,0 +1,112 @@
+# Compilação C- para código intermediário
+# Arquivo: testes/divisivel_por_cinco.txt
+# Fim da execução.
+
+********** Código intermediário **********
+
+1: (function, isDivisibleByFive, _, _)
+2: (get_param, number, _, _)
+3: (equal, number, 0, t1)
+4: (jump_if_false, t1, L1, _)
+5: (return, 2, _, _)
+6: (label, L1, _, _)
+7: (modulo, number, 5, t2)
+8: (equal, t2, 0, t3)
+9: (jump_if_false, t3, L2, _)
+10: (return, 1, _, _)
+11: (goto, L3, _, _)
+12: (label, L2, _, _)
+13: (return, 2, _, _)
+14: (label, L3, _, _)
+15: (return, _, _, _)
+16: (function, main, _, _)
+17: (param_list, 0, _, _)
+18: (call, input, 0, t4)
+19: (assign, number, t4, _)
+20: (param_list, 2, _, _)
+21: (param_list, 1, _, _)
+22: (set_param, number, _, _)
+23: (call, isDivisibleByFive, 1, t5)
+24: (set_param, t5, _, _)
+25: (set_param, 2, _, _)
+26: (call, output, 2, t6)
+27: (halt, _, _, _)
+
+********** Código objeto **********
+
+isDivisibleByFive:
+    0:	addi	$sp, $sp, 2
+    1:	sw	$a0, 0($sp)
+    2:	lw	$s0, 0($sp)
+    3:	li	$t1, 0
+    4:	lt	$t0, $s0, $t1
+    5:	jf	$t0, L1
+    6:	li	$t2, 2
+    7:	mov	$v0, $t2
+    8:	jr	$ra
+.L1	
+    9:	modi	$t3, $s0, 5
+    10:	li	$t5, 0
+    11:	lt	$t4, $t3, $t5
+    12:	jf	$t4, L2
+    13:	li	$t6, 1
+    14:	mov	$v0, $t6
+    15:	jr	$ra
+    16:	j	L3
+.L2	
+    17:	li	$t7, 2
+    18:	mov	$v0, $t7
+    19:	jr	$ra
+.L3	
+    20:	jr	$ra
+
+main:
+    21:	addi	$sp, $sp, 1
+    22:	in	$t0
+    23:	sw	$t0, 0($sp)
+    24:	lw	$s0, 0($sp)
+    25:	mov	$a0, $s0
+    26:	jal	isDivisibleByFive
+    27:	mov	$t1, $v0
+    28:	subi	$sp, $sp, 2
+    29:	mov	$a0, $t1
+    30:	li	$a1, 2
+    31:	out	$a0, 2
+    32:	halt	
+
+********** Código binário **********
+
+assign rom[0] = 32'b010110_00000000000000000000010110;		// Jump to Main
+assign rom[1] = 32'b000001_11110_11110_0000000000000010; 	// addi
+assign rom[2] = 32'b010010_11110_00110_0000000000000000; 	// sw
+assign rom[3] = 32'b001111_11110_01010_0000000000000000; 	// lw
+assign rom[4] = 32'b010000_00000_10101_0000000000000000; 	// li
+assign rom[5] = 32'b000000_01010_10101_10100_00000_001100; 	// lt
+assign rom[6] = 32'b010101_10100_00000_0000000000001010; 	// jf
+assign rom[7] = 32'b010000_00000_10110_0000000000000010; 	// li
+assign rom[8] = 32'b001110_10110_00001_0000000000000000; 	// mov
+assign rom[9] = 32'b000000_11111_00000_00000_00000_010010; 	// jr
+assign rom[10] = 32'b000101_01010_10111_0000000000000101; 	// modi
+assign rom[11] = 32'b010000_00000_11001_0000000000000000; 	// li
+assign rom[12] = 32'b000000_10111_11001_11000_00000_001100; 	// lt
+assign rom[13] = 32'b010101_11000_00000_0000000000010010; 	// jf
+assign rom[14] = 32'b010000_00000_11010_0000000000000001; 	// li
+assign rom[15] = 32'b001110_11010_00001_0000000000000000; 	// mov
+assign rom[16] = 32'b000000_11111_00000_00000_00000_010010; 	// jr
+assign rom[17] = 32'b010110_00000000000000000000010101; 	// j
+assign rom[18] = 32'b010000_00000_11011_0000000000000010; 	// li
+assign rom[19] = 32'b001110_11011_00001_0000000000000000; 	// mov
+assign rom[20] = 32'b000000_11111_00000_00000_00000_010010; 	// jr
+assign rom[21] = 32'b000000_11111_00000_00000_00000_010010; 	// jr
+assign rom[22] = 32'b000001_11110_11110_0000000000000001; 	// addi
+assign rom[23] = 32'b010011_00000_10100_0000000000000000; 	// in
+assign rom[24] = 32'b010010_11110_10100_0000000000000000; 	// sw
+assign rom[25] = 32'b001111_11110_01010_0000000000000000; 	// lw
+assign rom[26] = 32'b001110_01010_00110_0000000000000000; 	// mov
+assign rom[27] = 32'b010111_00000000000000000000000001; 	// jal
+assign rom[28] = 32'b001110_00001_10101_0000000000000000; 	// mov
+assign rom[29] = 32'b000010_11110_11110_0000000000000010; 	// subi
+assign rom[30] = 32'b001110_10101_00110_0000000000000000; 	// mov
+assign rom[31] = 32'b010000_00000_00111_0000000000000010; 	// li
+assign rom[32] = 32'b010100_00000_00110_0000000000000010; 	// out
+assign rom[33] = 32'b011000_00000000000000000000000000; 	// halt
