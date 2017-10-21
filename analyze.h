@@ -1,11 +1,12 @@
 /****************************************************/
 /* File: analyze.h                                  */
-/* Diego Wendel de Oliveira Ferreira		    */
-/* 86774                               		    */
+/* Author: Diego Ferreira                           */
 /****************************************************/
 
 #ifndef _ANALYZE_H_
 #define _ANALYZE_H_
+
+#include "symtab.h"
 
 /* Function buildSymtab constructs the symbol
  * table by preorder traversal of the syntax tree

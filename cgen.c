@@ -48,7 +48,7 @@ static char tempString[20];
 /* Protótipo para o gerador de código interno recursivo */
 static void cGen (TreeNode * tree);
 
-static char * createLabel() {
+static char * createLabelName() {
     char * temp = (char *) malloc(5);
     sprintf(temp, "L%d", label);
     ++label;
@@ -105,7 +105,7 @@ static void genStmt(TreeNode * tree) {
             cGen(p2);
             /* set second operand */
             op2.kind = String;
-            op2.contents.variable.name = createLabel();
+            op2.contents.variable.name = createLabelName();
             op2.contents.variable.scope = tree->kind.var.scope;
             /* update if intermediate code instruction */
             updateLocation(op2);
@@ -122,7 +122,7 @@ static void genStmt(TreeNode * tree) {
 
             if(p3 != NULL) {
                 op1.kind = String;
-                op1.contents.variable.name = createLabel();
+                op1.contents.variable.name = createLabelName();
                 op1.contents.variable.scope = tree->kind.var.scope;
                 /* update if intermediate code instruction */
                 updateLocation(op1);
@@ -138,7 +138,7 @@ static void genStmt(TreeNode * tree) {
             p2 = tree->child[1];
 
             op1.kind = String;
-            op1.contents.variable.name = createLabel();
+            op1.contents.variable.name = createLabelName();
             op1.contents.variable.scope = tree->kind.var.scope;
             insertQuad(createQuad(LBL, op1, vazio, vazio));
             /* build code for test expression */
@@ -160,7 +160,7 @@ static void genStmt(TreeNode * tree) {
             insertQuad(createQuad(instrucaoAtual, op1, vazio, vazio));
 
             op3.kind = String;
-            op3.contents.variable.name = createLabel();
+            op3.contents.variable.name = createLabelName();
             op3.contents.variable.scope = tree->kind.var.scope;
             insertQuad(createQuad(LBL, op3, vazio, vazio));
             updateLocation(op3);
@@ -590,7 +590,7 @@ void printIntermediateCode() {
 
     while(q != NULL) {
         sprintf(quad, "%d: (", q->linha);
-        strcat(quad, toString(q->instruction));
+        strcat(quad, toStringInstruction(q->instruction));
 
         if(q->op1.kind == String) {
             strcat(quad, ", ");

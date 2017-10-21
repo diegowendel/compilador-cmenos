@@ -51,42 +51,6 @@ RegisterName argReg[4] = {
     $a0, $a1, $a2, $a3
 };
 
-const char * toStringOpcode(Opcode op) {
-    const char * strings[] = {
-        "addi", "subi", "muli", "divi", "modi",
-        "andi", "ori", "xori", "not", "landi", "lori",
-        "slli", "srli",
-        "mov", "lw", "li", "la", "sw",
-        "in", "out",
-        "jf",
-        "j", "jal", "halt",
-        "rtype"
-    };
-    return strings[op];
-}
-
-const char * toStringFunction(Function func) {
-    const char * strings[] = {
-        "add", "sub", "mul", "div", "mod",
-        "and", "or", "xor", "land", "lor",
-        "eq", "ne", "lt", "let", "gt", "get",
-        "sll", "srl",
-        "jr",
-        "dont_care"
-    };
-    return strings[func];
-}
-
-const char * toStringRegName(RegisterName rn) {
-    const char * strings[] = {
-    "$rz", "$v0", "$out", "$inv", "$gp", "$fp", "$a0", "$a1",
-    "$a2", "$a3", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5",
-    "$s6", "$s7", "$s8", "$s9", "$t0", "$t1", "$t2", "$t3",
-    "$t4", "$t5", "$t6", "$t7", "$t8", "$t9", "$sp", "$ra"
-    };
-    return strings[rn];
-}
-
 Opcode funcToOpcode(Function func) {
     switch (func) {
         case _ADD:  return _ADDI;

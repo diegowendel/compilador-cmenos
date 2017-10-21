@@ -1,31 +1,31 @@
 /****************************************************/
 /* File: code.h                                     */
-/* Code emitting utilities for the TINY compiler    */
-/* and interface to the TM machine                  */
-/* Compiler Construction: Principles and Practice   */
-/* Kenneth C. Louden                                */
+/* Author: Diego Ferreira                           */
 /****************************************************/
 
 #ifndef _CODE_H_
 #define _CODE_H_
 
 #include "cgen.h"
+#include "target.h"
 
-/* code emitting utilities */
+const char * toStringInstruction(enum instrucao i);
 
-/* Procedimento emitComment imprime uma linha de comentario
- * com a string c no aquivo
- */
-void emitSpaces(int indent);
+const char * toStringOpcode(Opcode op);
 
-void emitComment(const char * c, int indent);
+const char * toStringFunction(Function func);
+
+const char * toStringRegName(RegisterName rn);
+
+const char * toBinaryOpcode(Opcode op);
+
+const char * toBinaryFunction(Function func);
+
+const char * toBinaryRegister(RegisterName rn);
 
 void emitCode(const char * c);
 
-/* Procedimento toString retorna o mnemônico do enum da instrução
- * passado como parâmetro
- */
-const char * toString(enum instrucao i);
+void emitComment(const char * c, int indent);
 
 void emitObjectCode(const char * c, int indent);
 

@@ -91,10 +91,6 @@ typedef struct label {
     struct label * next;
 } * Label;
 
-const char * toStringOpcode(enum opcode op);
-
-const char * toStringFunction(Function func);
-
 EscopoGerador createEscopoGerador(const char *);
 
 void pushEscopoGerador(EscopoGerador eg);
@@ -106,6 +102,10 @@ void insertRegistrador(Registrador r);
 void removeRegistrador(RegisterName name);
 
 void removeTodosRegistradoresSalvos(void);
+
+void salvaRegistradores(void);
+
+void recuperaRegistradores(void);
 
 Registrador getRegistrador(RegisterName name);
 
