@@ -154,20 +154,21 @@ InstOperand getTempReg(Operand op) {
     return reg;
 }
 
-InstOperand getSavedReg(int i) {
-    /* Se já tiver usado todos registradores temporários volta a usar do início, mas antes de usar o registrador
-     * deve salvar seu valor antigo na memória
+InstOperand getSavedReg(Operand op) {
+    /* Se já tiver usado todos registradores temporários volta a usar do início,
+     * mas antes de usar o registrador deve salvar seu valor antigo na memória
      */
-    if(i > 9) {
+    if(escopo->savedRegCount > 9) {
         escopo->savedRegCount = 0;
-        i = 0;
-
         // TODO FIX IT!
     }
-    InstOperand operando = (InstOperand) malloc(sizeof(struct instOperand));
-    operando->tipoEnderecamento = REGISTRADOR;
-    operando->enderecamento.registrador = savedReg[i];
-    return operando;
+
+    // Cria registrador salvo
+    InstOperand reg = (InstOperand) malloc(sizeof(struct instOperand));
+    reg->tipoEnderecamento = REGISTRADOR;
+    reg->enderecamento.registrador = savedReg[escopo->savedRegCount++];
+    insertRegistrador(createRegistrador(op, reg->enderecamento.registrador));
+    return reg;
 }
 
 InstOperand getOperandRegName(Operand op) {
@@ -181,12 +182,10 @@ InstOperand getOperandRegName(Operand op) {
                 rs = getTempReg(op);
                 rt = getRegByName(op.contents.variable.name);
             } else if(op.contents.variable.scope == globalScope) {
-                rs = getSavedReg(escopo->savedRegCount++);
-                insertRegistrador(createRegistrador(op, rs->enderecamento.registrador));
+                rs = getSavedReg(op);
                 rt = getGlobalOperandLocation(op);
             } else { // Scope não é nulo, então é uma variável e deve ser lida da memória
-                rs = getSavedReg(escopo->savedRegCount++);
-                insertRegistrador(createRegistrador(op, rs->enderecamento.registrador));
+                rs = getSavedReg(op);
                 rt = getStackOperandLocation(op);
             }
             printCode(insertObjInst(createObjInst(_LW, TYPE_I, rs, rt, NULL)));
@@ -211,15 +210,12 @@ InstOperand getVectorRegName(Operand op) {
     InstOperand reg = getRegByName(op.contents.variable.name);
     TreeNode * treeNode;
     if(reg == NULL) {
-        reg = getSavedReg(escopo->savedRegCount++);
-        insertRegistrador(createRegistrador(op, reg->enderecamento.registrador));
+        reg = getSavedReg(op);
         if(op.contents.variable.scope == globalScope) {
             /* Lê o endereço de memória do início do vetor */
             printCode(insertObjInst(createObjInst(_LA, TYPE_I, reg, getGlobalOperandLocation(op), NULL)));
         } else {
-            /**
-             * Verifica se o vetor foi declarado no mesmo escopo atual ou veio como parâmetro
-             */
+            // Verifica se o vetor foi declarado no mesmo escopo atual ou veio como parâmetro
             treeNode = getVarFromSymtab(op.contents.variable.name, op.contents.variable.scope)->treeNode;
             if(treeNode->kind.var.mem == PARAMK) {
                 /* Parâmetro - Lê o ponteiro para o vetor */
@@ -370,18 +366,23 @@ void geraCodigoSetParam(Quadruple q) {
         }
         escopo->argRegCount++;
     } else { // TODO fazer o resto
+        InstOperand rs = getSavedReg(q->op1);
+        InstOperand rt;
+        Opcode opcode;
         /* Verifica se é uma constante ou variável */
         if(q->op1.kind == String) { // Variável
             if(var != NULL && var->treeNode->node == VARK && var->treeNode->kind.var.varKind == VECTORK) { // Vetor
-                printCode(insertObjInst(createObjInst(_LA, TYPE_I, getSavedReg(escopo->savedRegCount), getStackOperandLocation(q->op1), NULL)));
+                opcode = _LA;
             } else { // Variável
-                printCode(insertObjInst(createObjInst(_LW, TYPE_I, getSavedReg(escopo->savedRegCount), getStackOperandLocation(q->op1), NULL)));
+                opcode = _LW;
             }
+            rt = getStackOperandLocation(q->op1);
         } else { // Constante
-            printCode(insertObjInst(createObjInst(_LI, TYPE_I, getSavedReg(escopo->savedRegCount), getImediato(q->op1.contents.val), NULL)));
+            opcode = _LI;
+            rt = getImediato(q->op1.contents.val);
         }
-        printCode(insertObjInst(createObjInst(_SW, TYPE_I, getSavedReg(escopo->savedRegCount), getStackOperandLocation(q->op1), NULL)));
-        escopo->savedRegCount++;
+        printCode(insertObjInst(createObjInst(opcode, TYPE_I, rs, rt, NULL)));
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rs, getStackOperandLocation(q->op1), NULL)));
     }
 }
 
@@ -396,9 +397,8 @@ void geraCodigoGetParam(Quadruple q) {
         removeRegistrador(arg->enderecamento.registrador);
         escopo->argRegCount++;
     } else if(escopo->argRegCount >= 4) {
-        insertRegistrador(createRegistrador(q->op1, getSavedReg(escopo->savedRegCount)->enderecamento.registrador));
-        printCode(insertObjInst(createObjInst(_LW, TYPE_I, getSavedReg(escopo->savedRegCount), getStackOperandLocation(q->op1), NULL)));
-        escopo->savedRegCount++;
+        InstOperand savedReg = getSavedReg(q->op1);
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, savedReg, getStackOperandLocation(q->op1), NULL)));
     }
 }
 
