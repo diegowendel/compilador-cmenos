@@ -150,7 +150,7 @@ InstOperand getTempReg(Operand op) {
     InstOperand reg = (InstOperand) malloc(sizeof(struct instOperand));
     reg->tipoEnderecamento = REGISTRADOR;
     reg->enderecamento.registrador = tempReg[escopo->tempRegCount++];
-    insertRegistrador(createRegistrador(op, reg->enderecamento.registrador));
+    insertRegistrador(createRegistrador(op, reg));
     return reg;
 }
 
@@ -167,7 +167,7 @@ InstOperand getSavedReg(Operand op) {
     InstOperand reg = (InstOperand) malloc(sizeof(struct instOperand));
     reg->tipoEnderecamento = REGISTRADOR;
     reg->enderecamento.registrador = savedReg[escopo->savedRegCount++];
-    insertRegistrador(createRegistrador(op, reg->enderecamento.registrador));
+    insertRegistrador(createRegistrador(op, reg));
     return reg;
 }
 
@@ -358,7 +358,7 @@ void geraCodigoSetParam(Quadruple q) {
                 reg = getOperandRegName(q->op1);
                 if(getArgReg(escopo->argRegCount)->enderecamento.registrador != reg->enderecamento.registrador) { /* Só move se os registradores forem diferentes */
                     printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getArgReg(escopo->argRegCount), reg, NULL)));
-                    moveRegistrador(getArgReg(escopo->argRegCount)->enderecamento.registrador, reg->enderecamento.registrador);
+                    removeRegistrador(getArgReg(escopo->argRegCount)->enderecamento.registrador);
                 }
             }
         } else { // Constante
@@ -392,7 +392,7 @@ void geraCodigoGetParam(Quadruple q) {
      */
     if(escopo->argRegCount < 4) {
         InstOperand arg = getArgReg(escopo->argRegCount);
-        insertRegistrador(createRegistrador(q->op1, arg->enderecamento.registrador));
+        insertRegistrador(createRegistrador(q->op1, arg));
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
         removeRegistrador(arg->enderecamento.registrador);
         escopo->argRegCount++;
@@ -690,10 +690,10 @@ void pushEscopo(Escopo e) {
     }
 }
 
-Registrador createRegistrador(Operand op, RegisterName regName) {
+Registrador createRegistrador(Operand op, InstOperand instOperand) {
     Registrador r = (Registrador) malloc(sizeof(struct registrador));
     r->op = op;
-    r->regName = regName;
+    r->instOperand = instOperand;
     r->next = NULL;
     return r;
 }
@@ -715,19 +715,13 @@ void insertRegistrador(Registrador r) {
     }
 }
 
-void moveRegistrador(RegisterName dest, RegisterName orig) {
-    Registrador origem = getRegistrador(orig);
-    origem->regName = dest;
-    removeRegistrador(dest);
-}
-
 void removeRegistrador(RegisterName name) {
     Registrador atual, anterior;
     if(escopo != NULL) {
         atual = escopo->regList;
     }
     /* Verifica se o primeiro deve ser removido */
-    if(name == atual->regName) {
+    if(name == atual->instOperand->enderecamento.registrador) {
         escopo->regList = atual->next;
         free(atual);
         atual = NULL;
@@ -739,7 +733,7 @@ void removeRegistrador(RegisterName name) {
 
     /* Verifica o restante */
     while(atual != NULL && anterior != NULL) {
-        if(name == atual->regName) {
+        if(name == atual->instOperand->enderecamento.registrador) {
             anterior->next = atual->next;
             free(atual);
             return;
@@ -768,7 +762,7 @@ Registrador getRegistrador(RegisterName name) {
         reg = escopo->regList;
     }
     while(reg != NULL) {
-        if(name == reg->regName) {
+        if(name == reg->instOperand->enderecamento.registrador) {
             return reg;
         }
         reg = reg->next;
@@ -783,10 +777,7 @@ InstOperand getRegByName(char * name) {
     }
     while(reg != NULL) {
         if(!strcmp(name, reg->op.contents.variable.name)) {
-            InstOperand operando = (InstOperand) malloc(sizeof(struct instOperand));
-            operando->tipoEnderecamento = REGISTRADOR;
-            operando->enderecamento.registrador = reg->regName;
-            return operando;
+            return reg->instOperand;
         }
         reg = reg->next;
     }

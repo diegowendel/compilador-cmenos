@@ -71,7 +71,7 @@ typedef struct escopo {
 
 typedef struct registrador {
     Operand op;
-    RegisterName regName;
+    InstOperand instOperand;
     struct registrador * next;
 } * Registrador;
 
@@ -95,7 +95,7 @@ Escopo createEscopo(const char *);
 
 void pushEscopo(Escopo eg);
 
-Registrador createRegistrador(Operand op, RegisterName regName);
+Registrador createRegistrador(Operand op, InstOperand instOperand);
 
 void insertRegistrador(Registrador r);
 
@@ -103,13 +103,7 @@ void removeRegistrador(RegisterName name);
 
 void removeTodosRegistradoresSalvos(void);
 
-void salvaRegistradores(void);
-
-void recuperaRegistradores(void);
-
 Registrador getRegistrador(RegisterName name);
-
-void moveRegistrador(RegisterName dest, RegisterName orig);
 
 InstOperand getRegByName(char * name);
 
