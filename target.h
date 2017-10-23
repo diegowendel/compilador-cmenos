@@ -57,7 +57,7 @@ typedef struct instOperand {
     AddressingType tipoEnderecamento;
 } * InstOperand;
 
-typedef struct escopoGerador {
+typedef struct escopo {
     int argRegCount;
     int savedRegCount;
     int tempRegCount;
@@ -66,8 +66,8 @@ typedef struct escopoGerador {
     int tamanhoBlocoMemoria;
     const char * nome;
     struct registrador * regList;
-    struct escopoGerador * next;
-} * EscopoGerador;
+    struct escopo * next;
+} * Escopo;
 
 typedef struct registrador {
     Operand op;
@@ -91,9 +91,9 @@ typedef struct label {
     struct label * next;
 } * Label;
 
-EscopoGerador createEscopoGerador(const char *);
+Escopo createEscopo(const char *);
 
-void pushEscopoGerador(EscopoGerador eg);
+void pushEscopo(Escopo eg);
 
 Registrador createRegistrador(Operand op, RegisterName regName);
 
