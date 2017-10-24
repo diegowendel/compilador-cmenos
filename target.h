@@ -34,7 +34,7 @@ typedef enum type {
 } Type;
 
 typedef enum registerName {
-    $rz, $v0, $out, $inv, $gp, $fp, $a0, $a1,
+    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
     $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
     $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
     $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
@@ -101,11 +101,13 @@ void insertRegistrador(Registrador r);
 
 void removeRegistrador(RegisterName name);
 
-void removeTodosRegistradoresSalvos(void);
-
 Registrador getRegistrador(RegisterName name);
 
 InstOperand getRegByName(char * name);
+
+void saveRegistradores(void);
+
+void recuperaRegistradores(void);
 
 void geraCodigoObjeto(Quadruple q);
 

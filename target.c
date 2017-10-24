@@ -319,22 +319,18 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(escopo->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
-        /* Remove todos registradores salvos para forçar o LOAD dos operandos ao voltar da chamada de função */
-        removeTodosRegistradoresSalvos();
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), rtnValReg, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValReg, NULL)));
         /* Desaloca o bloco de memória na stack */
-        popStackSpace(tamanhoBlocoMemoria + 1);
+        popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
     } else {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1.contents.variable.name);
-        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // sw $ra
-        /* Remove todos registradores salvos para forçar o LOAD dos operandos ao voltar da chamada de função */
-        removeTodosRegistradoresSalvos();
+        saveRegistradores();
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1.contents.variable.name), NULL, NULL)));
         /* Desaloca o bloco de memória na stack */
-        popStackSpace(tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
-        printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // lw $ra
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), rtnValReg, NULL)));
+        popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
+        recuperaRegistradores();
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValReg, NULL)));
     }
 }
 
@@ -455,8 +451,10 @@ void geraCodigoFuncao(Quadruple q) {
         /* Aloca o bloco de memória na stack */
         pushStackSpace(escopo->tamanhoBlocoMemoria + tamanho);
     } else {
-        /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno */
-        pushStackSpace(escopo->tamanhoBlocoMemoria + 1); // +1 devido ao registrador $ra
+        /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno
+         * + 1 para armazenar valor de retorno de função dentro do escopo
+         */
+        pushStackSpace(escopo->tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra
     }
 }
 
@@ -743,19 +741,6 @@ void removeRegistrador(RegisterName name) {
     }
 }
 
-void removeTodosRegistradoresSalvos(void) {
-    Registrador temp;
-    if(escopo != NULL) {
-        while(escopo->regList != NULL) {
-            temp = escopo->regList;
-            escopo->regList = escopo->regList->next;
-            free(temp);
-        }
-    }
-    escopo->argRegCount = 0;
-    escopo->savedRegCount = 0;
-}
-
 Registrador getRegistrador(RegisterName name) {
     Registrador reg;
     if(escopo != NULL) {
@@ -782,6 +767,50 @@ InstOperand getRegByName(char * name) {
         reg = reg->next;
     }
     return NULL;
+}
+
+void saveRegistradores(void) {
+    printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // sw $ra
+
+    Registrador reg;
+    if(escopo != NULL) {
+        reg = escopo->regList;
+    }
+
+    while(reg != NULL) {
+        if(toStringRegName(reg->instOperand->enderecamento.registrador)[1] == 115) {
+            InstOperand rt;
+            if(reg->op.contents.variable.scope == NULL) {
+                rt = getStackLocation(2); // sw function return
+            } else {
+                rt = getStackOperandLocation(reg->op);
+            }
+            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg->instOperand, rt, NULL)));
+        }
+        reg = reg->next;
+    }
+}
+
+void recuperaRegistradores(void) {
+    printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrReg, getStackLocation(1), NULL))); // lw $ra
+
+    Registrador reg;
+    if(escopo != NULL) {
+        reg = escopo->regList;
+    }
+
+    while(reg != NULL) {
+        if(toStringRegName(reg->instOperand->enderecamento.registrador)[1] == 115) {
+            InstOperand rt;
+            if(reg->op.contents.variable.scope == NULL) {
+                rt = getStackLocation(2); // sw function return
+            } else {
+                rt = getStackOperandLocation(reg->op);
+            }
+            printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg->instOperand, rt, NULL)));
+        }
+        reg = reg->next;
+    }
 }
 
 Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, InstOperand op1, InstOperand op2, InstOperand op3) {

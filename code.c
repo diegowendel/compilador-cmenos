@@ -46,7 +46,7 @@ const char * toStringFunction(Function func) {
 
 const char * toStringRegName(RegisterName rn) {
     const char * strings[] = {
-        "$rz", "$v0", "$out", "$inv", "$gp", "$fp", "$a0", "$a1",
+        "$rz", "$v0", "$v1", "$out", "$inv", "$gp", "$a0", "$a1",
         "$a2", "$a3", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5",
         "$s6", "$s7", "$s8", "$s9", "$t0", "$t1", "$t2", "$t3",
         "$t4", "$t5", "$t6", "$t7", "$t8", "$t9", "$sp", "$ra"
@@ -96,7 +96,7 @@ const char * toBinaryFunction(Function func) {
 
 const char * toBinaryRegister(RegisterName rn) {
     const char * strings[] = {
-        // "$rz", "$v0",  "$out",  "$inv",  "$gp",   "$fp",   "$a0",   "$a1",
+        // "$rz", "$v0",  "$v1",   "$out",  "$inv",  "$gp",   "$a0",   "$a1",
         "00000", "00001", "00010", "00011", "00100", "00101", "00110", "00111",
         // "$a2", "$a3",  "$s0",   "$s1",   "$s2",   "$s3",   "$s4",   "$s5"
         "01000", "01001", "01010", "01011", "01100", "01101", "01110", "01111",
