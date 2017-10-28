@@ -33,30 +33,6 @@ typedef enum type {
     TYPE_R, TYPE_I, TYPE_J
 } Type;
 
-typedef enum registerName {
-    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
-    $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
-    $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
-    $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
-} RegisterName;
-
-typedef enum addressingType {
-    IMEDIATO, REGISTRADOR, INDEXADO, LABEL
-} AddressingType;
-
-typedef struct instOperand {
-    union {
-        int imediato;
-        RegisterName registrador;
-        struct {
-            RegisterName registrador;
-            int offset;
-        } indexado;
-        char * label;
-    } enderecamento;
-    AddressingType tipoEnderecamento;
-} * InstOperand;
-
 typedef struct escopo {
     int argRegCount;
     int savedRegCount;
@@ -65,23 +41,21 @@ typedef struct escopo {
     int quantidadeVariaveis;
     int tamanhoBlocoMemoria;
     const char * nome;
-    struct registrador * regList;
     struct escopo * next;
 } * Escopo;
 
 typedef struct registrador {
     Operand op;
-    InstOperand instOperand;
-    struct registrador * next;
-} * Registrador;
+    RegisterName regName;
+} Registrador;
 
 typedef struct objeto {
     Opcode opcode;
     Function func;
     Type type;
-    InstOperand op1;
-    InstOperand op2;
-    InstOperand op3;
+    TargetOperand op1;
+    TargetOperand op2;
+    TargetOperand op3;
     struct objeto * next;
 } * Objeto;
 
@@ -91,46 +65,40 @@ typedef struct label {
     struct label * next;
 } * Label;
 
-Escopo createEscopo(const char *);
+void geraCodigoObjeto(Quadruple q);
 
-void pushEscopo(Escopo eg);
+void printCode(Objeto instrucao);
 
-Registrador createRegistrador(Operand op, InstOperand instOperand);
+Escopo createEscopo(const char * nome);
 
-void insertRegistrador(Registrador r);
+void pushEscopo(Escopo e);
 
-void removeRegistrador(RegisterName name);
-
-Registrador getRegistrador(RegisterName name);
-
-InstOperand getRegByName(char * name);
+TargetOperand getTargetOpByName(char * name);
 
 void saveRegistradores(void);
 
 void recuperaRegistradores(void);
 
-void geraCodigoObjeto(Quadruple q);
+Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, TargetOperand op1, TargetOperand op2, TargetOperand op3);
 
-void printCode(Objeto instrucao);
-
-Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, InstOperand op1, InstOperand op2, InstOperand op3);
-
-Objeto createObjInst(Opcode opcode, Type type, InstOperand op1, InstOperand op2, InstOperand op3);
+Objeto createObjInst(Opcode opcode, Type type, TargetOperand op1, TargetOperand op2, TargetOperand op3);
 
 Objeto insertObjInst(Objeto obj);
 
-Objeto getCodigoObjeto(void);
+TargetOperand getImediato(int val);
 
-void preparaRegistradoresEspeciais(void);
-
-InstOperand getImediato(int valor);
-
-InstOperand getOperandLabel(char * name);
+TargetOperand getOperandLabel(char * name);
 
 Label createLabel(char * nome, int linha);
 
 void insertLabel(char * nome, int linha);
 
 int getLinhaLabel(char * nome);
+
+void prepararRegistradores(void);
+
+void prepararOperandosEspeciais(void);
+
+Objeto getCodigoObjeto(void);
 
 #endif

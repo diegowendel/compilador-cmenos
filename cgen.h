@@ -10,7 +10,7 @@
 #ifndef _CGEN_H_
 #define _CGEN_H_
 
-typedef enum {Empty, IntConst, String} OperandKind;
+typedef enum {IntConst, String} OperandKind;
 
 typedef enum instrucao {ADD, SUB, MULT, DIV, MOD,
     BITW_AND, BITW_OR, BITW_XOR, BITW_NOT, LOGIC_AND, LOGIC_OR,
@@ -19,7 +19,31 @@ typedef enum instrucao {ADD, SUB, MULT, DIV, MOD,
     FUNC, RTN, GET_PARAM, SET_PARAM, CALL, PARAM_LIST,
     JPF, GOTO, LBL, HALT} InstructionKind;
 
-typedef struct  {
+typedef enum registerName {
+    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
+    $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
+    $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
+    $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
+} RegisterName;
+
+typedef enum addressingType {
+    IMEDIATO, REGISTRADOR, INDEXADO, LABEL
+} AddressingType;
+
+typedef struct targetOperand {
+    union {
+        int imediato;
+        RegisterName registrador;
+        struct {
+            RegisterName registrador;
+            int offset;
+        } indexado;
+        char * label;
+    } enderecamento;
+    AddressingType tipoEnderecamento;
+} * TargetOperand;
+
+typedef struct operand {
     OperandKind kind;
     union {
         int val;
@@ -28,16 +52,19 @@ typedef struct  {
             struct ScopeRec * scope;
         } variable;
     } contents;
-} Operand;
+    TargetOperand opTarget;
+} * Operand;
 
 /* Estrutura Quádrupla que armazena os dados do código
  * de três endereços
  */
 typedef struct Quad {
     InstructionKind instruction;
-    Operand op1, op2, op3;
     int linha;
     int display;
+    Operand op1;
+    Operand op2;
+    Operand op3;
     struct Quad * next;
 } * Quadruple;
 
@@ -66,8 +93,6 @@ void updateLocation(Operand op);
 void pushParam(int * count);
 
 void popParam();
-
-void preparaVazio();
 
 void printIntermediateCode();
 
