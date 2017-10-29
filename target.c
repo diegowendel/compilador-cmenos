@@ -158,14 +158,14 @@ TargetOperand getArgReg(int i) {
         operando->enderecamento.registrador = regNames[position];
 
         Registrador reg = registradores[position];
-        reg.op->opTarget = operando;
-        return reg.op->opTarget;
+        reg.targetOp = operando;
+        return reg.targetOp;
     }
 
     operando->enderecamento.registrador = regNames[REG_INVALID];
     Registrador reg = registradores[REG_INVALID];
-    reg.op->opTarget = operando;
-    return reg.op->opTarget;
+    reg.targetOp = operando;
+    return reg.targetOp;
 }
 
 TargetOperand getTempReg(Operand op) {
@@ -178,11 +178,9 @@ TargetOperand getTempReg(Operand op) {
     }
 
     // Calcula a posição do registrador no banco de registradores
-    int position = SHIFT_COUNTER_REG_TEMP + escopo->savedRegCount;
-
+    int position = SHIFT_COUNTER_REG_TEMP + escopo->tempRegCount++;
     Registrador reg = registradores[position];
-    reg.op = op;
-    return reg.op->opTarget;
+    return getAndUpdateTargetOperand(reg, op);
 }
 
 TargetOperand getSavedReg(Operand op) {
@@ -194,11 +192,9 @@ TargetOperand getSavedReg(Operand op) {
     }
 
     // Calcula a posição do registrador no banco de registradores
-    int position = SHIFT_COUNTER_REG_SAVED + escopo->savedRegCount;
-
+    int position = SHIFT_COUNTER_REG_SAVED + escopo->savedRegCount++;
     Registrador reg = registradores[position];
-    reg.op = op;
-    return reg.op->opTarget;
+    return getAndUpdateTargetOperand(reg, op);
 }
 
 TargetOperand getOperandRegName(Operand op) {
@@ -222,7 +218,7 @@ TargetOperand getOperandRegName(Operand op) {
         }
     } else { /* Valor Imediato */
         // Prepara o operando
-        Operand operand = (Operand) malloc(sizeof(struct operand));
+        Operand operand = createOperand();
         operand->kind = String;
         operand->contents.variable.scope = NULL;
         // Obtém um registrador temporário
@@ -304,7 +300,7 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
     TargetOperand reg = getOperandRegName(q->op2);
     if(q->op1->contents.variable.scope == NULL) {
         // Vetor com índice do acesso igual a uma variável
-        TargetOperand r = getTargetOpByName(q->op1->contents.variable.name);
+        TargetOperand r = getOperandRegName(q->op1);
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getMemLocation(r->enderecamento.registrador), NULL)));
     } else if(q->op1->contents.variable.scope == globalScope) {
         if(q->op3 != NULL) {
@@ -722,17 +718,26 @@ TargetOperand getTargetOpByName(char * name) {
 
     for(i = 0; i < QTD_REG; i++) {
         Registrador reg = registradores[i];
-
-        if(reg.op != NULL) {
-            if(reg.op->kind == String) {
-                char * varName = reg.op->contents.variable.name;
-                if(varName != NULL && !strcmp(name, varName)) {
-                    return reg.op->opTarget;
-                }
-            }
+        char * varName = reg.op->contents.variable.name;
+        if(varName != NULL && !strcmp(name, varName)) {
+            return reg.targetOp;
         }
     }
     return NULL;
+}
+
+TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op) {
+    reg.op->kind = op->kind;
+
+    if(op->kind == String) {
+        reg.op->contents.variable.name = op->contents.variable.name;
+        reg.op->contents.variable.scope = op->contents.variable.scope;
+    } else {
+        reg.op->contents.val = op->contents.val;
+    }
+
+    reg.op = op;
+    return reg.targetOp;
 }
 
 void saveRegistradores(void) {
@@ -867,72 +872,24 @@ int getLinhaLabel(char * nome) {
 
 void prepararRegistradores(void) {
     int i;
-
-    for(i = REG_ARG_INICIO; i < REG_ARG_FIM; i++) {
+    for(i = 0; i < QTD_REG; i++) {
         Registrador reg;
-        reg.op = NULL;
+        reg.op = createOperand();
+        reg.targetOp = (TargetOperand) malloc(sizeof(struct targetOperand));
+        reg.targetOp->tipoEnderecamento = REGISTRADOR;
+        reg.targetOp->enderecamento.registrador = regNames[i];
         reg.regName = regNames[i];
         registradores[i] = reg;
     }
-
-    for(i = REG_SAVED_INICIO; i < REG_SAVED_FIM; i++) {
-        Registrador reg;
-        reg.op = NULL;
-        reg.regName = regNames[i];
-        registradores[i] = reg;
-    }
-
-    for(i = REG_TEMP_INICIO; i < REG_TEMP_FIM; i++) {
-        Registrador reg;
-        reg.op = NULL;
-        reg.regName = regNames[i];
-        registradores[i] = reg;
-    }
-
-    // Registrador de endereço de retorno de função
-    Registrador rtnAddrReg;
-    rtnAddrReg.op = NULL;
-    rtnAddrReg.regName = regNames[REG_RTN_ADDR];
-    registradores[REG_RTN_ADDR] = rtnAddrReg;
-
-    // Registrador de valor de retorno
-    Registrador rtnValReg;
-    rtnValReg.op = NULL;
-    rtnValReg.regName = regNames[REG_RTN_VAL];
-    registradores[REG_RTN_VAL] = rtnValReg;
-
-    // Registrador da stack
-    Registrador stackReg;
-    stackReg.op = NULL;
-    stackReg.regName = regNames[REG_STACK];
-    registradores[REG_STACK] = stackReg;
-
-    // Registrador para output
-    Registrador outputReg;
-    outputReg.op = NULL;
-    outputReg.regName = regNames[REG_OUTPUT];
-    registradores[REG_OUTPUT] = outputReg;
-
-    // Registrador zero
-    Registrador rzero;
-    rzero.op = NULL;
-    rzero.regName = regNames[REG_ZERO];
-    registradores[REG_ZERO] = rzero;
-
-    // Registrador para valores globais
-    Registrador globalReg;
-    globalReg.op = NULL;
-    globalReg.regName = regNames[REG_GLOBAL];
-    registradores[REG_GLOBAL] = globalReg;
 }
 
 void prepararOperandosEspeciais(void) {
-    rtnAddrOp = registradores[REG_RTN_ADDR].op->opTarget;
-    rtnValOp = registradores[REG_RTN_VAL].op->opTarget;
-    stackOp = registradores[REG_STACK].op->opTarget;
-    outputOp = registradores[REG_OUTPUT].op->opTarget;
-    rZeroOp = registradores[REG_ZERO].op->opTarget;
-    globalOp = registradores[REG_GLOBAL].op->opTarget;
+    rtnAddrOp = registradores[REG_RTN_ADDR].targetOp;
+    rtnValOp = registradores[REG_RTN_VAL].targetOp;
+    stackOp = registradores[REG_STACK].targetOp;
+    outputOp = registradores[REG_OUTPUT].targetOp;
+    rZeroOp = registradores[REG_ZERO].targetOp;
+    globalOp = registradores[REG_GLOBAL].targetOp;
 }
 
 Objeto getCodigoObjeto(void) {

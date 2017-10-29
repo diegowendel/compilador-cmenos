@@ -33,6 +33,30 @@ typedef enum type {
     TYPE_R, TYPE_I, TYPE_J
 } Type;
 
+typedef enum registerName {
+    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
+    $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
+    $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
+    $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
+} RegisterName;
+
+typedef enum addressingType {
+    IMEDIATO, REGISTRADOR, INDEXADO, LABEL
+} AddressingType;
+
+typedef struct targetOperand {
+    union {
+        int imediato;
+        RegisterName registrador;
+        struct {
+            RegisterName registrador;
+            int offset;
+        } indexado;
+        char * label;
+    } enderecamento;
+    AddressingType tipoEnderecamento;
+} * TargetOperand;
+
 typedef struct escopo {
     int argRegCount;
     int savedRegCount;
@@ -47,6 +71,7 @@ typedef struct escopo {
 typedef struct registrador {
     Operand op;
     RegisterName regName;
+    TargetOperand targetOp;
 } Registrador;
 
 typedef struct objeto {
@@ -74,6 +99,8 @@ Escopo createEscopo(const char * nome);
 void pushEscopo(Escopo e);
 
 TargetOperand getTargetOpByName(char * name);
+
+TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op);
 
 void saveRegistradores(void);
 

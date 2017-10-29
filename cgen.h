@@ -19,30 +19,6 @@ typedef enum instrucao {ADD, SUB, MULT, DIV, MOD,
     FUNC, RTN, GET_PARAM, SET_PARAM, CALL, PARAM_LIST,
     JPF, GOTO, LBL, HALT} InstructionKind;
 
-typedef enum registerName {
-    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
-    $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
-    $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
-    $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
-} RegisterName;
-
-typedef enum addressingType {
-    IMEDIATO, REGISTRADOR, INDEXADO, LABEL
-} AddressingType;
-
-typedef struct targetOperand {
-    union {
-        int imediato;
-        RegisterName registrador;
-        struct {
-            RegisterName registrador;
-            int offset;
-        } indexado;
-        char * label;
-    } enderecamento;
-    AddressingType tipoEnderecamento;
-} * TargetOperand;
-
 typedef struct operand {
     OperandKind kind;
     union {
@@ -52,7 +28,6 @@ typedef struct operand {
             struct ScopeRec * scope;
         } variable;
     } contents;
-    TargetOperand opTarget;
 } * Operand;
 
 /* Estrutura Quádrupla que armazena os dados do código
@@ -77,6 +52,8 @@ typedef struct Param {
     int * count;
     struct Param * next;
 } * ParamStack;
+
+Operand createOperand(void);
 
 Quadruple * insertQuad(Quadruple q);
 

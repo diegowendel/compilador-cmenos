@@ -61,7 +61,6 @@ static char * createTemporaryOperandName() {
 
 Operand createOperand(void) {
     Operand op = (Operand) malloc(sizeof(struct operand));
-    op->opTarget = NULL;
     return op;
 }
 
