@@ -240,6 +240,7 @@ TargetOperand getVectorRegName(Operand op) {
         if(op->contents.variable.scope == globalScope) {
             /* Lê o endereço de memória do início do vetor */
             printCode(insertObjInst(createObjInst(_LA, TYPE_I, reg, getGlobalOperandLocation(op), NULL)));
+            registradores[(int) reg->enderecamento.registrador].isAddress = TRUE;
         } else {
             // Verifica se o vetor foi declarado no mesmo escopo atual ou veio como parâmetro
             treeNode = getVarFromSymtab(op->contents.variable.name, op->contents.variable.scope)->treeNode;
@@ -249,6 +250,7 @@ TargetOperand getVectorRegName(Operand op) {
             } else {
                 /* Escopo atual - Lê o endereço de memória do início do vetor */
                 printCode(insertObjInst(createObjInst(_LA, TYPE_I, reg, getStackOperandLocation(op), NULL)));
+                registradores[(int) reg->enderecamento.registrador].isAddress = TRUE;
             }
         }
     }
@@ -313,7 +315,7 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
             /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
             TargetOperand regAux = getTargetOpByName(q->op1->contents.variable.name);
             if(regAux != NULL) {
-                //removeRegistrador(regAux->enderecamento.registrador);
+                removeOperand(regAux);
             }
         }
     } else {
@@ -327,7 +329,7 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
             /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
             TargetOperand regAux = getTargetOpByName(q->op1->contents.variable.name);
             if(regAux != NULL) {
-                //removeRegistrador(regAux->enderecamento.registrador);
+                removeOperand(regAux);
             }
         }
     }
@@ -345,17 +347,22 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(escopo->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
+        saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValOp, NULL)));
         /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
+        recuperaRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
     } else {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
-        saveRegistradores();
+        int regAddrStackLocation = tamanhoBlocoMemoria + 1;
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-regAddrStackLocation), NULL))); // sw $ra
+        saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
         /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
-        recuperaRegistradores();
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-regAddrStackLocation), NULL))); // lw $ra
+        recuperaRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValOp, NULL)));
     }
 }
@@ -375,12 +382,15 @@ void geraCodigoSetParam(Quadruple q) {
         /* Verifica se é uma constante ou variável */
         if(q->op1->kind == String) { // Variável
             if(var != NULL && var->treeNode->node == VARK && var->treeNode->kind.var.varKind == VECTORK) { // Vetor
-                printCode(insertObjInst(createObjInst(_LA, TYPE_I, getArgReg(escopo->argRegCount), getStackOperandLocation(q->op1), NULL)));
+                TargetOperand arg = getArgReg(escopo->argRegCount);
+                printCode(insertObjInst(createObjInst(_LA, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
+                registradores[(int) arg->enderecamento.registrador].isAddress = TRUE;
             } else { // Variável
                 reg = getOperandRegName(q->op1);
+                TargetOperand arg = getArgReg(escopo->argRegCount);
                 if(getArgReg(escopo->argRegCount)->enderecamento.registrador != reg->enderecamento.registrador) { /* Só move se os registradores forem diferentes */
-                    printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getArgReg(escopo->argRegCount), reg, NULL)));
-                    //removeRegistrador(getArgReg(escopo->argRegCount)->enderecamento.registrador);
+                    printCode(insertObjInst(createObjInst(_MOV, TYPE_I, arg, reg, NULL)));
+                    //removeOperand(arg);
                 }
             }
         } else { // Constante
@@ -395,6 +405,7 @@ void geraCodigoSetParam(Quadruple q) {
         if(q->op1->kind == String) { // Variável
             if(var != NULL && var->treeNode->node == VARK && var->treeNode->kind.var.varKind == VECTORK) { // Vetor
                 opcode = _LA;
+                registradores[(int) rs->enderecamento.registrador].isAddress = TRUE;
             } else { // Variável
                 opcode = _LW;
             }
@@ -415,7 +426,7 @@ void geraCodigoGetParam(Quadruple q) {
     if(escopo->argRegCount < 4) {
         TargetOperand arg = getArgReg(escopo->argRegCount);
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
-        //removeRegistrador(arg->enderecamento.registrador);
+        //removeOperand(arg);
         escopo->argRegCount++;
     } else if(escopo->argRegCount >= 4) {
         TargetOperand savedReg = getSavedReg(q->op1);
@@ -700,6 +711,12 @@ Escopo createEscopo(const char * nome) {
     e->quantidadeVariaveis = getQuantidadeVariaveis(bl->treeNode);
     e->tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo((char *) nome);
     e->nome = nome;
+
+    int i;
+    for(i = 0; i < 10; i++) {
+        e->registradoresEmUso[i] = FALSE;
+    }
+
     e->next = NULL;
     return e;
 }
@@ -710,6 +727,7 @@ void pushEscopo(Escopo e) {
     } else {
         e->next = escopo;
         escopo = e;
+        removeAllSavedOperands();
     }
 }
 
@@ -727,6 +745,7 @@ TargetOperand getTargetOpByName(char * name) {
 }
 
 TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op) {
+    reg.isAddress = FALSE;
     reg.op->kind = op->kind;
 
     if(op->kind == String) {
@@ -740,48 +759,73 @@ TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op) {
     return reg.targetOp;
 }
 
-void saveRegistradores(void) {
-    printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(1), NULL))); // sw $ra
-
-    /*Registrador reg;
-    if(escopo != NULL) {
-        reg = escopo->regList;
-    }
-
-    while(reg != NULL) {
-        if(toStringRegName(reg->TargetOperand->enderecamento.registrador)[1] == 115) {
-            TargetOperand rt;
-            if(reg->op->contents.variable.scope == NULL) {
-                rt = getStackLocation(2); // sw function return
-            } else {
-                rt = getStackOperandLocation(&reg->op);
-            }
-            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg->TargetOperand, rt, NULL)));
-        }
-        reg = reg->next;
-    }*/
+void removeOperand(TargetOperand opTarget) {
+    Registrador reg = registradores[(int) opTarget->enderecamento.registrador]; // Cast enum to int
+    reg.op->contents.variable.name = NULL;
+    reg.op->contents.variable.scope = NULL;
+    reg.isAddress = FALSE;
 }
 
-void recuperaRegistradores(void) {
-    printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(1), NULL))); // lw $ra
-
-    /*Registrador reg;
-    if(escopo != NULL) {
-        reg = escopo->regList;
+void removeAllSavedOperands(void) {
+    int i;
+    for(i = REG_SAVED_INICIO; i <= REG_SAVED_FIM; i++) {
+        Registrador reg = registradores[i];
+        reg.op->contents.variable.name = NULL;
+        reg.op->contents.variable.scope = NULL;
+        reg.isAddress = FALSE;
     }
+}
 
-    while(reg != NULL) {
-        if(toStringRegName(reg->TargetOperand->enderecamento.registrador)[1] == 115) {
-            TargetOperand rt;
-            if(reg->op->contents.variable.scope == NULL) {
-                rt = getStackLocation(2); // sw function return
-            } else {
-                rt = getStackOperandLocation(&reg->op);
+void saveRegistradores(int stackLocationRegAux) {
+    int i;
+    for(i = REG_SAVED_INICIO; i <= REG_SAVED_FIM; i++) {
+        Registrador reg = registradores[i];
+        TargetOperand rt;
+        int thereIsRegToSave = FALSE;
+
+        if(reg.isAddress) {
+            reg.isAddress = FALSE;
+            reg.op->contents.variable.name = NULL;
+            reg.op->contents.variable.scope = NULL;
+        } else {
+            if(reg.op->contents.variable.scope != NULL) {
+                rt = getStackOperandLocation(reg.op);
+                thereIsRegToSave = TRUE;
+            } else if(reg.op->contents.variable.scope == NULL && reg.op->contents.variable.name != NULL) {
+                rt = getStackLocation(stackLocationRegAux);
+                thereIsRegToSave = TRUE;
             }
-            printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg->TargetOperand, rt, NULL)));
+
+            if(thereIsRegToSave) {
+                escopo->registradoresEmUso[i - REG_SAVED_INICIO] = TRUE;
+                printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg.targetOp, rt, NULL)));
+            }
         }
-        reg = reg->next;
-    }*/
+    }
+}
+
+void recuperaRegistradores(int stackLocationRegAux) {
+    int i;
+    for(i = REG_SAVED_INICIO; i <= REG_SAVED_FIM; i++) {
+        Registrador reg = registradores[i];
+        TargetOperand rt;
+        int thereIsRegToLoad = FALSE;
+        int regWasSaved = escopo->registradoresEmUso[i - REG_SAVED_INICIO];
+
+        if(regWasSaved) {
+            if(reg.op->contents.variable.scope != NULL) {
+                rt = getStackOperandLocation(reg.op);
+                thereIsRegToLoad = TRUE;
+            } else if(reg.op->contents.variable.scope == NULL && reg.op->contents.variable.name != NULL) {
+                rt = getStackLocation(stackLocationRegAux);
+                thereIsRegToLoad = TRUE;
+            }
+
+            if(thereIsRegToLoad) {
+                printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, rt, NULL)));
+            }
+        }
+    }
 }
 
 Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, TargetOperand op1, TargetOperand op2, TargetOperand op3) {
@@ -875,10 +919,13 @@ void prepararRegistradores(void) {
     for(i = 0; i < QTD_REG; i++) {
         Registrador reg;
         reg.op = createOperand();
+        reg.op->contents.variable.name = NULL;
+        reg.op->contents.variable.scope = NULL;
         reg.targetOp = (TargetOperand) malloc(sizeof(struct targetOperand));
         reg.targetOp->tipoEnderecamento = REGISTRADOR;
         reg.targetOp->enderecamento.registrador = regNames[i];
         reg.regName = regNames[i];
+        reg.isAddress = FALSE;
         registradores[i] = reg;
     }
 }

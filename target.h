@@ -65,6 +65,7 @@ typedef struct escopo {
     int quantidadeVariaveis;
     int tamanhoBlocoMemoria;
     const char * nome;
+    int registradoresEmUso[10];
     struct escopo * next;
 } * Escopo;
 
@@ -72,6 +73,7 @@ typedef struct registrador {
     Operand op;
     RegisterName regName;
     TargetOperand targetOp;
+    int isAddress;
 } Registrador;
 
 typedef struct objeto {
@@ -102,9 +104,13 @@ TargetOperand getTargetOpByName(char * name);
 
 TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op);
 
-void saveRegistradores(void);
+void removeOperand(TargetOperand opTarget);
 
-void recuperaRegistradores(void);
+void removeAllSavedOperands(void);
+
+void saveRegistradores(int stackLocationRegAux);
+
+void recuperaRegistradores(int stackLocationRegAux);
 
 Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, TargetOperand op1, TargetOperand op2, TargetOperand op3);
 
