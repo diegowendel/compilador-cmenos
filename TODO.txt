@@ -1,5 +1,2 @@
-- Fix clock
-- Fix inputs
 - Fix negative numbers bug
 - Test logical and ; logical or
-- Investigar fibonnaci recursivo onde o problema possivelmente esta em registradores temporarios $t

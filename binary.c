@@ -35,30 +35,47 @@ const char * decimalToBinaryStr(unsigned x, int qtdBits) {
     return bin;
 }
 
+void inserirInstrucaoEspecial(Opcode opcode, char * str, int * linha) {
+    // Limpa o vetor de caracteres auxiliar
+    memset(temp, '\0', sizeof(temp));
+    // Boilerplate
+    strcat(temp, "assign disk[");
+    sprintf(str, "%d", *linha);
+    *linha += 1;
+    strcat(temp, str);
+    strcat(temp, "] = 32'b");
+    strcat(temp, toBinaryOpcode(opcode));
+    strcat(temp, "_");
+    switch (opcode) {
+        case _BGN_PGRM:
+            strcat(temp, getZeros(26));
+            strcat(temp, ";\t\t// Begin of Program");
+            break;
+        case _END_PGRM:
+            strcat(temp, getZeros(26));
+            strcat(temp, ";\t\t// End of Program");
+            break;
+        default:
+            strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
+            strcat(temp, ";\t\t// Jump to Main");
+            break;
+    }
+    emitCode(temp);
+}
+
 void geraCodigoBinario(Objeto codigoObjeto) {
     emitCode("\n********** Código binário **********\n");
     Objeto obj = codigoObjeto;
     char str[26];
     int linha = 0;
 
-    // Limpa o vetor de caracteres auxiliar
-    memset(temp, '\0', sizeof(temp));
-    // Boilerplate
-    strcat(temp, "assign rom[");
-    sprintf(str, "%d", linha++);
-    strcat(temp, str);
-    strcat(temp, "] = 32'b");
-    strcat(temp, toBinaryOpcode(_J));
-    strcat(temp, "_");
-    strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
-    strcat(temp, ";\t\t// Jump to Main");
-    emitCode(temp);
-
+    inserirInstrucaoEspecial(_J, str, &linha);
+    //inserirInstrucaoEspecial(_BGN_PGRM, str, &linha);
     while(obj != NULL) {
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
         // Boilerplate
-        strcat(temp, "assign rom[");
+        strcat(temp, "assign disk[");
         sprintf(str, "%d", linha++);
         strcat(temp, str);
         strcat(temp, "] = 32'b");
@@ -157,4 +174,5 @@ void geraCodigoBinario(Objeto codigoObjeto) {
         emitCode(temp);
         obj = obj->next;
     }
+   // inserirInstrucaoEspecial(_END_PGRM, str, &linha);
 }

@@ -17,6 +17,7 @@ typedef enum opcode {
     _IN, _OUT,
     _JF,
     _J, _JAL, _HALT,
+    _BGN_PGRM, _END_PGRM,
     _RTYPE
 } Opcode;
 

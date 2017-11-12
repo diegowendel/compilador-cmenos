@@ -70,6 +70,8 @@ const char * toBinaryOpcode(Opcode op) {
         "010101",
         // j,     jal,      halt
         "010110", "010111", "011000",
+        // bgn_pgrm,  end_pgrm
+        "011001",     "011010",
         // rtype
         "000000"
     };
