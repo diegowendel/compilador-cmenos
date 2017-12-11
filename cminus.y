@@ -18,7 +18,18 @@
     static TreeNode * savedTree; /* stores syntax tree for later return */
     static int yylex(void);
     static int yyerror(char * message);
-    static TreeNode * insertIOFunctions();
+    static TreeNode * createInsert();
+    static TreeNode * createOutput();
+    static TreeNode * createLoadDisk();
+    static TreeNode * createStoreDisk();
+    static TreeNode * createLoadInstMem();
+    static TreeNode * createStoreInstMem();
+    static TreeNode * createCheckHardDisk();
+    static TreeNode * createCheckInstMem();
+    static TreeNode * createCheckDataMem();
+    static TreeNode * createExec();
+    static TreeNode * createAddProgramStart();
+    static TreeNode * createReadProgramStart();
 %}
 
 %token IF ELSE WHILE RETURN
@@ -38,8 +49,19 @@
 program
     : declarationList
         {
-            savedTree = insertIOFunctions();
-            savedTree->sibling->sibling = $1;
+            savedTree = createInsert();
+            savedTree->sibling = createOutput();
+            savedTree->sibling->sibling = createLoadDisk();
+            savedTree->sibling->sibling->sibling = createStoreDisk();
+            savedTree->sibling->sibling->sibling->sibling = createLoadInstMem();
+            savedTree->sibling->sibling->sibling->sibling->sibling = createStoreInstMem();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling = createCheckHardDisk();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createCheckInstMem();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createCheckDataMem();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createExec();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createAddProgramStart();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createReadProgramStart();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = $1;
         }
     ;
 
@@ -636,35 +658,138 @@ TreeNode * parse(void) {
     return savedTree;
 }
 
-/* Insere as funções input e output na árvore sintática */
-static TreeNode * insertIOFunctions() {
-    /*********** Output **********/
-    TreeNode * output = newVarNode(FUNCTIONK);
-    output->lineno = 0;
-    output->op = ID;
-    output->type = VOID_TYPE;
-    output->kind.var.mem = FUNCTION_MEM;
-    output->kind.var.attr.name = "output";
+TreeNode * getIntNode(TreeNode * childNode) {
+    TreeNode * intNode = newStmtNode(INTEGERK);
+    intNode->op = INT;
+    intNode->type = INTEGER_TYPE;
+    intNode->child[0] = childNode;
+    return intNode;
+}
 
+TreeNode * getVoidNode(TreeNode * childNode) {
     TreeNode * voidNode = newStmtNode(VOIDK);
     voidNode->op = VOID;
     voidNode->type = VOID_TYPE;
-    voidNode->child[0] = output;
+    voidNode->child[0] = childNode;
+    return voidNode;
+}
 
-    /********** Input **********/
+static TreeNode * createInsert() {
     TreeNode * input = newVarNode(FUNCTIONK);
     input->lineno = 0;
     input->op = ID;
     input->type = INTEGER_TYPE;
     input->kind.var.mem = FUNCTION_MEM;
     input->kind.var.attr.name = "input";
+    return getIntNode(input);
+}
 
-    TreeNode * intNode = newStmtNode(INTEGERK);
-    intNode->op = INT;
-    intNode->type = INTEGER_TYPE;
-    intNode->child[0] = input;
+static TreeNode * createOutput() {
+    TreeNode * output = newVarNode(FUNCTIONK);
+    output->lineno = 0;
+    output->op = ID;
+    output->type = VOID_TYPE;
+    output->kind.var.mem = FUNCTION_MEM;
+    output->kind.var.attr.name = "output";
+    return getVoidNode(output);
+}
 
-    /********** Adicionando na árvore **********/
-    intNode->sibling = voidNode;
-    return intNode;
+static TreeNode * createLoadDisk() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "ldk";
+    return getVoidNode(node);
+}
+
+static TreeNode * createStoreDisk() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "sdk";
+    return getVoidNode(node);
+}
+
+static TreeNode * createLoadInstMem() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "lim";
+    return getVoidNode(node);
+}
+
+static TreeNode * createStoreInstMem() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "sim";
+    return getVoidNode(node);
+}
+
+static TreeNode * createCheckHardDisk() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "checkHD";
+    return getVoidNode(node);
+}
+
+static TreeNode * createCheckInstMem() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "checkIM";
+    return getVoidNode(node);
+}
+
+static TreeNode * createCheckDataMem() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "checkDM";
+    return getVoidNode(node);
+}
+
+static TreeNode * createExec() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "exec";
+    return getVoidNode(node);
+}
+
+static TreeNode * createAddProgramStart() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "addProgramStart";
+    return getVoidNode(node);
+}
+
+static TreeNode * createReadProgramStart() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = INTEGER_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "readProgramStart";
+    return getIntNode(node);
 }

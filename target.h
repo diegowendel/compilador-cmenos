@@ -17,7 +17,9 @@ typedef enum opcode {
     _IN, _OUT,
     _JF,
     _J, _JAL, _HALT,
-    _BGN_PGRM, _END_PGRM,
+    _LW_DISK, _SW_DISK,
+    _LW_IM, _SW_IM,
+    _CK_HD, _CK_IM, _CK_DM,
     _RTYPE
 } Opcode;
 
@@ -94,6 +96,8 @@ typedef struct label {
 } * Label;
 
 void geraCodigoObjeto(Quadruple q);
+
+void geraCodigoObjetoComDeslocamento(Quadruple q, int offset);
 
 void printCode(Objeto instrucao);
 

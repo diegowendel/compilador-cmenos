@@ -14,7 +14,8 @@ const char * toStringInstruction(enum instrucao i) {
         "equal", "not_equal", "less_than", "less_than_equal_to",
         "greater_than", "greater_than_equal_to", "assign",
         "function", "return", "get_param", "set_param", "call", "param_list",
-        "jump_if_false", "goto", "label", "halt"};
+        "jump_if_false", "goto", "label", "halt"
+    };
     return strings[i];
 }
 
@@ -27,6 +28,9 @@ const char * toStringOpcode(Opcode op) {
         "in", "out",
         "jf",
         "j", "jal", "halt",
+        "ldk", "sdk",
+        "lim", "sim",
+        "ckhd", "ckim", "ckdm",
         "rtype"
     };
     return strings[op];
@@ -70,8 +74,12 @@ const char * toBinaryOpcode(Opcode op) {
         "010101",
         // j,     jal,      halt
         "010110", "010111", "011000",
-        // bgn_pgrm,  end_pgrm
-        "011001",     "011010",
+        // ldk,   sdk
+        "011001", "011010",
+        // lim,   sim
+        "011011", "011100",
+        // ckhd,   ckim,    ckdm
+        "011101", "011110", "011111",
         // rtype
         "000000"
     };

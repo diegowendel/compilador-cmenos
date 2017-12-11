@@ -20,7 +20,7 @@ int findMax(int vetor[], int tam){
 void main(void){
 	int vetor[6];
 
-	vetor[0] = 10;
+	vetor[0] = 12;
 	vetor[1] = 41;
 	vetor[2] = 23;
 	vetor[3] = 98;

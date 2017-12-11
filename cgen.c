@@ -406,7 +406,7 @@ static void genVar(TreeNode * tree) {
     Quadruple q;
     TreeNode * p1, * p2;
     Operand op1, op2, op3;
-    int qtdParams, display = -1;
+    int qtdParams, offset, display = -1;
     switch (tree->kind.var.varKind) {
         case CONSTK:
             /* Atribui o operando atual */
@@ -453,8 +453,19 @@ static void genVar(TreeNode * tree) {
 
         case FUNCTIONK:
             verificaFimInstrucaoAnterior();
-            /* Se for função de input ou output não gera código intermediário */
-            if(strcmp(tree->kind.var.attr.name, "input") && strcmp(tree->kind.var.attr.name, "output")) {
+            /* Se for função de biblioteca não gera código intermediário */
+            if(strcmp(tree->kind.var.attr.name, "input")
+                && strcmp(tree->kind.var.attr.name, "output")
+                && strcmp(tree->kind.var.attr.name, "ldk")
+                && strcmp(tree->kind.var.attr.name, "sdk")
+                && strcmp(tree->kind.var.attr.name, "lim")
+                && strcmp(tree->kind.var.attr.name, "sim")
+                && strcmp(tree->kind.var.attr.name, "checkHD")
+                && strcmp(tree->kind.var.attr.name, "checkIM")
+                && strcmp(tree->kind.var.attr.name, "checkDM")
+                && strcmp(tree->kind.var.attr.name, "exec")
+                && strcmp(tree->kind.var.attr.name, "addProgramStart")
+                && strcmp(tree->kind.var.attr.name, "readProgramStart")) {
                 op1 = createOperand();
                 op1->kind = String;
                 op1->contents.variable.name = tree->kind.var.attr.name;
@@ -514,18 +525,26 @@ static void genVar(TreeNode * tree) {
                 /* Se for um chamado de OUTPUT, verifica o display de exibição */
                 if(!strcmp(tree->kind.var.attr.name, "output") && p1->sibling == NULL) {
                     display = p1->kind.var.attr.val;
+                } else if (!strcmp(tree->kind.var.attr.name, "addProgramStart") && operandoAtual->kind == IntConst) {
+                    offset = operandoAtual->contents.val;
                 }
                 p1 = p1->sibling;
             }
             popParam();
             /* Atribui o tipo de instrução */
             instrucaoAtual = CALL;
+            /* Armazena possível offset para manipulação da memória reservada de índice de programas */
+            if (op1->kind == IntConst) {
+                offset = operandoAtual->contents.val;
+            }
             /* Atualiza o operando atual */
             operandoAtual = createTemporaryOperand();
             /* Cria e insere uma nova representação em código intermediário */
             q = createQuad(instrucaoAtual, op1, op2, operandoAtual);
             if(display != -1) {
                 q->display = display;
+            } else if (!strcmp(tree->kind.var.attr.name, "addProgramStart")) {
+                q->offset = offset;
             }
             insertQuad(q);
             break;

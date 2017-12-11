@@ -4,6 +4,7 @@
 /* Diego Wendel de Oliveira Ferreira		        */
 /****************************************************/
 
+#include "binary.h"
 #include "target.h"
 #include "code.h"
 #include "util.h"
@@ -39,22 +40,22 @@ void inserirInstrucaoEspecial(Opcode opcode, char * str, int * linha) {
     // Limpa o vetor de caracteres auxiliar
     memset(temp, '\0', sizeof(temp));
     // Boilerplate
-    strcat(temp, "assign disk[");
+    strcat(temp, "disk[");
     sprintf(str, "%d", *linha);
     *linha += 1;
     strcat(temp, str);
-    strcat(temp, "] = 32'b");
+    strcat(temp, "] <= 32'b");
     strcat(temp, toBinaryOpcode(opcode));
     strcat(temp, "_");
     switch (opcode) {
-        case _BGN_PGRM:
+        /*case _BGN_PGRM:
             strcat(temp, getZeros(26));
             strcat(temp, ";\t\t// Begin of Program");
             break;
         case _END_PGRM:
             strcat(temp, getZeros(26));
             strcat(temp, ";\t\t// End of Program");
-            break;
+            break;*/
         default:
             strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
             strcat(temp, ";\t\t// Jump to Main");
@@ -63,22 +64,31 @@ void inserirInstrucaoEspecial(Opcode opcode, char * str, int * linha) {
     emitCode(temp);
 }
 
-void geraCodigoBinario(Objeto codigoObjeto) {
+void geraCodigoBinario(Objeto codigoObjeto, int isKernelCode) {
+    geraCodigoBinarioComDeslocamento(codigoObjeto, 0, isKernelCode);
+}
+
+void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, int offset, int isKernelCode) {
     emitCode("\n********** Código binário **********\n");
     Objeto obj = codigoObjeto;
     char str[26];
-    int linha = 0;
+    int linha = offset;
 
     inserirInstrucaoEspecial(_J, str, &linha);
     //inserirInstrucaoEspecial(_BGN_PGRM, str, &linha);
+
+    // Workaround
+    if (isKernelCode) {
+        obj->op3->enderecamento.imediato += 9;
+    }
     while(obj != NULL) {
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
         // Boilerplate
-        strcat(temp, "assign disk[");
+        strcat(temp, "disk[");
         sprintf(str, "%d", linha++);
         strcat(temp, str);
-        strcat(temp, "] = 32'b");
+        strcat(temp, "] <= 32'b");
 
         // Traduz o opcode para binário
         strcat(temp, toBinaryOpcode(obj->opcode));

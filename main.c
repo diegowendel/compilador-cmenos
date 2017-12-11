@@ -68,7 +68,7 @@ int codigoObjetoGerado = FALSE;
 int main( int argc, char * argv[] ) {
     TreeNode * syntaxTree;
     char pgm[120]; /* source code file name */
-    if (argc != 2) {
+    if (argc != 2 && argc != 3) {
         fprintf(stderr, "usage: %s <filename>\n", argv[0]);
         exit(1);
     }
@@ -128,7 +128,11 @@ int main( int argc, char * argv[] ) {
         code = fopen(codefile, "a+");
         Quadruple codigoIntermediario = getCodigoIntermediario();
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
-        geraCodigoObjeto(codigoIntermediario);
+        if (argc == 2) {
+            geraCodigoObjeto(codigoIntermediario);
+        } else if (argc == 3) {
+            geraCodigoObjetoComDeslocamento(codigoIntermediario, atoi(argv[2]));
+        }
         fclose(code);
         if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n");
         // Código objeto gerado com sucesso
@@ -144,7 +148,13 @@ int main( int argc, char * argv[] ) {
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
-        geraCodigoBinario(codigoObjeto);
+
+        if(argc == 2) {
+            geraCodigoBinario(codigoObjeto, TRUE);
+        } else if(argc == 3) {
+            geraCodigoBinarioComDeslocamento(codigoObjeto, atoi(argv[2]), FALSE);
+        }
+
         fclose(code);
         if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
     }

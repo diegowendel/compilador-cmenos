@@ -37,6 +37,7 @@ typedef struct Quad {
     InstructionKind instruction;
     int linha;
     int display;
+    int offset;
     Operand op1;
     Operand op2;
     Operand op3;

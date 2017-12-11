@@ -53,6 +53,7 @@ static int indent = 0;
 /* Variáveis auxiliares na geração de código objeto */
 static char temp[100];
 static int linha = 0;
+static int deslocamento;
 
  /* Operandos especiais */
 TargetOperand rtnAddrOp;
@@ -136,6 +137,18 @@ TargetOperand getStackLocation(int offset) {
     operando->tipoEnderecamento = INDEXADO;
     operando->enderecamento.indexado.offset = offset;
     operando->enderecamento.indexado.registrador = regNames[REG_STACK];
+    return operando;
+}
+
+/* Retorna as posições iniciais da memória de dados de acorodo com o programa escolhido
+ * Obs: Posições iniciais de memória devem ser reservadas
+ */
+TargetOperand getStackZeroOperandLocation(int offset) {
+    // Operando que representa o modo de endereçamento indexado
+    TargetOperand operando = (TargetOperand) malloc(sizeof(struct targetOperand));
+    operando->tipoEnderecamento = INDEXADO;
+    operando->enderecamento.indexado.offset = offset;
+    operando->enderecamento.indexado.registrador = regNames[REG_ZERO];
     return operando;
 }
 
@@ -345,6 +358,32 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "output")) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
+    } else if(!strcmp(q->op1->contents.variable.name, "ldk")) {
+        printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, getTempReg(q->op3), getArgReg(0), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "sdk")) {
+        printCode(insertObjInst(createObjInst(_SW_DISK, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "lim")) {
+        printCode(insertObjInst(createObjInst(_LW_IM, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "sim")) {
+        printCode(insertObjInst(createObjInst(_SW_IM, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "checkHD")) {
+        printCode(insertObjInst(createObjInst(_CK_HD, TYPE_J, NULL, NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "checkIM")) {
+        printCode(insertObjInst(createObjInst(_CK_IM, TYPE_J, NULL, NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "checkDM")) {
+        printCode(insertObjInst(createObjInst(_CK_DM, TYPE_J, NULL, NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "exec")) {
+        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _JR, TYPE_R, getArgReg(0), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "addProgramStart")) {
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, getArgReg(0), getStackZeroOperandLocation(q->offset), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "readProgramStart")) {
+        TargetOperand posicaoZero = getTempReg(q->op1);
+        printCode(insertObjInst(createObjInst(_LA, TYPE_I, posicaoZero, getStackZeroOperandLocation(0), NULL)));
+        TargetOperand aux = getTempReg(q->op1);
+        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _ADD, TYPE_R, aux, getArgReg(0), posicaoZero)));
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, aux, getMemIndexedLocation(aux->enderecamento.registrador, 0), NULL)));
+        TargetOperand aux2 = getTempReg(q->op3);
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, aux2, aux, NULL)));
     } else if(!strcmp(escopo->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
@@ -513,11 +552,16 @@ void geraCodigoLabel(Quadruple q) {
 }
 
 void geraCodigoObjeto(Quadruple q) {
+    geraCodigoObjetoComDeslocamento(q, 0);
+}
+
+void geraCodigoObjetoComDeslocamento(Quadruple q, int offset) {
     INDENT;
     emitCode("\n********** Código objeto **********");
     // Antes de começar gerar código objeto, prepara os registradores especiais
     prepararRegistradores();
     prepararOperandosEspeciais();
+    deslocamento = offset;
     while(q != NULL) {
         switch (q->instruction) {
             /* Aritméticas */
@@ -882,7 +926,7 @@ TargetOperand getOperandLabel(char * name) {
 Label createLabel(char * nome, int linha) {
     Label l = (Label) malloc(sizeof(struct label));
     l->nome = nome;
-    l->linha = linha;
+    l->linha = linha + deslocamento;
     l->next = NULL;
     return l;
 }

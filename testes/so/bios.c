@@ -1,10 +1,28 @@
 void main(void) {
-	int val;
+	int i;	
 
-	val = 10;
-	if (val == 10)
-		output(1, 0);
-	else
-		output(2, 0);
-	val = 0;
+	checkHD();
+	checkIM();
+	checkDM();
+
+	i = 0;
+	while (i < 500) {
+		sim(ldk(i), i);
+		i += 1;
+	}
+	i = 0;
 }
+
+/**
+ * ldk(address)
+ *
+ * RS - Address
+ * RT - Register Destiny
+ */
+
+/**
+ * sim(data, address)
+ * 
+ * RS - Address
+ * RT - Data
+ */
