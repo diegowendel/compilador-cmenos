@@ -72,6 +72,9 @@ typedef enum {LOCALK, PARAMK, GLOBALK, FUNCTION_MEM} VarMemK;
 /* ExpType é usado para checagem de tipos */
 typedef enum exp {VOID_TYPE, INTEGER_TYPE} ExpType;
 
+/* Used to select the type of code generation */
+typedef enum {PROGRAMA, BIOS, KERNEL} CodeType;
+
 #define MAXCHILDREN 3
 
 typedef struct Identifier {

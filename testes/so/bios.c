@@ -1,16 +1,17 @@
 void main(void) {
-	int i;	
+	int i;
+	int x;
 
 	checkHD();
 	checkIM();
 	checkDM();
 
 	i = 0;
-	while (i < 500) {
-		sim(ldk(i), i);
+	while (i < 68) {
+		x = ldk(i);
+		sim(x, i);
 		i += 1;
 	}
-	i = 0;
 }
 
 /**
@@ -18,6 +19,8 @@ void main(void) {
  *
  * RS - Address
  * RT - Register Destiny
+ *
+ * returns a instruction of HD
  */
 
 /**

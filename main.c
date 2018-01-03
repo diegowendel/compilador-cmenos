@@ -65,13 +65,34 @@ int Error = FALSE;
 int codigoIntermediarioGerarado = FALSE;
 int codigoObjetoGerado = FALSE;
 
+int isBiosOption(char * argv) {
+    int size = strlen(argv);
+    if (size == 2 && argv[0] == '-' && argv[1] == 'b') {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 int main( int argc, char * argv[] ) {
     TreeNode * syntaxTree;
+    CodeType codeType;
+    int offset = 0;
     char pgm[120]; /* source code file name */
-    if (argc != 2 && argc != 3) {
+
+    if (argc == 2) {
+        codeType = KERNEL;
+    } else if (argc == 3) {
+        if (isBiosOption(argv[2])) {
+            codeType = BIOS;
+        } else {
+            codeType = PROGRAMA;
+            offset = atoi(argv[2]);
+        }
+    } else {
         fprintf(stderr, "usage: %s <filename>\n", argv[0]);
         exit(1);
     }
+
     strcpy(pgm,argv[1]) ;
     if (strchr (pgm, '.') == NULL) {
         strcat(pgm, ".tny");
@@ -128,11 +149,7 @@ int main( int argc, char * argv[] ) {
         code = fopen(codefile, "a+");
         Quadruple codigoIntermediario = getCodigoIntermediario();
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
-        if (argc == 2) {
-            geraCodigoObjeto(codigoIntermediario);
-        } else if (argc == 3) {
-            geraCodigoObjetoComDeslocamento(codigoIntermediario, atoi(argv[2]));
-        }
+        geraCodigoObjeto(codigoIntermediario, codeType);
         fclose(code);
         if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n");
         // Código objeto gerado com sucesso
@@ -148,13 +165,7 @@ int main( int argc, char * argv[] ) {
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
-
-        if(argc == 2) {
-            geraCodigoBinario(codigoObjeto, TRUE);
-        } else if(argc == 3) {
-            geraCodigoBinarioComDeslocamento(codigoObjeto, atoi(argv[2]), FALSE);
-        }
-
+        geraCodigoBinarioComDeslocamento(codigoObjeto, codeType, offset);
         fclose(code);
         if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
     }

@@ -36,8 +36,24 @@ typedef enum type {
     TYPE_R, TYPE_I, TYPE_J
 } Type;
 
+/**
+ * Registradores da máquina alvo
+ *
+ * $rz - Registrador zero
+ * $v0 - Registrador que guarda o valor retornado de uma função
+ * $ms - Registrador que guarda a quantidade de deslocamento para transformar um endereço lógico criado em tempo de compilação
+ para endereço físico na memória em tempo de execução (Memory shift)
+ * $out
+ * $inv
+ * $gp - Registrador global
+ * $aX - Registradores de parâmetros de função
+ * $tX - Registradores temporários
+ * $sX - Registradores salvos entre chamados de função
+ * $sp - Registrador da Stack
+ * $ra - Registrador que guarda o endereço para se realizar um return
+ */
 typedef enum registerName {
-    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
+    $rz, $v0, $ms, $out, $inv, $gp, $a0, $a1,
     $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
     $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
     $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
@@ -58,6 +74,7 @@ typedef struct targetOperand {
         char * label;
     } enderecamento;
     AddressingType tipoEnderecamento;
+    int deslocamento; // deslocamento com base no Stack reg
 } * TargetOperand;
 
 typedef struct escopo {
@@ -95,9 +112,7 @@ typedef struct label {
     struct label * next;
 } * Label;
 
-void geraCodigoObjeto(Quadruple q);
-
-void geraCodigoObjetoComDeslocamento(Quadruple q, int offset);
+void geraCodigoObjeto(Quadruple q, CodeType codeType);
 
 void printCode(Objeto instrucao);
 
@@ -108,6 +123,8 @@ void pushEscopo(Escopo e);
 TargetOperand getTargetOpByName(char * name);
 
 TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op);
+
+void updateRegisterContent(TargetOperand operand);
 
 void removeOperand(TargetOperand opTarget);
 

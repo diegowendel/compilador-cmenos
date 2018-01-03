@@ -4,17 +4,17 @@ int findMax(int vetor[], int tam){
 	int max;
 	i = 0;
 	max = 0;
-
+	output(vetor[1], 2);
 	while(i < tam) {
+		//output(45, 0);
 		if(max < vetor[i]) {
+			
 			max = vetor[i];
 			pos = i;
 		}
 		i = i + 1;
 	}
-	
-	output(pos, 1);
-	output(max, 2);
+	//output(max, 2);
 }
 
 void main(void){
@@ -26,6 +26,6 @@ void main(void){
 	vetor[3] = 98;
 	vetor[4] = 33;
 	vetor[5] = 21;
-
+output(vetor[1], 1);
 	findMax(vetor, 6);
 }

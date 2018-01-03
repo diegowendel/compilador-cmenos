@@ -37,6 +37,7 @@
 #define REG_OUTPUT 3
 #define REG_GLOBAL 5
 #define REG_INVALID 4
+#define REG_MEM_SHIFT 2
 
 /* Cabeça da lista de instruções objeto */
 Objeto objHead = NULL;
@@ -53,7 +54,6 @@ static int indent = 0;
 /* Variáveis auxiliares na geração de código objeto */
 static char temp[100];
 static int linha = 0;
-static int deslocamento;
 
  /* Operandos especiais */
 TargetOperand rtnAddrOp;
@@ -62,10 +62,11 @@ TargetOperand stackOp;
 TargetOperand outputOp;
 TargetOperand rZeroOp;
 TargetOperand globalOp;
+TargetOperand memShft;
 
 Registrador registradores[QTD_REG];
 RegisterName regNames[QTD_REG] = {
-    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
+    $rz, $v0, $ms, $out, $inv, $gp, $a0, $a1,
     $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
     $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
     $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
@@ -228,6 +229,7 @@ TargetOperand getOperandRegName(Operand op) {
                 rt = getStackOperandLocation(op);
             }
             printCode(insertObjInst(createObjInst(_LW, TYPE_I, rs, rt, NULL)));
+            rs->deslocamento = rt->enderecamento.indexado.offset;
         }
     } else { /* Valor Imediato */
         // Prepara o operando
@@ -324,12 +326,9 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
             printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getMemIndexedLocation(r->enderecamento.registrador, q->op3->contents.val), NULL)));
         } else {
             // Variável comum
-            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getGlobalOperandLocation(q->op1), NULL)));
-            /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
-            TargetOperand regAux = getTargetOpByName(q->op1->contents.variable.name);
-            if(regAux != NULL) {
-                removeOperand(regAux);
-            }
+            TargetOperand op = getStackOperandLocation(q->op1);
+            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, op, NULL)));
+            updateRegisterContent(op);
         }
     } else {
         if(q->op3 != NULL) {
@@ -338,12 +337,9 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
             printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getMemIndexedLocation(r->enderecamento.registrador, q->op3->contents.val), NULL)));
         } else {
             // Variável comum
-            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getStackOperandLocation(q->op1), NULL)));
-            /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
-            TargetOperand regAux = getTargetOpByName(q->op1->contents.variable.name);
-            if(regAux != NULL) {
-                removeOperand(regAux);
-            }
+            TargetOperand op = getStackOperandLocation(q->op1);
+            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, op, NULL)));
+            updateRegisterContent(op);
         }
     }
 }
@@ -359,7 +355,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "output")) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(q->op1->contents.variable.name, "ldk")) {
-        printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, getTempReg(q->op3), getArgReg(0), NULL)));
+        TargetOperand lidoDoDisco = getTempReg(q->op3);
+        printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, lidoDoDisco, getArgReg(0), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sdk")) {
         printCode(insertObjInst(createObjInst(_SW_DISK, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lim")) {
@@ -373,7 +370,12 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "checkDM")) {
         printCode(insertObjInst(createObjInst(_CK_DM, TYPE_J, NULL, NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "exec")) {
+        // Atribui o registrador que contém o valor de Memory Shift
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, memShft, getArgReg(0), NULL)));
+        // Realiza um salto para o programa selecionado
         printCode(insertObjInst(createObjInstTypeR(_RTYPE, _JR, TYPE_R, getArgReg(0), NULL, NULL)));
+        // Reseta o registrador de Memory Shift após retornar ao Sistema Operacional
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, memShft, rZeroOp, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "addProgramStart")) {
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, getArgReg(0), getStackZeroOperandLocation(q->offset), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "readProgramStart")) {
@@ -387,7 +389,11 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(escopo->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
-        printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
+        TargetOperand op1 = getOperandLabel(q->op1->contents.variable.name);
+        TargetOperand temp = getTempReg(q->op1);
+        printCode(insertObjInst(createObjInst(_LI, TYPE_I, temp, op1, NULL)));
+        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _ADD, TYPE_R, temp, temp, memShft)));
+        printCode(insertObjInst(createObjInst(_JAL, TYPE_I, temp, NULL, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValOp, NULL)));
         /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
@@ -397,6 +403,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         int regAddrStackLocation = tamanhoBlocoMemoria + 1;
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-regAddrStackLocation), NULL))); // sw $ra
         saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
+
+        // TODO THE SAME AS ABOVE!
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
         /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
@@ -420,23 +428,21 @@ void geraCodigoSetParam(Quadruple q) {
     if(escopo->argRegCount < 4) {
         /* Verifica se é uma constante ou variável */
         if(q->op1->kind == String) { // Variável
+            TargetOperand arg = getArgReg(escopo->argRegCount);
             if(var != NULL && var->treeNode->node == VARK && var->treeNode->kind.var.varKind == VECTORK) { // Vetor
-                TargetOperand arg = getArgReg(escopo->argRegCount);
                 printCode(insertObjInst(createObjInst(_LA, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
                 registradores[(int) arg->enderecamento.registrador].isAddress = TRUE;
             } else { // Variável
                 reg = getOperandRegName(q->op1);
-                TargetOperand arg = getArgReg(escopo->argRegCount);
                 if(getArgReg(escopo->argRegCount)->enderecamento.registrador != reg->enderecamento.registrador) { /* Só move se os registradores forem diferentes */
                     printCode(insertObjInst(createObjInst(_MOV, TYPE_I, arg, reg, NULL)));
-                    //removeOperand(arg);
                 }
             }
         } else { // Constante
             printCode(insertObjInst(createObjInst(_LI, TYPE_I, getArgReg(escopo->argRegCount), getImediato(q->op1->contents.val), NULL)));
         }
         escopo->argRegCount++;
-    } else { // TODO fazer o resto
+    } else { // TODO fazer o resto - NOT YET
         TargetOperand rs = getSavedReg(q->op1);
         TargetOperand rt;
         Opcode opcode;
@@ -465,7 +471,6 @@ void geraCodigoGetParam(Quadruple q) {
     if(escopo->argRegCount < 4) {
         TargetOperand arg = getArgReg(escopo->argRegCount);
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
-        //removeOperand(arg);
         escopo->argRegCount++;
     } else if(escopo->argRegCount >= 4) {
         TargetOperand savedReg = getSavedReg(q->op1);
@@ -536,7 +541,18 @@ void geraCodigoFuncao(Quadruple q) {
 void geraCodigoDesvio(Quadruple q) {
     TargetOperand op1 = getOperandRegName(q->op1);
     TargetOperand op2 = getOperandLabel(q->op2->contents.variable.name);
-    printCode(insertObjInst(createObjInst(_JF, TYPE_I, op1, op2, NULL)));
+    TargetOperand temp = getTempReg(q->op2);
+    printCode(insertObjInst(createObjInst(_LI, TYPE_I, temp, op2, NULL)));
+    printCode(insertObjInst(createObjInstTypeR(_RTYPE, _ADD, TYPE_R, temp, temp, memShft)));
+    printCode(insertObjInst(createObjInst(_JF, TYPE_I, temp, op1, NULL))); // Operandos invertidos por conta da geração de cód binário
+}
+
+void geraCodigoSalto(Quadruple q) {
+    TargetOperand op1 = getOperandLabel(q->op1->contents.variable.name);
+    TargetOperand temp = getTempReg(q->op1);
+    printCode(insertObjInst(createObjInst(_LI, TYPE_I, temp, op1, NULL)));
+    printCode(insertObjInst(createObjInstTypeR(_RTYPE, _ADD, TYPE_R, temp, temp, memShft)));
+    printCode(insertObjInst(createObjInstTypeR(_RTYPE, _JR, TYPE_R, temp, NULL, NULL)));
 }
 
 void geraCodigoLabel(Quadruple q) {
@@ -551,17 +567,38 @@ void geraCodigoLabel(Quadruple q) {
     emitCode(temp);
 }
 
-void geraCodigoObjeto(Quadruple q) {
-    geraCodigoObjetoComDeslocamento(q, 0);
+void geraCodigoJumpToMain(CodeType codeType) {
+    if (codeType == KERNEL || codeType == BIOS) {
+        printCode(insertObjInst(createObjInst(_J, TYPE_J, getOperandLabel((char *) "main"), NULL, NULL)));
+    } else {
+        Operand op = createOperand();
+        op->kind = String;
+        op->contents.variable.name = (char *) "main";
+        op->contents.variable.scope = globalScope;
+
+        Quadruple quad = (Quadruple) malloc(sizeof(struct Quad));
+        quad->instruction = ADD;
+        quad->op1 = op;
+        quad->op2 = NULL;
+        quad->op3 = NULL;
+        quad->linha = linha++;
+        quad->next = NULL;
+
+        TargetOperand op1 = getOperandLabel((char *) "main");
+        TargetOperand temp = registradores[SHIFT_COUNTER_REG_TEMP].targetOp;
+        printCode(insertObjInst(createObjInst(_LI, TYPE_I, temp, op1, NULL)));
+        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _ADD, TYPE_R, temp, temp, memShft)));
+        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _JR, TYPE_R, temp, NULL, NULL)));
+    }
 }
 
-void geraCodigoObjetoComDeslocamento(Quadruple q, int offset) {
+void geraCodigoObjeto(Quadruple q, CodeType codeType) {
     INDENT;
-    emitCode("\n********** Código objeto **********");
+    emitCode("\n********** Código objeto **********\n");
     // Antes de começar gerar código objeto, prepara os registradores especiais
     prepararRegistradores();
     prepararOperandosEspeciais();
-    deslocamento = offset;
+    geraCodigoJumpToMain(codeType);
     while(q != NULL) {
         switch (q->instruction) {
             /* Aritméticas */
@@ -667,7 +704,7 @@ void geraCodigoObjetoComDeslocamento(Quadruple q, int offset) {
 
             /* Saltos */
             case GOTO:
-                printCode(insertObjInst(createObjInst(_J, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
+                geraCodigoSalto(q);
                 break;
             case JPF:
                 geraCodigoDesvio(q);
@@ -803,6 +840,18 @@ TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op) {
     return reg.targetOp;
 }
 
+void updateRegisterContent(TargetOperand operand) {
+    int i;
+    for(i = REG_SAVED_INICIO; i <= REG_SAVED_FIM; i++) {
+        Registrador reg = registradores[i];
+        if (reg.op->contents.variable.name != NULL &&
+            reg.op->contents.variable.scope != NULL &&
+            reg.targetOp->deslocamento == operand->enderecamento.indexado.offset) {
+            printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, operand, NULL)));
+        }
+    }
+}
+
 void removeOperand(TargetOperand opTarget) {
     Registrador reg = registradores[(int) opTarget->enderecamento.registrador]; // Cast enum to int
     reg.op->contents.variable.name = NULL;
@@ -926,7 +975,7 @@ TargetOperand getOperandLabel(char * name) {
 Label createLabel(char * nome, int linha) {
     Label l = (Label) malloc(sizeof(struct label));
     l->nome = nome;
-    l->linha = linha + deslocamento;
+    l->linha = linha;
     l->next = NULL;
     return l;
 }
@@ -951,7 +1000,7 @@ int getLinhaLabel(char * nome) {
     }
     while(l != NULL) {
         if(!strcmp(nome, l->nome)) {
-            return l->linha + 1; // +1 útil no código binário
+            return l->linha; // +1 útil no código binário
         }
         l = l->next;
     }
@@ -981,6 +1030,7 @@ void prepararOperandosEspeciais(void) {
     outputOp = registradores[REG_OUTPUT].targetOp;
     rZeroOp = registradores[REG_ZERO].targetOp;
     globalOp = registradores[REG_GLOBAL].targetOp;
+    memShft = registradores[REG_MEM_SHIFT].targetOp;
 }
 
 Objeto getCodigoObjeto(void) {
