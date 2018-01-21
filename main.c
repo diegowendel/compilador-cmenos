@@ -1,8 +1,7 @@
 /****************************************************/
-/* File: main.c                                     */
-/* Main program for TINY compiler                   */
-/* Compiler Construction: Principles and Practice   */
-/* Kenneth C. Louden                                */
+/* Arquivo: main.c                                  */
+/* Main para o compilador da máquina iZero          */
+/* Diego Wendel de Oliveira Ferreira                */
 /****************************************************/
 
 #include "globals.h"
@@ -28,6 +27,7 @@
 #define NO_BINARY_CODE FALSE
 
 #include "util.h"
+#include "cli.h"
 #if NO_PARSE
 #include "scan.h"
 #else
@@ -65,24 +65,16 @@ int Error = FALSE;
 int codigoIntermediarioGerarado = FALSE;
 int codigoObjetoGerado = FALSE;
 
-int main( int argc, char * argv[] ) {
+int main(int argc, char * argv[]) {
     TreeNode * syntaxTree;
-    char pgm[120]; /* source code file name */
-    if (argc != 2 && argc != 3) {
-        fprintf(stderr, "usage: %s <filename>\n", argv[0]);
-        exit(1);
+
+    if (argc == 1) {
+        mostrarErroArgumentos(argv[0]);
     }
-    strcpy(pgm,argv[1]) ;
-    if (strchr (pgm, '.') == NULL) {
-        strcat(pgm, ".tny");
-    }
-    source = fopen(pgm, "r");
-    if (source == NULL) {
-        fprintf(stderr, "Arquivo %s não encontrado\n", pgm);
-        exit(1);
-    }
+
+    CodeInfo codeInfo = interpretar(argc, argv);    
     listing = stdout; /* send listing to screen */
-    fprintf(listing, "\nCOMPILAÇÃO C MENOS: %s\n", pgm);
+    fprintf(listing, "\nCOMPILAÇÃO C MENOS: %s\n", codeInfo.pgm);
 #if NO_PARSE
     while (getToken() != ENDFILE);
 #else
@@ -102,9 +94,10 @@ int main( int argc, char * argv[] ) {
 #if !NO_CODE
     if (! Error) {
         char * codefile;
-        int fnlen = strcspn(pgm, ".");
+        int fnlen = strcspn(codeInfo.pgm, ".");
+        printf("\n\n\nalo: %s\n\n\n", codeInfo.pgm);
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
-        strncpy(codefile, pgm, fnlen);
+        strncpy(codefile, codeInfo.pgm, fnlen);
         strcat(codefile, ".txt");
         code = fopen(codefile, "w");
         if (code == NULL) {
@@ -121,18 +114,14 @@ int main( int argc, char * argv[] ) {
 #if !NO_TARGET_CODE
     if(codigoIntermediarioGerarado) {
         char * codefile;
-        int fnlen = strcspn(pgm, ".");
+        int fnlen = strcspn(codeInfo.pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
-        strncpy(codefile, pgm, fnlen);
+        strncpy(codefile, codeInfo.pgm, fnlen);
         strcat(codefile, ".txt");
         code = fopen(codefile, "a+");
         Quadruple codigoIntermediario = getCodigoIntermediario();
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
-        if (argc == 2) {
-            geraCodigoObjeto(codigoIntermediario);
-        } else if (argc == 3) {
-            geraCodigoObjetoComDeslocamento(codigoIntermediario, atoi(argv[2]));
-        }
+        geraCodigoObjeto(codigoIntermediario, codeInfo.codeType);
         fclose(code);
         if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n");
         // Código objeto gerado com sucesso
@@ -141,20 +130,14 @@ int main( int argc, char * argv[] ) {
 #if !NO_BINARY_CODE
     if(codigoObjetoGerado) {
         char * codefile;
-        int fnlen = strcspn(pgm, ".");
+        int fnlen = strcspn(codeInfo.pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
-        strncpy(codefile, pgm, fnlen);
+        strncpy(codefile, codeInfo.pgm, fnlen);
         strcat(codefile, ".txt");
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
-
-        if(argc == 2) {
-            geraCodigoBinario(codigoObjeto, TRUE);
-        } else if(argc == 3) {
-            geraCodigoBinarioComDeslocamento(codigoObjeto, atoi(argv[2]), FALSE);
-        }
-
+        geraCodigoBinarioComDeslocamento(codigoObjeto, codeInfo.codeType, codeInfo.offset);
         fclose(code);
         if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
     }
