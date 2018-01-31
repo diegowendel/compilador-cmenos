@@ -698,10 +698,10 @@ static TreeNode * createLoadDisk() {
     TreeNode * node = newVarNode(FUNCTIONK);
     node->lineno = 0;
     node->op = ID;
-    node->type = VOID_TYPE;
+    node->type = INTEGER_TYPE;
     node->kind.var.mem = FUNCTION_MEM;
     node->kind.var.attr.name = "ldk";
-    return getVoidNode(node);
+    return getIntNode(node);
 }
 
 static TreeNode * createStoreDisk() {

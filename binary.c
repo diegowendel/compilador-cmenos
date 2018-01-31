@@ -11,6 +11,12 @@
 
 char temp[100];
 
+// Boilerplate strings
+const char * boilerplateBios1 = "assign bios[";
+const char * boilerplateBios2 = "] = 32'b";
+const char * boilerplateDisk1 = "disk[";
+const char * boilerplateDisk2 = "] <= 32'b";
+
 const char * getZeros(int n) {
     int i = 0;
     char * zeros = (char *) malloc(n + 1);
@@ -36,59 +42,45 @@ const char * decimalToBinaryStr(unsigned x, int qtdBits) {
     return bin;
 }
 
-void inserirInstrucaoEspecial(Opcode opcode, char * str, int * linha) {
+void inserirJumpToMain(CodeType codeType) {
+    char str[26];
     // Limpa o vetor de caracteres auxiliar
     memset(temp, '\0', sizeof(temp));
     // Boilerplate
-    strcat(temp, "disk[");
-    sprintf(str, "%d", *linha);
-    *linha += 1;
+    strcat(temp, codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
+    sprintf(str, "%d", 0);
     strcat(temp, str);
-    strcat(temp, "] <= 32'b");
-    strcat(temp, toBinaryOpcode(opcode));
+    strcat(temp, codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
+    strcat(temp, toBinaryOpcode(_J));
     strcat(temp, "_");
-    switch (opcode) {
-        /*case _BGN_PGRM:
-            strcat(temp, getZeros(26));
-            strcat(temp, ";\t\t// Begin of Program");
-            break;
-        case _END_PGRM:
-            strcat(temp, getZeros(26));
-            strcat(temp, ";\t\t// End of Program");
-            break;*/
-        default:
-            strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
-            strcat(temp, ";\t\t// Jump to Main");
-            break;
-    }
+    strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
+    strcat(temp, ";\t\t// Jump to Main");
     emitCode(temp);
 }
 
-void geraCodigoBinario(Objeto codigoObjeto, int isKernelCode) {
-    geraCodigoBinarioComDeslocamento(codigoObjeto, 0, isKernelCode);
-}
-
-void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, int offset, int isKernelCode) {
+void geraCodigoBinario(Objeto codigoObjeto, CodeType codeType) {
     emitCode("\n********** Código binário **********\n");
     Objeto obj = codigoObjeto;
     char str[26];
-    int linha = offset;
+    int linha = 1;
+    int posicoesReservadas;
+    int MAIN_POSITION;
 
-    inserirInstrucaoEspecial(_J, str, &linha);
-    //inserirInstrucaoEspecial(_BGN_PGRM, str, &linha);
+    //if (codeType != BIOS) {
+        inserirJumpToMain(codeType);
+        MAIN_POSITION = getLinhaLabel((char*) "main");
+    //}
 
-    // Workaround
-    if (isKernelCode) {
-        obj->op3->enderecamento.imediato += 9;
-    }
     while(obj != NULL) {
+        // Workaround
+        posicoesReservadas = codeType == KERNEL && linha == MAIN_POSITION ? 9 : 0;
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
         // Boilerplate
-        strcat(temp, "disk[");
+        strcat(temp, codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
         sprintf(str, "%d", linha++);
         strcat(temp, str);
-        strcat(temp, "] <= 32'b");
+        strcat(temp, codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
 
         // Traduz o opcode para binário
         strcat(temp, toBinaryOpcode(obj->opcode));

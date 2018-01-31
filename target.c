@@ -53,7 +53,6 @@ static int indent = 0;
 /* Variáveis auxiliares na geração de código objeto */
 static char temp[100];
 static int linha = 0;
-static int deslocamento;
 
  /* Operandos especiais */
 TargetOperand rtnAddrOp;
@@ -228,6 +227,7 @@ TargetOperand getOperandRegName(Operand op) {
                 rt = getStackOperandLocation(op);
             }
             printCode(insertObjInst(createObjInst(_LW, TYPE_I, rs, rt, NULL)));
+            rs->deslocamento = rt->enderecamento.indexado.offset;
         }
     } else { /* Valor Imediato */
         // Prepara o operando
@@ -324,12 +324,9 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
             printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getMemIndexedLocation(r->enderecamento.registrador, q->op3->contents.val), NULL)));
         } else {
             // Variável comum
-            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getGlobalOperandLocation(q->op1), NULL)));
-            /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
-            TargetOperand regAux = getTargetOpByName(q->op1->contents.variable.name);
-            if(regAux != NULL) {
-                removeOperand(regAux);
-            }
+            TargetOperand op = getStackOperandLocation(q->op1);
+            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, op, NULL)));
+            updateRegisterContent(op);
         }
     } else {
         if(q->op3 != NULL) {
@@ -338,12 +335,9 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
             printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getMemIndexedLocation(r->enderecamento.registrador, q->op3->contents.val), NULL)));
         } else {
             // Variável comum
-            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getStackOperandLocation(q->op1), NULL)));
-            /* Remove o registrador da lista, para forçar um novo LOAD ao usar a variável que foi recentemente alterada na memória */
-            TargetOperand regAux = getTargetOpByName(q->op1->contents.variable.name);
-            if(regAux != NULL) {
-                removeOperand(regAux);
-            }
+            TargetOperand op = getStackOperandLocation(q->op1);
+            printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, op, NULL)));
+            updateRegisterContent(op);
         }
     }
 }
@@ -359,7 +353,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "output")) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(q->op1->contents.variable.name, "ldk")) {
-        printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, getTempReg(q->op3), getArgReg(0), NULL)));
+        TargetOperand lidoDoDisco = getTempReg(q->op3);
+        printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, lidoDoDisco, getArgReg(0), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sdk")) {
         printCode(insertObjInst(createObjInst(_SW_DISK, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lim")) {
@@ -420,16 +415,14 @@ void geraCodigoSetParam(Quadruple q) {
     if(escopo->argRegCount < 4) {
         /* Verifica se é uma constante ou variável */
         if(q->op1->kind == String) { // Variável
+            TargetOperand arg = getArgReg(escopo->argRegCount);
             if(var != NULL && var->treeNode->node == VARK && var->treeNode->kind.var.varKind == VECTORK) { // Vetor
-                TargetOperand arg = getArgReg(escopo->argRegCount);
                 printCode(insertObjInst(createObjInst(_LA, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
                 registradores[(int) arg->enderecamento.registrador].isAddress = TRUE;
             } else { // Variável
                 reg = getOperandRegName(q->op1);
-                TargetOperand arg = getArgReg(escopo->argRegCount);
                 if(getArgReg(escopo->argRegCount)->enderecamento.registrador != reg->enderecamento.registrador) { /* Só move se os registradores forem diferentes */
                     printCode(insertObjInst(createObjInst(_MOV, TYPE_I, arg, reg, NULL)));
-                    //removeOperand(arg);
                 }
             }
         } else { // Constante
@@ -465,7 +458,6 @@ void geraCodigoGetParam(Quadruple q) {
     if(escopo->argRegCount < 4) {
         TargetOperand arg = getArgReg(escopo->argRegCount);
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, arg, getStackOperandLocation(q->op1), NULL)));
-        //removeOperand(arg);
         escopo->argRegCount++;
     } else if(escopo->argRegCount >= 4) {
         TargetOperand savedReg = getSavedReg(q->op1);
@@ -552,16 +544,11 @@ void geraCodigoLabel(Quadruple q) {
 }
 
 void geraCodigoObjeto(Quadruple q) {
-    geraCodigoObjetoComDeslocamento(q, 0);
-}
-
-void geraCodigoObjetoComDeslocamento(Quadruple q, int offset) {
     INDENT;
     emitCode("\n********** Código objeto **********");
     // Antes de começar gerar código objeto, prepara os registradores especiais
     prepararRegistradores();
     prepararOperandosEspeciais();
-    deslocamento = offset;
     while(q != NULL) {
         switch (q->instruction) {
             /* Aritméticas */
@@ -803,6 +790,18 @@ TargetOperand getAndUpdateTargetOperand(Registrador reg, Operand op) {
     return reg.targetOp;
 }
 
+void updateRegisterContent(TargetOperand operand) {
+    int i;
+    for(i = REG_SAVED_INICIO; i <= REG_SAVED_FIM; i++) {
+        Registrador reg = registradores[i];
+        if (reg.op->contents.variable.name != NULL &&
+            reg.op->contents.variable.scope != NULL &&
+            reg.targetOp->deslocamento == operand->enderecamento.indexado.offset) {
+            printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, operand, NULL)));
+        }
+    }
+}
+
 void removeOperand(TargetOperand opTarget) {
     Registrador reg = registradores[(int) opTarget->enderecamento.registrador]; // Cast enum to int
     reg.op->contents.variable.name = NULL;
@@ -926,7 +925,7 @@ TargetOperand getOperandLabel(char * name) {
 Label createLabel(char * nome, int linha) {
     Label l = (Label) malloc(sizeof(struct label));
     l->nome = nome;
-    l->linha = linha + deslocamento;
+    l->linha = linha;
     l->next = NULL;
     return l;
 }

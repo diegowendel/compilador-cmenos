@@ -95,7 +95,6 @@ int main(int argc, char * argv[]) {
     if (! Error) {
         char * codefile;
         int fnlen = strcspn(codeInfo.pgm, ".");
-        printf("\n\n\nalo: %s\n\n\n", codeInfo.pgm);
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
         strncpy(codefile, codeInfo.pgm, fnlen);
         strcat(codefile, ".txt");
@@ -121,7 +120,7 @@ int main(int argc, char * argv[]) {
         code = fopen(codefile, "a+");
         Quadruple codigoIntermediario = getCodigoIntermediario();
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
-        geraCodigoObjeto(codigoIntermediario, codeInfo.codeType);
+        geraCodigoObjeto(codigoIntermediario);
         fclose(code);
         if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n");
         // Código objeto gerado com sucesso
@@ -137,7 +136,7 @@ int main(int argc, char * argv[]) {
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
-        geraCodigoBinarioComDeslocamento(codigoObjeto, codeInfo.codeType, codeInfo.offset);
+        geraCodigoBinario(codigoObjeto, codeInfo.codeType);
         fclose(code);
         if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
     }
