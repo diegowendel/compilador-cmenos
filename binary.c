@@ -66,10 +66,8 @@ void geraCodigoBinario(Objeto codigoObjeto, CodeType codeType) {
     int posicoesReservadas;
     int MAIN_POSITION;
 
-    //if (codeType != BIOS) {
-        inserirJumpToMain(codeType);
-        MAIN_POSITION = getLinhaLabel((char*) "main");
-    //}
+    inserirJumpToMain(codeType);
+    MAIN_POSITION = getLinhaLabel((char*) "main");
 
     while(obj != NULL) {
         // Workaround
