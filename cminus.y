@@ -30,6 +30,7 @@
     static TreeNode * createExec();
     static TreeNode * createAddProgramStart();
     static TreeNode * createReadProgramStart();
+    static TreeNode * createMMU();
 %}
 
 %token IF ELSE WHILE RETURN
@@ -61,7 +62,8 @@ program
             savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createExec();
             savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createAddProgramStart();
             savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createReadProgramStart();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = $1;
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createMMU();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = $1;
         }
     ;
 
@@ -792,4 +794,14 @@ static TreeNode * createReadProgramStart() {
     node->kind.var.mem = FUNCTION_MEM;
     node->kind.var.attr.name = "readProgramStart";
     return getIntNode(node);
+}
+
+static TreeNode * createMMU() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "mmu";
+    return getVoidNode(node);
 }

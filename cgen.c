@@ -465,7 +465,8 @@ static void genVar(TreeNode * tree) {
                 && strcmp(tree->kind.var.attr.name, "checkDM")
                 && strcmp(tree->kind.var.attr.name, "exec")
                 && strcmp(tree->kind.var.attr.name, "addProgramStart")
-                && strcmp(tree->kind.var.attr.name, "readProgramStart")) {
+                && strcmp(tree->kind.var.attr.name, "readProgramStart")
+                && strcmp(tree->kind.var.attr.name, "mmu")) {
                 op1 = createOperand();
                 op1->kind = String;
                 op1->contents.variable.name = tree->kind.var.attr.name;
@@ -525,7 +526,8 @@ static void genVar(TreeNode * tree) {
                 /* Se for um chamado de OUTPUT, verifica o display de exibição */
                 if(!strcmp(tree->kind.var.attr.name, "output") && p1->sibling == NULL) {
                     display = p1->kind.var.attr.val;
-                } else if (!strcmp(tree->kind.var.attr.name, "addProgramStart") && operandoAtual->kind == IntConst) {
+                } else if (operandoAtual->kind == IntConst &&
+                    (!strcmp(tree->kind.var.attr.name, "addProgramStart") || !strcmp(tree->kind.var.attr.name, "mmu"))) {
                     offset = operandoAtual->contents.val;
                 }
                 p1 = p1->sibling;
@@ -543,7 +545,8 @@ static void genVar(TreeNode * tree) {
             q = createQuad(instrucaoAtual, op1, op2, operandoAtual);
             if(display != -1) {
                 q->display = display;
-            } else if (!strcmp(tree->kind.var.attr.name, "addProgramStart")) {
+            } else if (!strcmp(tree->kind.var.attr.name, "addProgramStart")
+                    || !strcmp(tree->kind.var.attr.name, "mmu")) {
                 q->offset = offset;
             }
             insertQuad(q);

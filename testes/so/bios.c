@@ -39,6 +39,7 @@ void main(void) {
 
 	lower = 0;
 	upper = index;
+	mmu(lower, upper, 0);
 }
 
 /**

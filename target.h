@@ -20,6 +20,7 @@ typedef enum opcode {
     _LW_DISK, _SW_DISK,
     _LW_IM, _SW_IM,
     _CK_HD, _CK_IM, _CK_DM,
+    _MMU,
     _RTYPE
 } Opcode;
 
