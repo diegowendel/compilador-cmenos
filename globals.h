@@ -102,6 +102,12 @@ typedef struct treeNode {
     ExpType type; /* for type checking of exps */
 } TreeNode;
 
+typedef struct codeInfo {
+    CodeType codeType;
+    char pgm[120];
+    int offset;
+} CodeInfo;
+
 /**************************************************/
 /***********   Flags for tracing       ************/
 /**************************************************/

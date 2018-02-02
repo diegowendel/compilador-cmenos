@@ -136,7 +136,7 @@ int main(int argc, char * argv[]) {
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
-        geraCodigoBinario(codigoObjeto, codeInfo.codeType);
+        geraCodigoBinario(codigoObjeto, codeInfo);
         fclose(code);
         if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
     }

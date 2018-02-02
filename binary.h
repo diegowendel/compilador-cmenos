@@ -9,6 +9,6 @@
 
 #include "target.h"
 
-void geraCodigoBinario(Objeto codigoObjeto, CodeType codeType);
+void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo);
 
 #endif

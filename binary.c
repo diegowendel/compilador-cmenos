@@ -42,13 +42,13 @@ const char * decimalToBinaryStr(unsigned x, int qtdBits) {
     return bin;
 }
 
-void inserirJumpToMain(CodeType codeType) {
+void inserirJumpToMain(CodeType codeType, int linha) {
     char str[26];
     // Limpa o vetor de caracteres auxiliar
     memset(temp, '\0', sizeof(temp));
     // Boilerplate
     strcat(temp, codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
-    sprintf(str, "%d", 0);
+    sprintf(str, "%d", linha);
     strcat(temp, str);
     strcat(temp, codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
     strcat(temp, toBinaryOpcode(_J));
@@ -58,27 +58,27 @@ void inserirJumpToMain(CodeType codeType) {
     emitCode(temp);
 }
 
-void geraCodigoBinario(Objeto codigoObjeto, CodeType codeType) {
+void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
     emitCode("\n********** Código binário **********\n");
     Objeto obj = codigoObjeto;
     char str[26];
-    int linha = 1;
+    int linha = codeInfo.offset + 1;
     int posicoesReservadas;
     int MAIN_POSITION;
 
-    inserirJumpToMain(codeType);
+    inserirJumpToMain(codeInfo.codeType, codeInfo.offset);
     MAIN_POSITION = getLinhaLabel((char*) "main");
 
     while(obj != NULL) {
         // Workaround
-        posicoesReservadas = codeType == KERNEL && linha == MAIN_POSITION ? 9 : 0;
+        posicoesReservadas = codeInfo.codeType == KERNEL && linha == MAIN_POSITION ? 9 : 0;
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
         // Boilerplate
-        strcat(temp, codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
+        strcat(temp, codeInfo.codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
         sprintf(str, "%d", linha++);
         strcat(temp, str);
-        strcat(temp, codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
+        strcat(temp, codeInfo.codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
 
         // Traduz o opcode para binário
         strcat(temp, toBinaryOpcode(obj->opcode));
