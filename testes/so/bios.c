@@ -39,7 +39,8 @@ void main(void) {
 
 	lower = 0;
 	upper = index;
-	mmu(lower, upper, 0);
+	mmuLower(lower, 0);
+	// mmuUpper(upper, 0);
 }
 
 /**
@@ -55,5 +56,19 @@ void main(void) {
  * sim(data, address)
  * 
  * RS - Address
+ * RT - Data
+ */
+
+/**
+ * mmuLower(data, selector)
+ * 
+ * RS - Selector
+ * RT - Data
+ */
+
+/**
+ * mmuUpper(data, selector)
+ * 
+ * RS - Selector
  * RT - Data
  */

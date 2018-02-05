@@ -30,7 +30,8 @@
     static TreeNode * createExec();
     static TreeNode * createAddProgramStart();
     static TreeNode * createReadProgramStart();
-    static TreeNode * createMMU();
+    static TreeNode * createMMULower();
+    static TreeNode * createMMUUpper();
 %}
 
 %token IF ELSE WHILE RETURN
@@ -62,8 +63,9 @@ program
             savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createExec();
             savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createAddProgramStart();
             savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createReadProgramStart();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createMMU();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = $1;
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createMMULower();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createMMUUpper();
+            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = $1;
         }
     ;
 
@@ -796,12 +798,22 @@ static TreeNode * createReadProgramStart() {
     return getIntNode(node);
 }
 
-static TreeNode * createMMU() {
+static TreeNode * createMMULower() {
     TreeNode * node = newVarNode(FUNCTIONK);
     node->lineno = 0;
     node->op = ID;
     node->type = VOID_TYPE;
     node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "mmu";
+    node->kind.var.attr.name = "mmuLower";
+    return getVoidNode(node);
+}
+
+static TreeNode * createMMUUpper() {
+    TreeNode * node = newVarNode(FUNCTIONK);
+    node->lineno = 0;
+    node->op = ID;
+    node->type = VOID_TYPE;
+    node->kind.var.mem = FUNCTION_MEM;
+    node->kind.var.attr.name = "mmuUpper";
     return getVoidNode(node);
 }

@@ -31,7 +31,7 @@ const char * toStringOpcode(Opcode op) {
         "ldk", "sdk",
         "lim", "sim",
         "ckhd", "ckim", "ckdm",
-        "mmu",
+        "mmuLower", "mmuUpper",
         "rtype"
     };
     return strings[op];
@@ -81,8 +81,8 @@ const char * toBinaryOpcode(Opcode op) {
         "011011", "011100",
         // ckhd,   ckim,    ckdm
         "011101", "011110", "011111",
-        // mmu
-        "100000",
+        // mmuLower, mmuUpper
+        "100000", "100001",
         // rtype
         "000000"
     };

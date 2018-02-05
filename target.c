@@ -379,8 +379,10 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_LW, TYPE_I, aux, getMemIndexedLocation(aux->enderecamento.registrador, 0), NULL)));
         TargetOperand aux2 = getTempReg(q->op3);
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, aux2, aux, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "mmu")) {
-        printCode(insertObjInst(createObjInst(_MMU, TYPE_I, getArgReg(1), getArgReg(0), getImediato(q->offset))));
+    } else if(!strcmp(q->op1->contents.variable.name, "mmuLower")) {
+        printCode(insertObjInst(createObjInst(_MMU_LOWER, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "mmuUpper")) {
+        printCode(insertObjInst(createObjInst(_MMU_UPPER, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
     } else if(!strcmp(escopo->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack

@@ -89,14 +89,16 @@ void main(void) {
 	//int particoes[32];
 	int index;
 	int MAIOR_ELEMENTO_INICIO;
+	int i;
 
 	MAIOR_ELEMENTO_INICIO = 64;
 	index = carregarPrograma(MAIOR_ELEMENTO_INICIO);
+	index = carregarPrograma(120);
 	// Adiciona a MMU
-	mmu(MAIOR_ELEMENTO_INICIO, index, 1);
-
-	index = input();
-	exec(index);
+	i = input();
+	output(i, 0);
+	mmuLower(i, 1);
+	//exec(MAIOR_ELEMENTO_INICIO);
 }
 
 /**

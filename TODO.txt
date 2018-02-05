@@ -1,2 +1,6 @@
 - Fix negative numbers bug
 - Test logical and ; logical or
+
+- dar um jeito de fazer o JUMPR da chamada de sistema exec() junto com o mmuLower().
+    Atualmente o exec() não funciona pq antes dele deve ser feito o set do mmuLower(), e como o mmuLower() altera o selector,
+    o exec() nunca é chamado!!!
