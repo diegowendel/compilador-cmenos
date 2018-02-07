@@ -20,7 +20,7 @@ typedef enum opcode {
     _LW_DISK, _SW_DISK,
     _LW_IM, _SW_IM,
     _CK_HD, _CK_IM, _CK_DM,
-    _MMU_LOWER, _MMU_UPPER,
+    _MMU_LOWER, _MMU_UPPER, _SYSCALL,
     _RTYPE
 } Opcode;
 
@@ -29,7 +29,7 @@ typedef enum function {
     _AND, _OR, _XOR, _LAND, _LOR,
     _SLL, _SRL,
     _EQ, _NE, _LT, _LET, _GT, _GET,
-    _JR,
+    _JR, _EXEC,
     _DONT_CARE
 } Function;
 

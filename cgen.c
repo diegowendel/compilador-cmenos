@@ -463,11 +463,12 @@ static void genVar(TreeNode * tree) {
                 && strcmp(tree->kind.var.attr.name, "checkHD")
                 && strcmp(tree->kind.var.attr.name, "checkIM")
                 && strcmp(tree->kind.var.attr.name, "checkDM")
-                && strcmp(tree->kind.var.attr.name, "exec")
                 && strcmp(tree->kind.var.attr.name, "addProgramStart")
                 && strcmp(tree->kind.var.attr.name, "readProgramStart")
                 && strcmp(tree->kind.var.attr.name, "mmuLower")
-                && strcmp(tree->kind.var.attr.name, "mmuUpper")) {
+                && strcmp(tree->kind.var.attr.name, "mmuUpper")
+                && strcmp(tree->kind.var.attr.name, "exec")
+                && strcmp(tree->kind.var.attr.name, "sysCall")) {
                 op1 = createOperand();
                 op1->kind = String;
                 op1->contents.variable.name = tree->kind.var.attr.name;
@@ -602,7 +603,7 @@ void verificaFimInstrucaoAnterior(void) {
  * of the code file, and is used to print the
  * file name as a comment in the code file
  */
-void codeGen(TreeNode * syntaxTree, char * codefile) {
+void codeGen(TreeNode * syntaxTree, char * codefile, CodeInfo codeInfo) {
     char * s = (char *) malloc(strlen(codefile) + 7);
     strcpy(s,"Arquivo: ");
     strcat(s,codefile);
@@ -611,7 +612,14 @@ void codeGen(TreeNode * syntaxTree, char * codefile) {
     cGen(syntaxTree);
     /* finish */
     emitComment("Fim da execução.", 0);
-    insertQuad(createQuad(HALT, NULL, NULL, NULL));
+
+    if (codeInfo.codeType != PROGRAMA) {
+        // Se for código do Kernel ou Bios, adiciona o HALT no fim do código
+        insertQuad(createQuad(HALT, NULL, NULL, NULL));
+    } else {
+        // Se for código de um Programa comum, adiciona o SYSCALL no fim do código
+        insertQuad(createQuad(SYSCALL, NULL, NULL, NULL));
+    }    
 
     emitCode("\n********** Código intermediário **********\n");
     printIntermediateCode();

@@ -367,8 +367,6 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_CK_IM, TYPE_J, NULL, NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "checkDM")) {
         printCode(insertObjInst(createObjInst(_CK_DM, TYPE_J, NULL, NULL, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "exec")) {
-        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _JR, TYPE_R, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "addProgramStart")) {
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, getArgReg(0), getStackZeroOperandLocation(q->offset), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "readProgramStart")) {
@@ -383,6 +381,11 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_MMU_LOWER, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuUpper")) {
         printCode(insertObjInst(createObjInst(_MMU_UPPER, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "exec")) {
+        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _EXEC, TYPE_R, getArgReg(0), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "sysCall")) {
+        // Retorna o controle para o sistema operacional
+        printCode(insertObjInst(createObjInst(_SYSCALL, TYPE_J, NULL, NULL, NULL)));
     } else if(!strcmp(escopo->nome, "main")) {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
@@ -672,6 +675,10 @@ void geraCodigoObjeto(Quadruple q) {
             /* Halt */
             case HALT:
                 printCode(insertObjInst(createObjInst(_HALT, TYPE_J, NULL, NULL, NULL)));
+                break;
+            case SYSCALL:
+                // Retorna o controle para o sistema operacional
+                printCode(insertObjInst(createObjInst(_SYSCALL, TYPE_J, NULL, NULL, NULL)));
                 break;
         }
         q = q->next;

@@ -67,16 +67,22 @@ void renomearPrograma(int antigo, int novo) {
 	}
 }*/
 
+void limparDisplays(void) {
+	output(0, 0);
+	output(0, 1);
+	output(0, 2);
+}
+
 int carregarPrograma(int beginOnDisk) {
 	int instrucao;
 	int index;
-	int HALT;
+	int SYSCALL;
 
-	HALT = 24;
+	SYSCALL = 34;
 
 	index = beginOnDisk;
 	instrucao = ldk(index);
-	while(instrucao >> 26 != HALT) {
+	while(instrucao >> 26 != SYSCALL) {
 		sim(instrucao, index);
 		index += 1;
 		instrucao = ldk(index);
@@ -89,16 +95,21 @@ void main(void) {
 	//int particoes[32];
 	int index;
 	int MAIOR_ELEMENTO_INICIO;
+	int SORT_INICIO;
 	int i;
 
-	MAIOR_ELEMENTO_INICIO = 64;
+	MAIOR_ELEMENTO_INICIO = 99;
+	SORT_INICIO = 188;
 	index = carregarPrograma(MAIOR_ELEMENTO_INICIO);
-	index = carregarPrograma(120);
+	index = carregarPrograma(SORT_INICIO);
+
 	// Adiciona a MMU
 	i = input();
-	output(i, 0);
+	// Limpa displays 7-seg
+	limparDisplays();
 	mmuLower(i, 1);
-	//exec(MAIOR_ELEMENTO_INICIO);
+	output(i, 0);
+	exec(0);
 }
 
 /**

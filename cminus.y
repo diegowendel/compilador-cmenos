@@ -49,11 +49,12 @@ program
             insertNewNode(createVoidFunction("checkHD"));           // CheckHardDisk
             insertNewNode(createVoidFunction("checkIM"));           // CheckInstMem
             insertNewNode(createVoidFunction("checkDM"));           // CheckDataMem
-            insertNewNode(createVoidFunction("exec"));              // Exec
             insertNewNode(createVoidFunction("addProgramStart"));   // AddProgramStart
             insertNewNode(createIntFunction("readProgramStart"));   // ReadProgramStart
             insertNewNode(createVoidFunction("mmuLower"));          // MMULower
             insertNewNode(createVoidFunction("mmuUpper"));          // MMUUpper
+            insertNewNode(createVoidFunction("exec"));              // Exec
+            insertNewNode(createVoidFunction("sysCall"));           // SysCall
 
             TreeNode * temp;
             temp = savedTree;

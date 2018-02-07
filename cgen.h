@@ -17,7 +17,7 @@ typedef enum instrucao {ADD, SUB, MULT, DIV, MOD,
     SHFT_LF, SHFT_RT, VEC, VEC_ADDR,
     EQ, NE, LT, LET, GT, GET, ASN,
     FUNC, RTN, GET_PARAM, SET_PARAM, CALL, PARAM_LIST,
-    JPF, GOTO, LBL, HALT} InstructionKind;
+    JPF, GOTO, LBL, SYSCALL, HALT} InstructionKind;
 
 typedef struct operand {
     OperandKind kind;
@@ -82,7 +82,7 @@ Quadruple getCodigoIntermediario(void);
  * of the code file, and is used to print the
  * file name as a comment in the code file
  */
-void codeGen(TreeNode * syntaxTree, char * codefile);
+void codeGen(TreeNode * syntaxTree, char * codefile, CodeInfo codeInfo);
 
 void verificaFimInstrucaoAnterior(void);
 
