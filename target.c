@@ -677,6 +677,8 @@ void geraCodigoObjeto(Quadruple q) {
                 printCode(insertObjInst(createObjInst(_HALT, TYPE_J, NULL, NULL, NULL)));
                 break;
             case SYSCALL:
+                // Atribui zero ao registrador da stack
+                printCode(insertObjInst(createObjInst(_LI, TYPE_I, stackOp, getImediato(0), NULL)));
                 // Retorna o controle para o sistema operacional
                 printCode(insertObjInst(createObjInst(_SYSCALL, TYPE_J, NULL, NULL, NULL)));
                 break;

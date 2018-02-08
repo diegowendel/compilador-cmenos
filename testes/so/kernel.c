@@ -96,6 +96,7 @@ void main(void) {
 	int index;
 	int MAIOR_ELEMENTO_INICIO;
 	int SORT_INICIO;
+	int teste;
 	int i;
 
 	MAIOR_ELEMENTO_INICIO = 99;
@@ -106,9 +107,16 @@ void main(void) {
 	// Adiciona a MMU
 	i = input();
 	// Limpa displays 7-seg
-	limparDisplays();
+	//limparDisplays();
 	mmuLower(i, 1);
-	output(i, 0);
+
+	if (teste == 9999) {
+		output(42, 0);
+	} else {
+		output(77, 0);
+		teste = 9999;
+	}
+	
 	exec(0);
 }
 
