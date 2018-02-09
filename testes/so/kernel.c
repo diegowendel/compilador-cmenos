@@ -5,19 +5,6 @@
 		São 32 partições de tamanho 32 cada.
 */
 
-// falta testar
-/*void excluirPrograma(int programa) {
-	int aux;
-	addProgramStart(500, programa);
-}
-// falta testar
-void renomearPrograma(int antigo, int novo) {
-	int aux;
-	aux = readProgramStart(antigo);
-	addProgramStart(0, antigo);
-	addProgramStart(aux, novo);
-}*/
-
 /*void carregarPrograma(int inicioDisco, int fimDisco) {
 	int QTD_PARTICOES;		// Quantidade total de partições
 	int TAM_PARTICAO;		// Tamanho da partição
@@ -54,17 +41,6 @@ void renomearPrograma(int antigo, int novo) {
 		//}
 		//i += 1;
 	//}*
-
-
-	index = inicioDisco;
-	i = index;
-	addProgramStart(i, 0);
-	while (index <= fimDisco) {
-		instrucao = ldk(index);
-		sim(instrucao, i);
-		index += 1;
-		i += 1;
-	}
 }*/
 
 void limparDisplays(void) {
@@ -78,7 +54,7 @@ int carregarPrograma(int beginOnDisk) {
 	int index;
 	int SYSCALL;
 
-	SYSCALL = 34;
+	SYSCALL = 36;
 
 	index = beginOnDisk;
 	instrucao = ldk(index);
@@ -103,12 +79,9 @@ void main(void) {
 	SORT_INICIO = 188;
 	index = carregarPrograma(MAIOR_ELEMENTO_INICIO);
 	index = carregarPrograma(SORT_INICIO);
-
 	// Adiciona a MMU
 	i = input();
-	// Limpa displays 7-seg
-	//limparDisplays();
-	mmuLower(i, 1);
+	mmuLowerIM(i, 1);
 
 	if (teste == 9999) {
 		output(42, 0);
@@ -119,12 +92,6 @@ void main(void) {
 	
 	exec(0);
 }
-
-/**
- * addProgramStart(start, address);
- * - start [endereço de início do programa na memória de instruções]
- * - address [endereço na memória de dados]
- */
 
 /**
  * exec(program)

@@ -18,7 +18,7 @@ int carregarSistemaOperacional(void) {
 
 	HALT = 24; // Opcode da instrução HALT
 
-	index = 0;
+	index = 0; // O SO DEVE SEMPRE INICIAR DO ZERO
 	instrucao = ldk(index);
 	while (instrucao >> 26 != HALT) {
 		sim(instrucao, index);
@@ -29,18 +29,16 @@ int carregarSistemaOperacional(void) {
 	return index;
 }
 
-void main(void) {
-	int lower; // Lower bound
-	int upper; // Upper bound
-	int index;
-		
+/**
+ * Parte principal da bios. Este programa carrega o Sistema Operacional e realiza algumas
+ * checagens de componentes da máquina alvo. Não são adicionados offsets na MMU para o SO
+ * pois o mesmo tem prioridade de execução e não necessita de offsets, uma vez que SEMPRE
+ * o SO deverá estar armazenado no início da memória de instruções e utilizar também o 
+ * início da memória de dados.
+ */
+void main(void) {		
 	// checarComponentes();
-	index = carregarSistemaOperacional();
-
-	lower = 0;
-	upper = index;
-	mmuLower(lower, 0);
-	// mmuUpper(upper, 0);
+	carregarSistemaOperacional();
 }
 
 /**
@@ -60,14 +58,14 @@ void main(void) {
  */
 
 /**
- * mmuLower(data, selector)
+ * mmuLowerIM(data, selector)
  * 
  * RS - Selector
  * RT - Data
  */
 
 /**
- * mmuUpper(data, selector)
+ * mmuUpperIM(data, selector)
  * 
  * RS - Selector
  * RT - Data
