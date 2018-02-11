@@ -5,43 +5,7 @@
 		São 32 partições de tamanho 32 cada.
 */
 
-/*void carregarPrograma(int inicioDisco, int fimDisco) {
-	int QTD_PARTICOES;		// Quantidade total de partições
-	int TAM_PARTICAO;		// Tamanho da partição
-	int index; 				// Usado para iterar nas posições do disco
-	int fimParticao; 		// Endereço de fim da partição em memória
-	int i;					// Iterador de partições
-	int j;					// Iterador de endereços dentro de uma partição
-	int instrucao;			// Instrução lida do disco
-	int inicioMemoria;
-	int HALT;
-	
-	//QTD_PARTICOES = 32;
-	//TAM_PARTICAO = 32;
-
-	/*i = 4; // Três primeiras partições são reservadas ao SO
-	index = inicioDisco; // Recebe o endereço para iterar no disco
-	inicioMemoria = TAM_PARTICAO * 4;
-	//while (i < QTD_PARTICOES) {
-		//if (index <= fimDisco) {
-			j = TAM_PARTICAO * i;
-			//if (particoes[i] == 0) { // Partição livre
-				//fimParticao = TAM_PARTICAO * 5;
-				
-				//while (j < fimParticao) {
-				while (index <= 130) {
-					instrucao = ldk(index);
-					sim(instrucao, j);
-					output(index, 2);
-					index += 1;
-					j += 1;
-					output(j, 2);
-				}
-			//}
-		//}
-		//i += 1;
-	//}*
-}*/
+int TAMANHO_PARTICAO;								// Tamanho da partição
 
 void limparDisplays(void) {
 	output(0, 0);
@@ -49,22 +13,25 @@ void limparDisplays(void) {
 	output(0, 2);
 }
 
-int carregarPrograma(int beginOnDisk) {
-	int instrucao;
-	int index;
-	int SYSCALL;
+int carregarPrograma(int beginOnDisk, int particao) {
+	int instrucao;									// Instrução lida do disco
+	int indexDisk;									// Iterador para o disco
+	int indexMemory;								// Iterador para a memória
+	int SYSCALL;									// OPCODE da instrução SYSCALL
 
 	SYSCALL = 36;
 
-	index = beginOnDisk;
-	instrucao = ldk(index);
+	indexDisk = beginOnDisk;						// Recebe o endereço para iterar no disco
+	indexMemory = TAMANHO_PARTICAO * particao;		// Endereço para iterar na memória
+	instrucao = ldk(indexDisk);
 	while(instrucao >> 26 != SYSCALL) {
-		sim(instrucao, index);
-		index += 1;
-		instrucao = ldk(index);
+		sim(instrucao, indexMemory);
+		indexDisk += 1;
+		instrucao = ldk(indexDisk);
+		indexMemory += 1;
 	}
-	sim(instrucao, index);
-	return index;
+	sim(instrucao, indexMemory);
+	return indexMemory;
 }
 
 void main(void) {
@@ -74,19 +41,28 @@ void main(void) {
 	int SORT_INICIO;
 	int teste;
 	int i;
+	int particao;
 
-	MAIOR_ELEMENTO_INICIO = 99;
-	SORT_INICIO = 188;
-	index = carregarPrograma(MAIOR_ELEMENTO_INICIO);
-	index = carregarPrograma(SORT_INICIO);
+	TAMANHO_PARTICAO = 32;
+	MAIOR_ELEMENTO_INICIO = 128;
+	SORT_INICIO = 200;
+
+	particao = input();
+	index = carregarPrograma(MAIOR_ELEMENTO_INICIO, particao);
+	output(index, 0);
+
+	particao = input();
+	index = carregarPrograma(SORT_INICIO, particao);
+	output(index, 0);
+
 	// Adiciona a MMU
 	i = input();
-	mmuLowerIM(i, 1);
+	mmuLowerIM(TAMANHO_PARTICAO * i, 1);
 
 	if (teste == 9999) {
-		output(42, 0);
+		output(42, 1);
 	} else {
-		output(77, 0);
+		output(77, 1);
 		teste = 9999;
 	}
 	

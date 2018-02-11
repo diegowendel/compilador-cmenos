@@ -324,7 +324,7 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
             printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, getMemIndexedLocation(r->enderecamento.registrador, q->op3->contents.val), NULL)));
         } else {
             // Variável comum
-            TargetOperand op = getStackOperandLocation(q->op1);
+            TargetOperand op = getGlobalOperandLocation(q->op1);
             printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg, op, NULL)));
             updateRegisterContent(op);
         }
@@ -513,6 +513,13 @@ void geraCodigoFuncao(Quadruple q) {
 
     if(!strcmp(escopo->nome, "main")) {
         int tamanho = getTamanhoBlocoMemoriaEscopoGlobal();
+
+        // Se tamanho do escopo global for maior que Zero, quer dizer que existem variávies globais declaradas
+        if (tamanho > 0) {
+            // Apontador para o registrador de escopo global
+            printCode(insertObjInst(createObjInst(_ADDI, TYPE_I, stackOp, globalOp, getImediato(1))));
+        }
+
         /* Aloca o bloco de memória na stack */
         pushStackSpace(escopo->tamanhoBlocoMemoria + tamanho);
     } else {

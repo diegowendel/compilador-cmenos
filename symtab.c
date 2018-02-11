@@ -361,7 +361,7 @@ int getTamanhoBlocoMemoriaEscopoGlobal(void) {
 		if (hashTable[j] != NULL) {
 			BucketList l = hashTable[j];
       		while (l != NULL) {
-                if(l->treeNode->kind.var.varKind == FUNCTIONK) {
+                if(l->treeNode->kind.var.varKind == IDK) {
                     tamanho += l->tamanho;
                 }
                 l = l->next;
@@ -443,8 +443,22 @@ void printSymTab(FILE * listing) {
             fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Nº parametros  Tipo parametros  Origem Variavel  Tamanho  MemLoC  Numero das linhas\n");
       		fprintf(listing, "----------------  --------  ----------  -------------  ---------------  ---------------  -------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_GLOBAL);
+            fprintf(listing, "\n");
 		} else {
-            if(!strcmp(scope->funcName, "input") || !strcmp(scope->funcName, "output")) {
+            if(!strcmp(scope->funcName, "input")
+                || !strcmp(scope->funcName, "output")
+                || !strcmp(scope->funcName, "ldk")
+                || !strcmp(scope->funcName, "sdk")
+                || !strcmp(scope->funcName, "lim")
+                || !strcmp(scope->funcName, "sim")
+                || !strcmp(scope->funcName, "checkHD")
+                || !strcmp(scope->funcName, "checkIM")
+                || !strcmp(scope->funcName, "checkDM")
+                || !strcmp(scope->funcName, "mmuLowerIM")
+                || !strcmp(scope->funcName, "mmuUpperIM")
+                || !strcmp(scope->funcName, "mmuLowerDM")
+                || !strcmp(scope->funcName, "mmuUpperDM")
+                || !strcmp(scope->funcName, "exec")) {
                 continue;
             }
             fprintf(listing, "Nome da função: %s\n", scope->funcName);
