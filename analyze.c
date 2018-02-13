@@ -11,13 +11,13 @@
 #include "util.h"
 #include <string.h>
 
-static char * funcName;
+char * funcName;
 
 /* Contador de posições para a memória de dados */
-static int location = 0;
+int location = 0;
 
 /* Flag para verificar se a função main já foi declarada */
-static int mainDeclarada = FALSE;
+int mainDeclarada = FALSE;
 
 /* Procedure traverse is a generic recursive
  * syntax tree traversal routine:

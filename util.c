@@ -151,14 +151,14 @@ char * copyString(char * s) {
 /* Variable indentno is used by printTree to
  * store current number of spaces to indent
  */
-static int indentno = 0;
+int indentno = 0;
 
 /* macros to increase/decrease indentation */
 #define INDENT indentno += 2
 #define UNINDENT indentno -= 2
 
 /* printSpaces indents by printing spaces */
-static void printSpaces(void) {
+void printSpaces(void) {
     int i;
     for (i = 0; i < indentno; i++) {
         fprintf(listing," ");

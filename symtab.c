@@ -22,10 +22,10 @@
 #define ESCOPO_GLOBAL 0
 #define ESCOPO_NAO_GLOBAL 1
 
-static Scope scopes[MAX_SCOPE];
-static int nScope = 0;
-static Scope scopeStack[MAX_SCOPE];
-static int nScopeStack = 0;
+Scope scopes[MAX_SCOPE];
+int nScope = 0;
+Scope scopeStack[MAX_SCOPE];
+int nScopeStack = 0;
 
 /* the hash function */
 static int hash (char * key) {
@@ -361,7 +361,7 @@ int getTamanhoBlocoMemoriaEscopoGlobal(void) {
 		if (hashTable[j] != NULL) {
 			BucketList l = hashTable[j];
       		while (l != NULL) {
-                if(l->treeNode->kind.var.varKind == IDK) {
+                if(l->treeNode->kind.var.varKind == IDK || l->treeNode->kind.var.varKind == VECTORK) {
                     tamanho += l->tamanho;
                 }
                 l = l->next;
@@ -458,6 +458,7 @@ void printSymTab(FILE * listing) {
                 || !strcmp(scope->funcName, "mmuUpperIM")
                 || !strcmp(scope->funcName, "mmuLowerDM")
                 || !strcmp(scope->funcName, "mmuUpperDM")
+                || !strcmp(scope->funcName, "mmuSelect")
                 || !strcmp(scope->funcName, "exec")) {
                 continue;
             }

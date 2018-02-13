@@ -18,8 +18,9 @@ int fibonacci(int n){
     }
     return next;
 }
+
 void main(void){
   int n;
-  n = 10;
+  n = 11;
   output(fibonacci(n), 0);
 }

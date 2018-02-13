@@ -63,15 +63,12 @@ void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
     Objeto obj = codigoObjeto;
     char str[26];
     int linha = codeInfo.offset + 1;
-    int posicoesReservadas;
     int MAIN_POSITION;
 
     inserirJumpToMain(codeInfo.codeType, codeInfo.offset);
     MAIN_POSITION = getLinhaLabel((char*) "main");
 
     while(obj != NULL) {
-        // Workaround
-        posicoesReservadas = codeInfo.codeType == KERNEL && linha == MAIN_POSITION ? 9 : 0;
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
         // Boilerplate
@@ -174,5 +171,4 @@ void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
         emitCode(temp);
         obj = obj->next;
     }
-   // inserirInstrucaoEspecial(_END_PGRM, str, &linha);
 }

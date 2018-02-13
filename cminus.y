@@ -13,14 +13,14 @@
     #include "parse.h"
 
     #define YYSTYPE TreeNode *
-    static char * savedName; /* for use in assignments */
-    static int savedLineNo;  /* ditto */
-    static TreeNode * savedTree; /* stores syntax tree for later return */
-    static int yylex(void);
-    static int yyerror(char * message);
-    static TreeNode * createIntFunction(char * name);
-    static TreeNode * createVoidFunction(char * name);
-    static void insertNewNode(TreeNode * node);
+    char * savedName; /* for use in assignments */
+    int savedLineNo;  /* ditto */
+    TreeNode * savedTree; /* stores syntax tree for later return */
+    int yylex(void);
+    int yyerror(char * message);
+    TreeNode * createIntFunction(char * name);
+    TreeNode * createVoidFunction(char * name);
+    void insertNewNode(TreeNode * node);
 %}
 
 %token IF ELSE WHILE RETURN
@@ -53,6 +53,7 @@ program
             insertNewNode(createVoidFunction("mmuUpperIM"));        // MMUUpperIM
             insertNewNode(createVoidFunction("mmuLowerDM"));        // MMULowerDM
             insertNewNode(createVoidFunction("mmuUpperDM"));        // MMUUpperDM
+            insertNewNode(createVoidFunction("mmuSelect"));         // MMUSelect
             insertNewNode(createVoidFunction("exec"));              // Exec
 
             TreeNode * temp;
@@ -637,7 +638,7 @@ vazio
 
 %%
 
-static int yyerror(char * message) {
+int yyerror(char * message) {
     fprintf(listing,"Syntax error at line %d: %s\n",lineno,message);
     fprintf(listing,"Current token: ");
     printToken(yychar,tokenString);
@@ -648,7 +649,7 @@ static int yyerror(char * message) {
 /* yylex calls getToken to make Yacc/Bison output
  * compatible with ealier versions of the TINY scanner
  */
-static int yylex(void) {
+int yylex(void) {
     return getToken();
 }
 
@@ -673,7 +674,7 @@ TreeNode * getVoidNode(TreeNode * childNode) {
     return voidNode;
 }
 
-static TreeNode * createIntFunction(char * name) {
+TreeNode * createIntFunction(char * name) {
     TreeNode * function = newVarNode(FUNCTIONK);
     function->lineno = 0;
     function->op = ID;
@@ -683,7 +684,7 @@ static TreeNode * createIntFunction(char * name) {
     return getIntNode(function);
 }
 
-static TreeNode * createVoidFunction(char * name) {
+TreeNode * createVoidFunction(char * name) {
     TreeNode * function = newVarNode(FUNCTIONK);
     function->lineno = 0;
     function->op = ID;
@@ -693,7 +694,7 @@ static TreeNode * createVoidFunction(char * name) {
     return getVoidNode(function);
 }
 
-static void insertNewNode(TreeNode * node) {
+void insertNewNode(TreeNode * node) {
     TreeNode * temp;
     if (savedTree == NULL) {
         savedTree = node;

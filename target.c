@@ -38,6 +38,9 @@
 #define REG_GLOBAL 5
 #define REG_INVALID 4
 
+/* Tipo de código em compilação */
+CodeType codeType;
+
 /* Cabeça da lista de instruções objeto */
 Objeto objHead = NULL;
 
@@ -48,11 +51,11 @@ Label labelHead = NULL;
 Escopo escopo = NULL;
 
 /* Variável usada para configurar a identação do código impresso */
-static int indent = 0;
+int indent = 0;
 
 /* Variáveis auxiliares na geração de código objeto */
-static char temp[100];
-static int linha = 0;
+char temp[100];
+int linha = 0;
 
  /* Operandos especiais */
 TargetOperand rtnAddrOp;
@@ -343,7 +346,6 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
 }
 
 void geraCodigoChamadaFuncao(Quadruple q) {
-    int tamanhoBlocoMemoria;
     /* Verifica o nome da função/procedimento que está sendo chamada, se for input ou output imprime as
      * instruções específicas 'in' e 'out'. Depois verifica o escopo de onde vem a chamada, se for do
      * escopo da 'main' não guarda $ra na memória, caso contrário guarda $ra na memória.
@@ -368,25 +370,34 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "checkDM")) {
         printCode(insertObjInst(createObjInst(_CK_DM, TYPE_J, NULL, NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuLowerIM")) {
-        printCode(insertObjInst(createObjInst(_MMU_LOWER_IM, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+        printCode(insertObjInst(createObjInst(_MMU_LOWER_IM, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuUpperIM")) {
-        printCode(insertObjInst(createObjInst(_MMU_UPPER_IM, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+        printCode(insertObjInst(createObjInst(_MMU_UPPER_IM, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuLowerDM")) {
-        // printCode(insertObjInst(createObjInst(_MMU_LOWER, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+        // printCode(insertObjInst(createObjInst(_MMU_LOWER, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuUpperDM")) {
-        // printCode(insertObjInst(createObjInst(_MMU_UPPER, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+        // printCode(insertObjInst(createObjInst(_MMU_UPPER, TYPE_I, getArgReg(0), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "mmuSelect")) {
+        // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
+        printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "exec")) {
+        // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
+        printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
+        // Executa um programa carregado em memória
         printCode(insertObjInst(createObjInst(_EXEC, TYPE_J, NULL, NULL, NULL)));
     } else {
-        tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
-        int regAddrStackLocation = tamanhoBlocoMemoria + 1;
-        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-regAddrStackLocation), NULL))); // sw $ra
-        saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
+        int tamanhoBlocoMemoriaFuncaoChamada = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
+        int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
+        int regRetornoFuncao = -(tamanhoBlocoMemoriaEscopoAtual); // Negativo pois é indexado ao ponteiro de pilha
+
+        saveRegistradores(-tamanhoBlocoMemoriaFuncaoChamada); // Negativo por conta do deslocamento em relação ao ponteiro da stack
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // sw $ra
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
+
         /* Desaloca o bloco de memória na stack */
-        popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
-        printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-regAddrStackLocation), NULL))); // lw $ra
-        recuperaRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
+        popStackSpace(tamanhoBlocoMemoriaFuncaoChamada + 2); // +1 devido ao registrador $ra / +1 devido retorno de função ($v0)
+        recuperaRegistradores(-tamanhoBlocoMemoriaFuncaoChamada); // Negativo por conta do deslocamento em relação ao ponteiro da stack
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // lw $ra
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValOp, NULL)));
     }
 }
@@ -506,13 +517,15 @@ void geraCodigoFuncao(Quadruple q) {
     if(!strcmp(escopo->nome, "main")) {
         int tamanho = getTamanhoBlocoMemoriaEscopoGlobal();
 
-        // Se tamanho do escopo global for maior que Zero, quer dizer que existem variávies globais declaradas
-        if (tamanho > 0) {
+        if (codeType == KERNEL) {
+            // Apontador para o registrador de escopo global ($gp) inicia em Zero
+            printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, rZeroOp, NULL)));
+        } else if (tamanho > 0) { // Se tamanho do escopo global for maior que Zero, quer dizer que existem variávies globais declaradas
             // Apontador para o registrador de escopo global ($gp)
             printCode(insertObjInst(createObjInst(_ADDI, TYPE_I, stackOp, globalOp, getImediato(1))));
         }
 
-        /* Aloca o bloco de memória na stack */
+        // Aloca o bloco de memória na stack
         pushStackSpace(escopo->tamanhoBlocoMemoria + tamanho + 1); // +1 devido ao registrador $ra
     } else {
         /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno
@@ -540,9 +553,11 @@ void geraCodigoLabel(Quadruple q) {
     emitCode(temp);
 }
 
-void geraCodigoObjeto(Quadruple q) {
+void geraCodigoObjeto(Quadruple q, CodeInfo codeInfo) {
     INDENT;
     emitCode("\n********** Código objeto **********");
+    // Atribui o tipo do código em compilação
+    codeType = codeInfo.codeType;
     // Antes de começar gerar código objeto, prepara os registradores especiais
     prepararRegistradores();
     prepararOperandosEspeciais();

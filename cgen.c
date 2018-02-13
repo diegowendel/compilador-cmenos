@@ -467,6 +467,7 @@ static void genVar(TreeNode * tree) {
                 && strcmp(tree->kind.var.attr.name, "mmuUpperIM")
                 && strcmp(tree->kind.var.attr.name, "mmuLowerDM")
                 && strcmp(tree->kind.var.attr.name, "mmuUpperDM")
+                && strcmp(tree->kind.var.attr.name, "mmuSelect")
                 && strcmp(tree->kind.var.attr.name, "exec")) {
                 op1 = createOperand();
                 op1->kind = String;

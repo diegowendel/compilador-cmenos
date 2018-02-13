@@ -31,7 +31,7 @@ const char * toStringOpcode(Opcode op) {
         "ldk", "sdk",
         "lim", "sim",
         "ckhd", "ckim", "ckdm",
-        "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM",
+        "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM", "mmuSelect",
         "syscall", "exec", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
         "rtype"
     };
@@ -82,10 +82,10 @@ const char * toBinaryOpcode(Opcode op) {
         "011011", "011100",
         // ckhd,   ckim,    ckdm
         "011101", "011110", "011111",
-        // mmuLowerIM, mmuUpperIM, mmuLowerDM, mmuUpperDM,
-        "100000", "100001", "100010", "100011",
+        // mmuLowerIM, mmuUpperIM, mmuLowerDM, mmuUpperDM, mmuSelect,
+        "100000", "100001", "100010", "100011", "100100",
         // syscall, exec,
-        "100100", "100101",
+        "100101", "100110",
         // rtype
         "000000"
     };

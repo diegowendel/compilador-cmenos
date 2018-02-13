@@ -20,7 +20,7 @@ typedef enum opcode {
     _LW_DISK, _SW_DISK,
     _LW_IM, _SW_IM,
     _CK_HD, _CK_IM, _CK_DM,
-    _MMU_LOWER_IM, _MMU_UPPER_IM, _MMU_LOWER_DM, _MMU_UPPER_DM,
+    _MMU_LOWER_IM, _MMU_UPPER_IM, _MMU_LOWER_DM, _MMU_UPPER_DM, _MMU_SELECT,
     _SYSCALL, _EXEC,
     _RTYPE
 } Opcode;
@@ -114,7 +114,7 @@ typedef struct label {
     struct label * next;
 } * Label;
 
-void geraCodigoObjeto(Quadruple q);
+void geraCodigoObjeto(Quadruple q, CodeInfo codeInfo);
 
 void printCode(Objeto instrucao);
 
