@@ -86,7 +86,7 @@ void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
 
         switch(obj->type) {
             case TYPE_R:
-                if(obj->func == _JR || obj->func == _EXEC) {
+                if(obj->func == _JR) {
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                     strcat(temp, "_");
                     strcat(temp, getZeros(5));
@@ -164,7 +164,7 @@ void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
             case TYPE_J:
                 if(obj->opcode == _J || obj->opcode == _JAL) {
                     strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op1->enderecamento.label), 26));
-                } else { // HALT, NOP, SYSCALL
+                } else { // HALT, NOP, EXEC
                     strcat(temp, getZeros(26));
                 }
                 break;

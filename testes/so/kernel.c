@@ -37,36 +37,28 @@ int carregarPrograma(int beginOnDisk, int particao) {
 void main(void) {
 	//int particoes[32];
 	int index;
-	int MAIOR_ELEMENTO_INICIO;
-	int SORT_INICIO;
-	int teste;
-	int i;
+	int PROGRAMA_1; // Fibonacci
+	int PROGRAMA_2; // Maior elemento
+	int PROGRAMA_3; // Fatorial
 	int particao;
 
 	TAMANHO_PARTICAO = 32;
-	MAIOR_ELEMENTO_INICIO = 128;
-	SORT_INICIO = 200;
+	PROGRAMA_1 = 150;
+	PROGRAMA_2 = 200;
+	PROGRAMA_3 = 254;
 
-	particao = input();
-	index = carregarPrograma(MAIOR_ELEMENTO_INICIO, particao);
-	output(index, 0);
-
-	particao = input();
-	index = carregarPrograma(SORT_INICIO, particao);
-	output(index, 0);
+	//particao = 5;
+	carregarPrograma(PROGRAMA_1, 5);
+	carregarPrograma(PROGRAMA_2, 8);
+	carregarPrograma(PROGRAMA_3, 11);
 
 	// Adiciona a MMU
-	i = input();
-	mmuLowerIM(TAMANHO_PARTICAO * i, 1);
-
-	if (teste == 9999) {
-		output(42, 1);
-	} else {
-		output(77, 1);
-		teste = 9999;
-	}
-	
-	exec(0);
+	mmuLowerIM(TAMANHO_PARTICAO * 5, 1);
+	exec();
+	mmuLowerIM(TAMANHO_PARTICAO * 8, 2);
+	exec();
+	mmuLowerIM(TAMANHO_PARTICAO * 11, 3);
+	exec();
 }
 
 /**

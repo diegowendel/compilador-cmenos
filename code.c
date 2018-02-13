@@ -31,7 +31,8 @@ const char * toStringOpcode(Opcode op) {
         "ldk", "sdk",
         "lim", "sim",
         "ckhd", "ckim", "ckdm",
-        "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM", "syscall",
+        "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM",
+        "syscall", "exec", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
         "rtype"
     };
     return strings[op];
@@ -43,7 +44,7 @@ const char * toStringFunction(Function func) {
         "and", "or", "xor", "land", "lor",
         "sll", "srl",
         "eq", "ne", "lt", "let", "gt", "get",
-        "jr", "exec",
+        "jr", 
         "dont_care"
     };
     return strings[func];
@@ -81,8 +82,10 @@ const char * toBinaryOpcode(Opcode op) {
         "011011", "011100",
         // ckhd,   ckim,    ckdm
         "011101", "011110", "011111",
-        // mmuLowerIM, mmuUpperIM, mmuLowerDM, mmuUpperDM, syscall
-        "100000", "100001", "100010", "100011", "100100",
+        // mmuLowerIM, mmuUpperIM, mmuLowerDM, mmuUpperDM,
+        "100000", "100001", "100010", "100011",
+        // syscall, exec,
+        "100100", "100101",
         // rtype
         "000000"
     };
@@ -99,8 +102,8 @@ const char * toBinaryFunction(Function func) {
         "001010", "001011",
         // eq,    ne,       lt,       let,      gt,       get
         "001100", "001101", "001110", "001111", "010000", "010001",
-        // jr,    exec,
-        "010010", "010011",
+        // jr,
+        "010010",
         // dont_care,
         "XXXXXX"
     };

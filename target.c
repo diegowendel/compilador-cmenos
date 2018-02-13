@@ -376,15 +376,7 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "mmuUpperDM")) {
         // printCode(insertObjInst(createObjInst(_MMU_UPPER, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "exec")) {
-        printCode(insertObjInst(createObjInstTypeR(_RTYPE, _EXEC, TYPE_R, getArgReg(0), NULL, NULL)));
-    } else if(!strcmp(escopo->nome, "main")) {
-        tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
-        saveRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
-        printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValOp, NULL)));
-        /* Desaloca o bloco de memória na stack */
-        popStackSpace(tamanhoBlocoMemoria + 2); // +1 devido ao registrador $ra / +1 devido retorno de função
-        recuperaRegistradores(-tamanhoBlocoMemoria); // Negativo por conta do deslocamento em relação ao ponteiro da stack
+        printCode(insertObjInst(createObjInst(_EXEC, TYPE_J, NULL, NULL, NULL)));
     } else {
         tamanhoBlocoMemoria = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         int regAddrStackLocation = tamanhoBlocoMemoria + 1;
@@ -516,12 +508,12 @@ void geraCodigoFuncao(Quadruple q) {
 
         // Se tamanho do escopo global for maior que Zero, quer dizer que existem variávies globais declaradas
         if (tamanho > 0) {
-            // Apontador para o registrador de escopo global
+            // Apontador para o registrador de escopo global ($gp)
             printCode(insertObjInst(createObjInst(_ADDI, TYPE_I, stackOp, globalOp, getImediato(1))));
         }
 
         /* Aloca o bloco de memória na stack */
-        pushStackSpace(escopo->tamanhoBlocoMemoria + tamanho);
+        pushStackSpace(escopo->tamanhoBlocoMemoria + tamanho + 1); // +1 devido ao registrador $ra
     } else {
         /* Aloca espaço na stack para os parâmetros + 1 para o registrador de endereço de retorno
          * + 1 para armazenar valor de retorno de função dentro do escopo
@@ -675,10 +667,10 @@ void geraCodigoObjeto(Quadruple q) {
                 printCode(insertObjInst(createObjInst(_HALT, TYPE_J, NULL, NULL, NULL)));
                 break;
             case SYSCALL:
-                // Atribui zero ao registrador da stack, pois o controle retornará ao kernel e devemos ler da posição Zero da memória de instruções
-                printCode(insertObjInst(createObjInst(_LI, TYPE_I, stackOp, getImediato(0), NULL)));
+                /* Desaloca o bloco de memória da função main() da stack, isso é necessário para o SO ter o stackPointer alinhado com sua área de memória */
+                popStackSpace(escopo->tamanhoBlocoMemoria + getTamanhoBlocoMemoriaEscopoGlobal() + 1); // +1 devido ao registrador $ra
                 // Retorna o controle para o sistema operacional
-                printCode(insertObjInst(createObjInst(_SYSCALL, TYPE_J, NULL, NULL, NULL)));
+                printCode(insertObjInst(createObjInst(_SYSCALL, TYPE_I, NULL, rtnAddrOp, NULL)));
                 break;
         }
         q = q->next;
