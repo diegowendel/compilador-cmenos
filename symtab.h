@@ -45,11 +45,27 @@ typedef struct ScopeRec {
 
 Scope globalScope;
 
+typedef struct SysCallRec {
+    char * name;
+    TreeNode * treeNode;
+    struct SysCallRec * next;
+} * SysCall;
+
+SysCall syscallHead;
+
 /* Procedure st_insert inserts line numbers and
  * memory locations into the symbol table
  * loc = memory location is inserted only the
  * first time, otherwise ignored
  */
+SysCall sys_create(char * name, TreeNode * treeNode);
+
+void sys_insert(SysCall syscall);
+
+SysCall sys_lookup(char * name);
+
+void sys_free(void);
+
 void st_insert(char * name, int lineno, int loc, TreeNode * treeNode, int tamanho);
 
 BucketList st_create(char * name, int lineno, int loc, TreeNode * treeNode, int tamanho);

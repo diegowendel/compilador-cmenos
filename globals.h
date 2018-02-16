@@ -62,10 +62,14 @@ extern int lineno; /* source line number for listing */
 /***********   Syntax tree for parsing ************/
 /**************************************************/
 
-typedef enum {STMTK, EXPK, VARK} NodeKind;
+typedef enum {STMTK, EXPK, VARK, SYSK} NodeKind;
 typedef enum {INTEGERK, VOIDK, IFK, WHILEK, RETURNK, COMPK} StmtKind;
 typedef enum {ATRIBK, RELK, ARITHK, LOGICK, UNARYK} ExpKind;
 typedef enum {IDK, VECTORK, CONSTK, FUNCTIONK, CALLK} VarKind;
+typedef enum {INPUT, OUTPUT, LDK, SDK, LIM, SIM,
+    CHECKHD, CHECKIM, CHECKDM,
+    MMULOWERIM, MMUUPPERIM, MMULOWERDM, MMUUPPERDM,
+    MMUSELECT, EXEC} SysCallKind;
 typedef enum {DECLK, ACCESSK} VarAccessK;
 typedef enum {LOCALK, PARAMK, GLOBALK, FUNCTION_MEM} VarMemK;
 
@@ -97,6 +101,7 @@ typedef struct treeNode {
         StmtKind stmt;
         ExpKind exp;
         struct Identifier var;
+        SysCallKind sys;
     } kind;
     TokenType op;
     ExpType type; /* for type checking of exps */

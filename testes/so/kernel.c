@@ -100,9 +100,9 @@ void main(void) {
 	inicializarParticoes();
 
 	// Endereços de início dos programas no HD
-	PROGRAMA_1 = 250;
-	PROGRAMA_2 = 300;
-	PROGRAMA_3 = 354;
+	PROGRAMA_1 = 800;
+	PROGRAMA_2 = 850;
+	PROGRAMA_3 = 950;
 
 	// Carrega os programas na memória de instruções
 	carregarPrograma(PROGRAMA_1, 1);

@@ -132,10 +132,6 @@ void removeOperand(TargetOperand opTarget);
 
 void removeAllSavedOperands(void);
 
-void saveRegistradores(int stackLocationRegAux);
-
-void recuperaRegistradores(int stackLocationRegAux);
-
 Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, TargetOperand op1, TargetOperand op2, TargetOperand op3);
 
 Objeto createObjInst(Opcode opcode, Type type, TargetOperand op1, TargetOperand op2, TargetOperand op3);

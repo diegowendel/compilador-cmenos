@@ -390,14 +390,17 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
         int regRetornoFuncao = -(tamanhoBlocoMemoriaEscopoAtual); // Negativo pois é indexado ao ponteiro de pilha
 
-        saveRegistradores(-tamanhoBlocoMemoriaFuncaoChamada); // Negativo por conta do deslocamento em relação ao ponteiro da stack
-        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // sw $ra
+        removeAllSavedOperands();
+        if(strcmp(escopo->nome, "main")) {
+            printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // sw $ra
+        }
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
 
         /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoriaFuncaoChamada + 2); // +1 devido ao registrador $ra / +1 devido retorno de função ($v0)
-        recuperaRegistradores(-tamanhoBlocoMemoriaFuncaoChamada); // Negativo por conta do deslocamento em relação ao ponteiro da stack
-        printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // lw $ra
+        if(strcmp(escopo->nome, "main")) {
+            printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // lw $ra
+        }
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValOp, NULL)));
     }
 }
@@ -834,58 +837,6 @@ void removeAllSavedOperands(void) {
         reg.op->contents.variable.name = NULL;
         reg.op->contents.variable.scope = NULL;
         reg.isAddress = FALSE;
-    }
-}
-
-void saveRegistradores(int stackLocationRegAux) {
-    int i;
-    for(i = REG_SAVED_INICIO; i <= REG_SAVED_FIM; i++) {
-        Registrador reg = registradores[i];
-        TargetOperand rt;
-        int thereIsRegToSave = FALSE;
-
-        if(reg.isAddress) {
-            reg.isAddress = FALSE;
-            reg.op->contents.variable.name = NULL;
-            reg.op->contents.variable.scope = NULL;
-        } else {
-            if(reg.op->contents.variable.scope != NULL) {
-                rt = getStackOperandLocation(reg.op);
-                thereIsRegToSave = TRUE;
-            } else if(reg.op->contents.variable.scope == NULL && reg.op->contents.variable.name != NULL) {
-                rt = getStackLocation(stackLocationRegAux);
-                thereIsRegToSave = TRUE;
-            }
-
-            if(thereIsRegToSave) {
-                escopo->registradoresEmUso[i - REG_SAVED_INICIO] = TRUE;
-                printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg.targetOp, rt, NULL)));
-            }
-        }
-    }
-}
-
-void recuperaRegistradores(int stackLocationRegAux) {
-    int i;
-    for(i = REG_SAVED_INICIO; i <= REG_SAVED_FIM; i++) {
-        Registrador reg = registradores[i];
-        TargetOperand rt;
-        int thereIsRegToLoad = FALSE;
-        int regWasSaved = escopo->registradoresEmUso[i - REG_SAVED_INICIO];
-
-        if(regWasSaved) {
-            if(reg.op->contents.variable.scope != NULL) {
-                rt = getStackOperandLocation(reg.op);
-                thereIsRegToLoad = TRUE;
-            } else if(reg.op->contents.variable.scope == NULL && reg.op->contents.variable.name != NULL) {
-                rt = getStackLocation(stackLocationRegAux);
-                thereIsRegToLoad = TRUE;
-            }
-
-            if(thereIsRegToLoad) {
-                printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, rt, NULL)));
-            }
-        }
     }
 }
 

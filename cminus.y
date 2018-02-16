@@ -18,8 +18,7 @@
     TreeNode * savedTree; /* stores syntax tree for later return */
     int yylex(void);
     int yyerror(char * message);
-    TreeNode * createIntFunction(char * name);
-    TreeNode * createVoidFunction(char * name);
+    TreeNode * createSysCall(ExpType type, SysCallKind syscall);
     void insertNewNode(TreeNode * node);
 %}
 
@@ -40,21 +39,21 @@
 program
     : declarationList
         {
-            insertNewNode(createIntFunction("input"));              // Insert
-            insertNewNode(createVoidFunction("output"));            // Output
-            insertNewNode(createIntFunction("ldk"));                // LoadDisk
-            insertNewNode(createVoidFunction("sdk"));               // StoreDisk
-            insertNewNode(createVoidFunction("lim"));               // LoadInstMem
-            insertNewNode(createVoidFunction("sim"));               // StoreInstMem
-            insertNewNode(createVoidFunction("checkHD"));           // CheckHardDisk
-            insertNewNode(createVoidFunction("checkIM"));           // CheckInstMem
-            insertNewNode(createVoidFunction("checkDM"));           // CheckDataMem
-            insertNewNode(createVoidFunction("mmuLowerIM"));        // MMULowerIM
-            insertNewNode(createVoidFunction("mmuUpperIM"));        // MMUUpperIM
-            insertNewNode(createVoidFunction("mmuLowerDM"));        // MMULowerDM
-            insertNewNode(createVoidFunction("mmuUpperDM"));        // MMUUpperDM
-            insertNewNode(createVoidFunction("mmuSelect"));         // MMUSelect
-            insertNewNode(createVoidFunction("exec"));              // Exec
+            insertNewNode(createSysCall(INTEGER_TYPE, INPUT));                  // Insert
+            insertNewNode(createSysCall(VOID_TYPE, OUTPUT));                    // Output
+            insertNewNode(createSysCall(INTEGER_TYPE, LDK));                    // LoadDisk
+            insertNewNode(createSysCall(VOID_TYPE, SDK));                       // StoreDisk
+            insertNewNode(createSysCall(INTEGER_TYPE, LIM));                    // LoadInstMem
+            insertNewNode(createSysCall(VOID_TYPE, SIM));                       // StoreInstMem
+            insertNewNode(createSysCall(VOID_TYPE, CHECKHD));                   // CheckHardDisk
+            insertNewNode(createSysCall(VOID_TYPE, CHECKIM));                   // CheckInstMem
+            insertNewNode(createSysCall(VOID_TYPE, CHECKDM));                   // CheckDataMem
+            insertNewNode(createSysCall(VOID_TYPE, MMULOWERIM));                // MMULowerIM
+            insertNewNode(createSysCall(VOID_TYPE, MMUUPPERIM));                // MMUUpperIM
+            insertNewNode(createSysCall(VOID_TYPE, MMULOWERDM));                // MMULowerDM
+            insertNewNode(createSysCall(VOID_TYPE, MMUUPPERDM));                // MMUUpperDM
+            insertNewNode(createSysCall(VOID_TYPE, MMUSELECT));                 // MMUSelect
+            insertNewNode(createSysCall(VOID_TYPE, EXEC));                      // Exec
 
             TreeNode * temp;
             temp = savedTree;
@@ -674,24 +673,12 @@ TreeNode * getVoidNode(TreeNode * childNode) {
     return voidNode;
 }
 
-TreeNode * createIntFunction(char * name) {
-    TreeNode * function = newVarNode(FUNCTIONK);
+TreeNode * createSysCall(ExpType type, SysCallKind syscall) {
+    TreeNode * function = newSysNode(syscall);
     function->lineno = 0;
     function->op = ID;
-    function->type = INTEGER_TYPE;
-    function->kind.var.mem = FUNCTION_MEM;
-    function->kind.var.attr.name = name;
-    return getIntNode(function);
-}
-
-TreeNode * createVoidFunction(char * name) {
-    TreeNode * function = newVarNode(FUNCTIONK);
-    function->lineno = 0;
-    function->op = ID;
-    function->type = VOID_TYPE;
-    function->kind.var.mem = FUNCTION_MEM;
-    function->kind.var.attr.name = name;
-    return getVoidNode(function);
+    function->type = type;
+    return type == INTEGER_TYPE ? getIntNode(function) : getVoidNode(function);
 }
 
 void insertNewNode(TreeNode * node) {

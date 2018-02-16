@@ -166,17 +166,22 @@ static void insertNode(TreeNode * t) {
                 st_insert_func(funcName, t->lineno, t);
                 break;
             case CALLK:
-                if (!st_lookup_func(t->kind.var.attr.name)) {
+                funcName = t->kind.var.attr.name;
+                if (sys_lookup(funcName) != NULL) {
+                    // Do nothing
+                } else if (!st_lookup_func(funcName)) {
                     declError(t, "Função não declarada");
                 } else {
-                    BucketList l = st_bucket_func(t->kind.var.attr.name);
+                    BucketList l = st_bucket_func(funcName);
                     if (l->treeNode != NULL) {
                         t->type = l->treeNode->type;
                     }
                 }
                 break;
       	}
-  	}
+  	} else if (t->node == SYSK) {
+        sys_insert(sys_create(toStringSysCall(t->kind.sys), t));
+    }
 }
 
 static void afterInsertNode(TreeNode * t) {
@@ -195,12 +200,13 @@ void buildSymtab(TreeNode * syntaxTree) {
 	sc_push(globalScope);
 	traverse(syntaxTree, insertNode, afterInsertNode);
 	sc_pop();
+    sys_free();
 	if(mainDeclarada == FALSE) {
 		fprintf(listing, "Erro de declaração: Função main não declarada\n");
     	return;
 	}
  	if (TraceAnalyze) {
-		fprintf(listing,"\n\nTabela de símbolos:\n");
+		fprintf(listing,"\nTabela de símbolos:\n");
     	printSymTab(listing);
   	}
 }
@@ -251,7 +257,7 @@ static void checkNode(TreeNode * t) {
             case LOGICK: t->type = VOID_TYPE; break;
             case UNARYK: t->type = INTEGER_TYPE; break;
         }
-    } else {
+    } else if (t->node == VARK) {
         switch (t->kind.var.varKind) {
             case IDK: t->type = INTEGER_TYPE; break;
             case VECTORK: t->type = INTEGER_TYPE; break;

@@ -12,6 +12,7 @@
 #include <string.h>
 #include "globals.h"
 #include "symtab.h"
+#include "util.h"
 
 /* SHIFT is the power of two used as multiplier
    in hash function  */
@@ -68,6 +69,50 @@ void incScope() {
 
 void sc_push(Scope scope) {
     scopeStack[nScopeStack++] = scope;
+}
+
+SysCall sys_create(char * name, TreeNode * treeNode) {
+    SysCall sc = (SysCall) malloc(sizeof(struct SysCallRec));
+    sc->name = name;
+    sc->treeNode = treeNode;
+    sc->next = NULL;
+    return sc;
+}
+
+void sys_insert(SysCall syscall) {
+    if (syscallHead == NULL) {
+        syscallHead = syscall;
+    } else {
+        SysCall temp = syscallHead;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = syscall;
+    }
+}
+
+SysCall sys_lookup(char * name) {
+    SysCall temp = syscallHead;
+    while (temp != NULL) {
+        if (!strcmp(name, toStringSysCall(temp->treeNode->kind.sys))) {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+void sys_free(void) {
+    if (syscallHead == NULL) {
+        return;
+    }
+    
+    SysCall temp;
+    while (syscallHead != NULL) {
+        temp = syscallHead;
+        syscallHead = syscallHead->next;
+        free(temp);
+    }
 }
 
 Scope sc_create(char * funcName) {
@@ -445,23 +490,6 @@ void printSymTab(FILE * listing) {
             printSymTabRows(hashTable, listing, ESCOPO_GLOBAL);
             fprintf(listing, "\n");
 		} else {
-            if(!strcmp(scope->funcName, "input")
-                || !strcmp(scope->funcName, "output")
-                || !strcmp(scope->funcName, "ldk")
-                || !strcmp(scope->funcName, "sdk")
-                || !strcmp(scope->funcName, "lim")
-                || !strcmp(scope->funcName, "sim")
-                || !strcmp(scope->funcName, "checkHD")
-                || !strcmp(scope->funcName, "checkIM")
-                || !strcmp(scope->funcName, "checkDM")
-                || !strcmp(scope->funcName, "mmuLowerIM")
-                || !strcmp(scope->funcName, "mmuUpperIM")
-                || !strcmp(scope->funcName, "mmuLowerDM")
-                || !strcmp(scope->funcName, "mmuUpperDM")
-                || !strcmp(scope->funcName, "mmuSelect")
-                || !strcmp(scope->funcName, "exec")) {
-                continue;
-            }
             fprintf(listing, "Nome da função: %s\n", scope->funcName);
             fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Origem Variavel  Tamanho  MemLoc  Numero das linhas\n");
             fprintf(listing, "----------------  --------  ----------  ---------------  -------  ------  -----------------\n");

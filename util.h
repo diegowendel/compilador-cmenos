@@ -25,6 +25,10 @@ TreeNode * newExpNode(ExpKind);
 
 TreeNode * newVarNode(VarKind);
 
+TreeNode * newSysNode(SysCallKind);
+
+char * toStringSysCall(SysCallKind syscall);
+
 /* Function copyString allocates and makes a new
  * copy of an existing string
  */
