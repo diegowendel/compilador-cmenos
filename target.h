@@ -76,6 +76,8 @@ typedef struct targetOperand {
         char * label;
     } enderecamento;
     AddressingType tipoEnderecamento;
+
+    RegisterName regName; // deslocamento da stack reg nao é suficiente para identificar registradores
     int deslocamento; // deslocamento com base no Stack reg
 } * TargetOperand;
 

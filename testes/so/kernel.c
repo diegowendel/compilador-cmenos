@@ -110,9 +110,9 @@ void main(void) {
 	carregarPrograma(PROGRAMA_3, 3);
 
 	// Executa os programas, um após o outro, sem preempção
-	exec(1);
-	exec(2);
-	exec(3);
+	while (1) {
+		exec(input());
+	}
 }
 
 /**

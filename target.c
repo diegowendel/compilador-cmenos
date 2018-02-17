@@ -231,6 +231,7 @@ TargetOperand getOperandRegName(Operand op) {
             }
             printCode(insertObjInst(createObjInst(_LW, TYPE_I, rs, rt, NULL)));
             rs->deslocamento = rt->enderecamento.indexado.offset;
+            rs->regName = rt->enderecamento.indexado.registrador;
         }
     } else { /* Valor Imediato */
         // Prepara o operando
@@ -249,28 +250,34 @@ TargetOperand getOperandRegName(Operand op) {
 }
 
 TargetOperand getVectorRegName(Operand op) {
-    TargetOperand reg = getTargetOpByName(op->contents.variable.name);
+    TargetOperand rs, rt;
     TreeNode * treeNode;
-    if(reg == NULL) {
-        reg = getSavedReg(op);
+
+    rs = getTargetOpByName(op->contents.variable.name);
+    if(rs == NULL) {
+        rs = getSavedReg(op);
         if(op->contents.variable.scope == globalScope) {
             /* Lê o endereço de memória do início do vetor */
-            printCode(insertObjInst(createObjInst(_LA, TYPE_I, reg, getGlobalOperandLocation(op), NULL)));
-            registradores[(int) reg->enderecamento.registrador].isAddress = TRUE;
+            rt = getGlobalOperandLocation(op);
+            printCode(insertObjInst(createObjInst(_LA, TYPE_I, rs, rt, NULL)));
+            registradores[(int) rs->enderecamento.registrador].isAddress = TRUE;
         } else {
             // Verifica se o vetor foi declarado no mesmo escopo atual ou veio como parâmetro
             treeNode = getVarFromSymtab(op->contents.variable.name, op->contents.variable.scope)->treeNode;
+            rt = getStackOperandLocation(op);
             if(treeNode->kind.var.mem == PARAMK) {
                 /* Parâmetro - Lê o ponteiro para o vetor */
-                printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg, getStackOperandLocation(op), NULL)));
+                printCode(insertObjInst(createObjInst(_LW, TYPE_I, rs, rt, NULL)));
             } else {
                 /* Escopo atual - Lê o endereço de memória do início do vetor */
-                printCode(insertObjInst(createObjInst(_LA, TYPE_I, reg, getStackOperandLocation(op), NULL)));
-                registradores[(int) reg->enderecamento.registrador].isAddress = TRUE;
+                printCode(insertObjInst(createObjInst(_LA, TYPE_I, rs, rt, NULL)));
+                registradores[(int) rs->enderecamento.registrador].isAddress = TRUE;
             }
         }
     }
-    return reg;
+    rs->deslocamento = rt->enderecamento.indexado.offset;
+    rs->regName = rt->enderecamento.indexado.registrador;
+    return rs;
 }
 
 void geraCodigoInstrucaoTipoI(Quadruple q, Function func) {
@@ -391,14 +398,14 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         int regRetornoFuncao = -(tamanhoBlocoMemoriaEscopoAtual); // Negativo pois é indexado ao ponteiro de pilha
 
         removeAllSavedOperands();
-        if(strcmp(escopo->nome, "main")) {
+        if(codeType != KERNEL || strcmp(escopo->nome, "main")) {
             printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // sw $ra
         }
         printCode(insertObjInst(createObjInst(_JAL, TYPE_J, getOperandLabel(q->op1->contents.variable.name), NULL, NULL)));
 
         /* Desaloca o bloco de memória na stack */
         popStackSpace(tamanhoBlocoMemoriaFuncaoChamada + 2); // +1 devido ao registrador $ra / +1 devido retorno de função ($v0)
-        if(strcmp(escopo->nome, "main")) {
+        if(codeType != KERNEL || strcmp(escopo->nome, "main")) {
             printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(regRetornoFuncao), NULL))); // lw $ra
         }
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getSavedReg(q->op3), rtnValOp, NULL)));
@@ -817,7 +824,8 @@ void updateRegisterContent(TargetOperand operand) {
         Registrador reg = registradores[i];
         if (reg.op->contents.variable.name != NULL &&
             reg.op->contents.variable.scope != NULL &&
-            reg.targetOp->deslocamento == operand->enderecamento.indexado.offset) {
+            reg.targetOp->deslocamento == operand->enderecamento.indexado.offset &&
+            reg.targetOp->regName == operand->enderecamento.indexado.registrador) {
             printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, operand, NULL)));
         }
     }

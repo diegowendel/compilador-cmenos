@@ -453,43 +453,26 @@ static void genVar(TreeNode * tree) {
 
         case FUNCTIONK:
             verificaFimInstrucaoAnterior();
-            /* Se for função de biblioteca não gera código intermediário */
-            if(strcmp(tree->kind.var.attr.name, "input")
-                && strcmp(tree->kind.var.attr.name, "output")
-                && strcmp(tree->kind.var.attr.name, "ldk")
-                && strcmp(tree->kind.var.attr.name, "sdk")
-                && strcmp(tree->kind.var.attr.name, "lim")
-                && strcmp(tree->kind.var.attr.name, "sim")
-                && strcmp(tree->kind.var.attr.name, "checkHD")
-                && strcmp(tree->kind.var.attr.name, "checkIM")
-                && strcmp(tree->kind.var.attr.name, "checkDM")
-                && strcmp(tree->kind.var.attr.name, "mmuLowerIM")
-                && strcmp(tree->kind.var.attr.name, "mmuUpperIM")
-                && strcmp(tree->kind.var.attr.name, "mmuLowerDM")
-                && strcmp(tree->kind.var.attr.name, "mmuUpperDM")
-                && strcmp(tree->kind.var.attr.name, "mmuSelect")
-                && strcmp(tree->kind.var.attr.name, "exec")) {
-                op1 = createOperand();
-                op1->kind = String;
-                op1->contents.variable.name = tree->kind.var.attr.name;
-                op1->contents.variable.scope = tree->kind.var.scope;
-                insertQuad(createQuad(FUNC, op1, NULL, NULL));
+            op1 = createOperand();
+            op1->kind = String;
+            op1->contents.variable.name = tree->kind.var.attr.name;
+            op1->contents.variable.scope = tree->kind.var.scope;
+            insertQuad(createQuad(FUNC, op1, NULL, NULL));
 
-                /* list of parameters */
-                p1 = tree->child[0];
-                while(p1 != NULL) {
-                    op2 = createOperand();
-                    op2->kind = String;
-                    op2->contents.variable.name = p1->child[0]->kind.var.attr.name;
-                    op2->contents.variable.scope = p1->child[0]->kind.var.scope;
-                    insertQuad(createQuad(GET_PARAM, op2, NULL, NULL));
-                    p1 = p1->sibling;
-                }
-
-                /* build code for function block */
-                p2 = tree->child[1];
-                cGen(p2);
+            /* list of parameters */
+            p1 = tree->child[0];
+            while(p1 != NULL) {
+                op2 = createOperand();
+                op2->kind = String;
+                op2->contents.variable.name = p1->child[0]->kind.var.attr.name;
+                op2->contents.variable.scope = p1->child[0]->kind.var.scope;
+                insertQuad(createQuad(GET_PARAM, op2, NULL, NULL));
+                p1 = p1->sibling;
             }
+
+            /* build code for function block */
+            p2 = tree->child[1];
+            cGen(p2);
             break;
 
         case CALLK:
@@ -564,6 +547,8 @@ static void cGen(TreeNode * tree) {
                 break;
             case VARK:
                 genVar(tree);
+                break;
+            default:
                 break;
         }
         /* Se a quantidade de parâmetros for maior que 0, cGen() será chamado automaticamente */
