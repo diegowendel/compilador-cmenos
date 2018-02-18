@@ -1,6 +1,6 @@
 /**
 	GERENCIAMENTO DE MEMORIA (Memoria de instruções)
-	- Pensando em implementar paginação
+	- Paginação
 	- Gerenciamento de memória com partições de tamanho fixo
 		São 32 partições de tamanho 32 cada.
 */
@@ -8,13 +8,15 @@
 int PARTICOES[32];									// Partições de memória
 int TAMANHO_PARTICAO;								// Tamanho da partição
 int ERRO_DE_PARTICAO;								// Código de erro
+int SYSCALL;										// OPCODE da instrução SYSCALL
 
 void inicializarParticoes(void) {
 	int i;
 
-	// Inicializa o tamanho das partições
+	// Inicializa as constantes globais
 	TAMANHO_PARTICAO = 32;
 	ERRO_DE_PARTICAO = 100;
+	SYSCALL = 37;
 
 	// Primeiro zera todas partições
 	i = 0;
@@ -31,27 +33,61 @@ void inicializarParticoes(void) {
 	}
 }
 
-void limparDisplays(void) {
-	output(0, 0);
-	output(0, 1);
-	output(0, 2);
-}
-
-int obterParticaoLivre(void) {
+/**
+ * Com base no tamanho passado como parâmetro, busca partições livres
+ * e contíguas na memória. Retorna o número da primeira partição, mesmo
+ * que o programa necessite de mais de uma para ser alocado em memória.
+ * 
+ * @param
+ * 		tamanho do programa
+ * @return primeira partição livre na memória
+ */
+int getParticaoLivre(int tamanho) {
 	int i;
-	i = 0;
+	int particoes;
+	int particaoInicial;
 
+	// Calcula quantas partições serão necessárias
+	particoes = tamanho / TAMANHO_PARTICAO;
+	if (tamanho % TAMANHO_PARTICAO > 0) {
+		particoes += 1;
+	}
+
+	i = 0;
 	while (i < 32) {
 		if (PARTICOES[i] == 0) {
-			PARTICOES[i] = 1;
-			PARTICOES[i+1] = 1;
-			PARTICOES[i+2] = 1;
-			return i;
+			particaoInicial = i;
+			while (particoes != 0) {
+				PARTICOES[i] = 1;
+				particoes -= 1;
+				i += 1;
+			}
+			return particaoInicial;
 		}
 		i += 1;
 	}
 
 	return ERRO_DE_PARTICAO;
+}
+
+/**
+ * Calcula o tamanho de um programa em disco.
+ * 
+ * @param beginOnDisk
+ * 		endereço do início do programa no HD
+ * @return tamanho do programa
+ */ 
+int getTamanhoPrograma(int beginOnDisk) {
+	int instrucao;
+	int index;
+
+	index = beginOnDisk;
+	instrucao = ldk(index);
+	while (instrucao >> 26 != SYSCALL) {
+		index += 1;
+		instrucao = ldk(index);
+	}
+	return index - beginOnDisk;
 }
 
 /**
@@ -67,12 +103,11 @@ void carregarPrograma(int beginOnDisk, int nPrograma) {
 	int indexMemory;								// Iterador para a memória
 	int instrucao;									// Instrução lida do disco
 	int particao;									// Partição na memória
-	int SYSCALL;									// OPCODE da instrução SYSCALL
-
-	SYSCALL = 37;
+	int tamanho;									// Tamanho do programa
 
 	indexDisk = beginOnDisk;						// Recebe o endereço para iterar no disco
-	particao = obterParticaoLivre();				// Obtém uma partição livre na memória
+	tamanho = getTamanhoPrograma(beginOnDisk);
+	particao = getParticaoLivre(tamanho);			// Obtém partições livres na memória
 	indexMemory = TAMANHO_PARTICAO * particao;		// Endereço para iterar na memória
 	instrucao = ldk(indexDisk);
 	while(instrucao >> 26 != SYSCALL) {
