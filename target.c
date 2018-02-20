@@ -392,6 +392,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
         // Executa um programa carregado em memória
         printCode(insertObjInst(createObjInst(_EXEC, TYPE_J, NULL, NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
+        printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));
     } else {
         int tamanhoBlocoMemoriaFuncaoChamada = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
@@ -846,6 +848,7 @@ void removeAllSavedOperands(void) {
         reg.op->contents.variable.scope = NULL;
         reg.isAddress = FALSE;
     }
+    escopo->savedRegCount = 0;
 }
 
 Objeto createObjInstTypeR(Opcode opcode, Function func, Type type, TargetOperand op1, TargetOperand op2, TargetOperand op3) {

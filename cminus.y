@@ -54,6 +54,7 @@ program
             insertNewNode(createSysCall(VOID_TYPE, MMUUPPERDM));                // MMUUpperDM
             insertNewNode(createSysCall(VOID_TYPE, MMUSELECT));                 // MMUSelect
             insertNewNode(createSysCall(VOID_TYPE, EXEC));                      // Exec
+            insertNewNode(createSysCall(VOID_TYPE, LCD));                       // LCD
 
             TreeNode * temp;
             temp = savedTree;

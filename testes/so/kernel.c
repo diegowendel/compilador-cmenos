@@ -9,14 +9,28 @@ int PARTICOES[32];									// Partições de memória
 int TAMANHO_PARTICAO;								// Tamanho da partição
 int ERRO_DE_PARTICAO;								// Código de erro
 int SYSCALL;										// OPCODE da instrução SYSCALL
+int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
 
-void inicializarParticoes(void) {
-	int i;
+// Estados dos menus do display LCD
+int KERNEL_MAIN_MENU;
+int KERNEL_MENU_HD;
+int KERNEL_MENU_MEM;
+
+void inicializarConstantes(void) {
+	// Constantes do menu do SHELL
+	KERNEL_MAIN_MENU = 0;
+	KERNEL_MENU_HD = 1;
+	KERNEL_MENU_MEM = 2;
 
 	// Inicializa as constantes globais
 	TAMANHO_PARTICAO = 32;
 	ERRO_DE_PARTICAO = 100;
 	SYSCALL = 37;
+	ESTADO_LCD = KERNEL_MAIN_MENU;
+}
+
+void inicializarParticoes(void) {
+	int i;
 
 	// Primeiro zera todas partições
 	i = 0;
@@ -130,7 +144,10 @@ void main(void) {
 	int PROGRAMA_1; // Fibonacci
 	int PROGRAMA_2; // Maior elemento
 	int PROGRAMA_3; // Fatorial
+	int novoEstadoLCD;
 
+	// Inicializa constantes gerais usadas pelo SO
+	inicializarConstantes();
 	// Inicializa partições de memória
 	inicializarParticoes();
 
@@ -141,12 +158,23 @@ void main(void) {
 
 	// Carrega os programas na memória de instruções
 	carregarPrograma(PROGRAMA_1, 1);
-	carregarPrograma(PROGRAMA_2, 2);
-	carregarPrograma(PROGRAMA_3, 3);
+	//carregarPrograma(PROGRAMA_2, 2);
+	//carregarPrograma(PROGRAMA_3, 3);	
 
-	// Executa os programas, um após o outro, sem preempção
+	// Loop infinito
 	while (1) {
-		exec(input());
+		novoEstadoLCD = input();
+		output(novoEstadoLCD, 1);
+
+		if (ESTADO_LCD == KERNEL_MENU_HD) {
+			if (novoEstadoLCD == 4) {
+				novoEstadoLCD = 0;
+			}
+		}
+		ESTADO_LCD = novoEstadoLCD;
+
+		lcd(ESTADO_LCD);
+		output(novoEstadoLCD, 2);
 	}
 }
 
