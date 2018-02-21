@@ -5,32 +5,70 @@
 		São 32 partições de tamanho 32 cada.
 */
 
+// Constantes de gerenciamento da memória
 int PARTICOES[32];									// Partições de memória
 int TAMANHO_PARTICAO;								// Tamanho da partição
 int ERRO_DE_PARTICAO;								// Código de erro
+
+// OPCODE's
 int SYSCALL;										// OPCODE da instrução SYSCALL
-int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
+int HALT;											// OPCODE da instrução HALT
 
 // Estados dos menus do display LCD
 int KERNEL_MAIN_MENU;
 int KERNEL_MENU_HD;
 int KERNEL_MENU_MEM;
+int KERNEL_MENU_EXE;
+int KERNEL_MENU_MEM_LOAD;
 
+int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
+
+/**
+ * Inicializa constantes globais do sistema.
+ */ 
 void inicializarConstantes(void) {
-	// Constantes do menu do SHELL
+	TAMANHO_PARTICAO = 32;
+	ERRO_DE_PARTICAO = 100;
+
+	SYSCALL = 37;
+	HALT = 24;
+
 	KERNEL_MAIN_MENU = 0;
 	KERNEL_MENU_HD = 1;
 	KERNEL_MENU_MEM = 2;
-
-	// Inicializa as constantes globais
-	TAMANHO_PARTICAO = 32;
-	ERRO_DE_PARTICAO = 100;
-	SYSCALL = 37;
+	KERNEL_MENU_EXE = 3;
+	KERNEL_MENU_MEM_LOAD = 4;	
+	
 	ESTADO_LCD = KERNEL_MAIN_MENU;
 }
 
+/**
+ * Calcula o tamanho do programa do kernel em disco.
+ *
+ * @return tamanho do kernel
+ */ 
+int getTamanhoKernel(void) {
+	int instrucao;
+	int index;
+
+	index = 0;
+	instrucao = ldk(index);
+	while (instrucao >> 26 != HALT) {
+		index += 1;
+		instrucao = ldk(index);
+	}
+	return index;
+}
+
+/**
+ * Inicializa inicialmente todas as partições da memória de
+ * instruções como disponíveis. Em seguida, calcula as partições
+ * necessárias para armazenar o kernel e as marca como ocupadas.
+ */
 void inicializarParticoes(void) {
 	int i;
+	int particoes;
+	int tamanhoKernel;
 
 	// Primeiro zera todas partições
 	i = 0;
@@ -39,9 +77,16 @@ void inicializarParticoes(void) {
 		i += 1;
 	}
 
-	// Marca as partições em uso pelo Sistema Operacional
+	// Calcula a quantidade de partições necessárias para o Kernel
+	tamanhoKernel = getTamanhoKernel();
+	particoes = tamanhoKernel / TAMANHO_PARTICAO;
+	if (tamanhoKernel % TAMANHO_PARTICAO > 0) {
+		particoes += 1;
+	}
+
+	// Marca as partições em uso pelo Kernel
 	i = 0;
-	while (i < 7) {
+	while (i < particoes) {
 		PARTICOES[i] = 1;
 		i += 1;
 	}
@@ -136,8 +181,6 @@ void carregarPrograma(int beginOnDisk, int nPrograma) {
 	mmuSelect(nPrograma);
 	// Adiciona offset do programa na MMU
 	mmuLowerIM(TAMANHO_PARTICAO * particao);
-
-	return indexMemory;
 }
 
 void main(void) {
@@ -156,25 +199,43 @@ void main(void) {
 	PROGRAMA_2 = 850;
 	PROGRAMA_3 = 950;
 
-	// Carrega os programas na memória de instruções
-	carregarPrograma(PROGRAMA_1, 1);
-	//carregarPrograma(PROGRAMA_2, 2);
-	//carregarPrograma(PROGRAMA_3, 3);	
-
 	// Loop infinito
 	while (1) {
 		novoEstadoLCD = input();
-		output(novoEstadoLCD, 1);
+		output(novoEstadoLCD, 0);
 
-		if (ESTADO_LCD == KERNEL_MENU_HD) {
-			if (novoEstadoLCD == 4) {
-				novoEstadoLCD = 0;
+		if (ESTADO_LCD == KERNEL_MAIN_MENU) {
+			if (novoEstadoLCD > 3) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
+		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
+			if (novoEstadoLCD > 3) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			}
+		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
+			if (novoEstadoLCD == 1) {
+				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
+			} else if (novoEstadoLCD > 3) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			}
+		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
+			if (novoEstadoLCD > 0) {
+				exec(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
+		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
+			if (novoEstadoLCD == 1) {
+				carregarPrograma(PROGRAMA_1, 1);
+			} else if (novoEstadoLCD == 2) {
+				carregarPrograma(PROGRAMA_2, 2);
+			} else if (novoEstadoLCD == 3) {
+				carregarPrograma(PROGRAMA_3, 3);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
 		}
-		ESTADO_LCD = novoEstadoLCD;
 
+		ESTADO_LCD = novoEstadoLCD;
 		lcd(ESTADO_LCD);
-		output(novoEstadoLCD, 2);
 	}
 }
 
@@ -202,4 +263,10 @@ void main(void) {
  * 
  * -	mmuSelect(7);
  * -	mmuLowerIM(256); // 256, número arbitrário (início do programa na IM)
+ */
+
+/**
+ * lcd(menu)
+ * 
+ * Seleciona o menu que será exibido no display LCD.
  */
