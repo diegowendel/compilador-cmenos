@@ -14,14 +14,11 @@ typedef enum opcode {
     _ANDI, _ORI, _XORI, _NOT, _LANDI, _LORI,
     _SLLI, _SRLI,
     _MOV, _LW, _LI, _LA, _SW,
-    _IN, _OUT,
-    _JF,
-    _J, _JAL, _HALT,
-    _LW_DISK, _SW_DISK,
-    _LW_IM, _SW_IM,
-    _CK_HD, _CK_IM, _CK_DM,
+    _IN, _OUT, _JF,
+    _LW_DISK, _SW_DISK, _LW_IM, _SW_IM,
     _MMU_LOWER_IM, _MMU_UPPER_IM, _MMU_LOWER_DM, _MMU_UPPER_DM, _MMU_SELECT,
     _SYSCALL, _EXEC, _LCD,
+    _J, _JAL, _HALT,
     _RTYPE
 } Opcode;
 

@@ -45,9 +45,6 @@ program
             insertNewNode(createSysCall(VOID_TYPE, SDK));                       // StoreDisk
             insertNewNode(createSysCall(INTEGER_TYPE, LIM));                    // LoadInstMem
             insertNewNode(createSysCall(VOID_TYPE, SIM));                       // StoreInstMem
-            insertNewNode(createSysCall(VOID_TYPE, CHECKHD));                   // CheckHardDisk
-            insertNewNode(createSysCall(VOID_TYPE, CHECKIM));                   // CheckInstMem
-            insertNewNode(createSysCall(VOID_TYPE, CHECKDM));                   // CheckDataMem
             insertNewNode(createSysCall(VOID_TYPE, MMULOWERIM));                // MMULowerIM
             insertNewNode(createSysCall(VOID_TYPE, MMUUPPERIM));                // MMUUpperIM
             insertNewNode(createSysCall(VOID_TYPE, MMULOWERDM));                // MMULowerDM

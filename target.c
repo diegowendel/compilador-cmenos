@@ -362,20 +362,13 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "output")) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(q->op1->contents.variable.name, "ldk")) {
-        TargetOperand lidoDoDisco = getTempReg(q->op3);
-        printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, lidoDoDisco, getArgReg(0), NULL)));
+        printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, getTempReg(q->op3), getArgReg(0), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sdk")) {
         printCode(insertObjInst(createObjInst(_SW_DISK, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lim")) {
         printCode(insertObjInst(createObjInst(_LW_IM, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sim")) {
         printCode(insertObjInst(createObjInst(_SW_IM, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "checkHD")) {
-        printCode(insertObjInst(createObjInst(_CK_HD, TYPE_J, NULL, NULL, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "checkIM")) {
-        printCode(insertObjInst(createObjInst(_CK_IM, TYPE_J, NULL, NULL, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "checkDM")) {
-        printCode(insertObjInst(createObjInst(_CK_DM, TYPE_J, NULL, NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuLowerIM")) {
         printCode(insertObjInst(createObjInst(_MMU_LOWER_IM, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuUpperIM")) {

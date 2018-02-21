@@ -30,8 +30,8 @@ void inicializarConstantes(void) {
 	TAMANHO_PARTICAO = 32;
 	ERRO_DE_PARTICAO = 100;
 
-	SYSCALL = 37;
-	HALT = 24;
+	SYSCALL = 31;
+	HALT = 63;
 
 	KERNEL_MAIN_MENU = 0;
 	KERNEL_MENU_HD = 1;
@@ -189,6 +189,8 @@ void main(void) {
 	int PROGRAMA_3; // Fatorial
 	int novoEstadoLCD;
 
+	// Inicializa display LCD
+	lcd(KERNEL_MAIN_MENU);
 	// Inicializa constantes gerais usadas pelo SO
 	inicializarConstantes();
 	// Inicializa partições de memória
@@ -207,15 +209,21 @@ void main(void) {
 		if (ESTADO_LCD == KERNEL_MAIN_MENU) {
 			if (novoEstadoLCD > 3) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD < 1) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
 			if (novoEstadoLCD > 3) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD < 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
 			} else if (novoEstadoLCD > 3) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD < 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {

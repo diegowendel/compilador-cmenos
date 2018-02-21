@@ -25,14 +25,11 @@ const char * toStringOpcode(Opcode op) {
         "andi", "ori", "xori", "not", "landi", "lori",
         "slli", "srli",
         "mov", "lw", "li", "la", "sw",
-        "in", "out",
-        "jf",
-        "j", "jal", "halt",
-        "ldk", "sdk",
-        "lim", "sim",
-        "ckhd", "ckim", "ckdm",
+        "in", "out", "jf",        
+        "ldk", "sdk", "lim", "sim",
         "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM", "mmuSelect",
         "syscall", "exec", "lcd", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
+        "j", "jal", "halt",
         "rtype"
     };
     return strings[op];
@@ -70,22 +67,16 @@ const char * toBinaryOpcode(Opcode op) {
         "001100", "001101",
         // mov,   lw,       li,       la,       sw
         "001110", "001111", "010000", "010001", "010010",
-        // in,    out,
-        "010011", "010100",
-        // jf,
-        "010101",
-        // j,     jal,      halt
-        "010110", "010111", "011000",
-        // ldk,   sdk
-        "011001", "011010",
-        // lim,   sim
-        "011011", "011100",
-        // ckhd,   ckim,    ckdm
-        "011101", "011110", "011111",
+        // in,    out,      jf,
+        "010011", "010100", "010101",
+        // ldk,   sdk,      lim,      sim
+        "010110", "010111", "011000", "011001",
         // mmuLowerIM, mmuUpperIM, mmuLowerDM, mmuUpperDM, mmuSelect,
-        "100000", "100001", "100010", "100011", "100100",
+        "011010", "011011", "011100", "011101", "011110",
         // syscall, exec,   lcd,
-        "100101", "100110", "100111",
+        "011111", "100000", "100001",
+        // j,     jal,      halt
+        "111101", "111110", "111111",
         // rtype
         "000000"
     };

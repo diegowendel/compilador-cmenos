@@ -2,21 +2,26 @@
  * Realiza o teste de partida antes de carregar o SO.
  */
 void checarComponentes(void) {
-	checkHD(); // Checa HD
-	checkIM(); // Checa memória de instruções
-	checkDM(); // Checa memória de dados
+	lcd(5); // Checa HD
+	input();
+	lcd(6); // Checa memória de instruções
+	input();
+	lcd(7); // Checa memória de dados
+	input();
+	lcd(8); // Inicia o Sistema Operacional
+	input();
 }
 
 /**
  * Transfere as instruções referentes ao SO do HD para a memória de instruções.
  * Retorna a posição da última instrução copiada do HD.
  */
-int carregarSistemaOperacional(void) {
+void carregarKernel(void) {
 	int instrucao;
 	int index;
 	int HALT;
 
-	HALT = 24; // Opcode da instrução HALT
+	HALT = 63; // Opcode da instrução HALT
 
 	index = 0; // O SO DEVE SEMPRE INICIAR DO ZERO
 	instrucao = ldk(index);
@@ -26,7 +31,6 @@ int carregarSistemaOperacional(void) {
 		instrucao = ldk(index);
 	}
 	sim(instrucao, index);
-	return index;
 }
 
 /**
@@ -37,8 +41,8 @@ int carregarSistemaOperacional(void) {
  * início da memória de dados.
  */
 void main(void) {		
-	// checarComponentes();
-	carregarSistemaOperacional();
+	checarComponentes();
+	carregarKernel();
 }
 
 /**
