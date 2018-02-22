@@ -51,7 +51,7 @@ void inserirJumpToMain(CodeType codeType, int linha) {
     sprintf(str, "%d", linha);
     strcat(temp, str);
     strcat(temp, codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
-    strcat(temp, toBinaryOpcode(_J));
+    strcat(temp, toBinaryOpcode(codeType == PROGRAMA ? _JTM : _J));
     strcat(temp, "_");
     strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
     strcat(temp, ";\t\t// Jump to Main");

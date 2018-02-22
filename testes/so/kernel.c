@@ -9,9 +9,18 @@
 int PARTICOES[32];									// Partições de memória
 int TAMANHO_PARTICAO;								// Tamanho da partição
 int ERRO_DE_PARTICAO;								// Código de erro
+int MAX_PROGRAMAS;									// Número máximo de programas
+int ENDERECO_INICIO_HD;								// Endereço de início do HD (Após a área do Kernel)
+int ENDERECO_FIM_HD;								// Endereço de fim do HD (Tamanho total)
+
+int PROGRAMAS_EM_HD[10];							// Programas armazenados em disco
+int PROGRAMAS_EM_HD_ENDERECO[10];
+int PROGRAMAS_EM_MEMORIA[10];						// Programas carregados na memória de instruções
+int PROGRAMAS_EM_MEMORIA_ENDERECO[10];
 
 // OPCODE's
 int SYSCALL;										// OPCODE da instrução SYSCALL
+int JTM;											// OPCODE da instrução JTM (Jump To Main)
 int HALT;											// OPCODE da instrução HALT
 
 // Estados dos menus do display LCD
@@ -20,6 +29,7 @@ int KERNEL_MENU_HD;
 int KERNEL_MENU_MEM;
 int KERNEL_MENU_EXE;
 int KERNEL_MENU_MEM_LOAD;
+int PROG_INSERT;
 
 int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
 
@@ -29,8 +39,11 @@ int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
 void inicializarConstantes(void) {
 	TAMANHO_PARTICAO = 32;
 	ERRO_DE_PARTICAO = 100;
+	MAX_PROGRAMAS = 10;
+	ENDERECO_FIM_HD = 1023;
 
 	SYSCALL = 31;
+	JTM = 61;
 	HALT = 63;
 
 	KERNEL_MAIN_MENU = 0;
@@ -38,8 +51,44 @@ void inicializarConstantes(void) {
 	KERNEL_MENU_MEM = 2;
 	KERNEL_MENU_EXE = 3;
 	KERNEL_MENU_MEM_LOAD = 4;	
+	PROG_INSERT = 9;
 	
 	ESTADO_LCD = KERNEL_MAIN_MENU;
+}
+
+/**
+ * Inicializa, primeiramente, todos slots de programas como
+ * disponíveis. Em seguida, realiza uma varredura completa pelo
+ * disco em busca de programas ainda não marcados e os mapeia
+ * com seu número e seu endereço de início no HD.
+ */
+void inicializarProgramas(void) {
+	int index;
+	int prog;
+	int instrucao;
+
+	// Primeiro zera os vetores de programas
+	prog = 0;
+	while (prog < MAX_PROGRAMAS) {
+		PROGRAMAS_EM_HD[prog] = 0;
+		PROGRAMAS_EM_HD_ENDERECO[prog] = 0;
+		PROGRAMAS_EM_MEMORIA[prog] = 0;
+		PROGRAMAS_EM_MEMORIA_ENDERECO[prog] = 0;
+		prog += 1;
+	}
+
+	// Varre o disco em busca de programas
+	index = ENDERECO_INICIO_HD;
+	prog = 0;
+	while (index < ENDERECO_FIM_HD) {
+		instrucao = ldk(index);
+		if (instrucao >> 26 == JTM) {
+			PROGRAMAS_EM_HD[prog] = prog + 1; // Vetor continua 0-based, só muda o numero do programa que é +1
+			PROGRAMAS_EM_HD_ENDERECO[prog] = index;
+			prog += 1;
+		}
+		index += 1;
+	}
 }
 
 /**
@@ -77,8 +126,9 @@ void inicializarParticoes(void) {
 		i += 1;
 	}
 
-	// Calcula a quantidade de partições necessárias para o Kernel
+	// Calcula a quantidade de partições necessárias para o Kernel	
 	tamanhoKernel = getTamanhoKernel();
+	ENDERECO_INICIO_HD = tamanhoKernel + 1;
 	particoes = tamanhoKernel / TAMANHO_PARTICAO;
 	if (tamanhoKernel % TAMANHO_PARTICAO > 0) {
 		particoes += 1;
@@ -183,11 +233,33 @@ void carregarPrograma(int beginOnDisk, int nPrograma) {
 	mmuLowerIM(TAMANHO_PARTICAO * particao);
 }
 
+/**
+ * Realiza a exponenciação de 2, onde o expoente é passado como
+ * parâmetro.
+ * 
+ * @param n
+ * 		expoente da operação de exponenciação de 2
+ * @return potência de dois do número passado como parâmetro
+ */
+int powByTwo(int n) {
+	int total;
+	
+	if (n == 0) {
+		return 1;
+	}
+
+	total = 1;
+	while (n > 0) {
+		total *= 2;
+		n -= 1;
+	}
+	return total;
+}
+
 void main(void) {
-	int PROGRAMA_1; // Fibonacci
-	int PROGRAMA_2; // Maior elemento
-	int PROGRAMA_3; // Fatorial
 	int novoEstadoLCD;
+	int i;
+	int count;
 
 	// Inicializa display LCD
 	lcd(KERNEL_MAIN_MENU);
@@ -195,11 +267,8 @@ void main(void) {
 	inicializarConstantes();
 	// Inicializa partições de memória
 	inicializarParticoes();
-
-	// Endereços de início dos programas no HD
-	PROGRAMA_1 = 800;
-	PROGRAMA_2 = 850;
-	PROGRAMA_3 = 950;
+	// Inicializa os vetores de programas e scaneia o HD
+	inicializarProgramas();
 
 	// Loop infinito
 	while (1) {
@@ -221,6 +290,17 @@ void main(void) {
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
+				i = 0;
+				count = 0;
+
+				while (i < MAX_PROGRAMAS) {
+					if (PROGRAMAS_EM_HD[i] != 0) {
+						output(count, 1);
+						count += powByTwo(i);
+					}
+					i += 1;
+				}
+				output(count, 2);
 			} else if (novoEstadoLCD > 3) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			} else if (novoEstadoLCD < 1) {
@@ -228,16 +308,13 @@ void main(void) {
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
 			if (novoEstadoLCD > 0) {
+				lcd(PROG_INSERT);
 				exec(novoEstadoLCD);
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
-			if (novoEstadoLCD == 1) {
-				carregarPrograma(PROGRAMA_1, 1);
-			} else if (novoEstadoLCD == 2) {
-				carregarPrograma(PROGRAMA_2, 2);
-			} else if (novoEstadoLCD == 3) {
-				carregarPrograma(PROGRAMA_3, 3);
+			if (novoEstadoLCD > 1) {
+				carregarPrograma(PROGRAMAS_EM_HD_ENDERECO[novoEstadoLCD-1], PROGRAMAS_EM_HD[novoEstadoLCD-1]);
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		}

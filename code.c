@@ -29,7 +29,7 @@ const char * toStringOpcode(Opcode op) {
         "ldk", "sdk", "lim", "sim",
         "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM", "mmuSelect",
         "syscall", "exec", "lcd", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
-        "j", "jal", "halt",
+        "j", "jtm", "jal", "halt",
         "rtype"
     };
     return strings[op];
@@ -75,8 +75,8 @@ const char * toBinaryOpcode(Opcode op) {
         "011010", "011011", "011100", "011101", "011110",
         // syscall, exec,   lcd,
         "011111", "100000", "100001",
-        // j,     jal,      halt
-        "111101", "111110", "111111",
+        // j,     jtm,      jal,      halt
+        "111100", "111101", "111110", "111111",
         // rtype
         "000000"
     };
