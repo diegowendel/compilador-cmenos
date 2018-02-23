@@ -56,6 +56,7 @@ void inserirJumpToMain(CodeType codeType, int linha) {
     strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
     strcat(temp, ";\t\t// Jump to Main");
     emitCode(temp);
+    emitBinary(temp);
 }
 
 void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
@@ -169,6 +170,7 @@ void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
         strcat(temp, "; \t// ");
         strcat(temp, obj->func == _DONT_CARE ? toStringOpcode(obj->opcode) : toStringFunction(obj->func));
         emitCode(temp);
+        emitBinary(temp);
         obj = obj->next;
     }
 }

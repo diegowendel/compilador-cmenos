@@ -51,6 +51,7 @@ int lineno = 0;
 FILE * source;
 FILE * listing;
 FILE * code;
+FILE * binary_file;
 
 /* allocate and set tracing flags */
 int EchoSource = FALSE;
@@ -129,6 +130,7 @@ int main(int argc, char * argv[]) {
 #if !NO_BINARY_CODE
     if(codigoObjetoGerado) {
         char * codefile;
+        char * binaryFile;
         int fnlen = strcspn(codeInfo.pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
         strncpy(codefile, codeInfo.pgm, fnlen);
@@ -136,8 +138,15 @@ int main(int argc, char * argv[]) {
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
+
+        binaryFile = (char *) calloc(fnlen + 4, sizeof(char));
+        strncpy(binaryFile, codeInfo.pgm, fnlen);
+        strcat(binaryFile, ".b");
+        binary_file = fopen(binaryFile, "w");
+
         geraCodigoBinario(codigoObjeto, codeInfo);
         fclose(code);
+        fclose(binary_file);
         if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
     }
 #endif

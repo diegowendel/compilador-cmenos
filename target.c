@@ -387,6 +387,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_EXEC, TYPE_J, NULL, NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
         printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "lcdPgm")) {
+        printCode(insertObjInst(createObjInst(_LCD_PGM, TYPE_I, getArgReg(0), NULL, NULL)));
     } else {
         int tamanhoBlocoMemoriaFuncaoChamada = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
@@ -680,6 +682,7 @@ void geraCodigoObjeto(Quadruple q, CodeInfo codeInfo) {
             /* Label */
             case LBL:
                 geraCodigoLabel(q);
+                removeAllSavedOperands();
                 break;
 
             /* Halt */

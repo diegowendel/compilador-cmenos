@@ -17,7 +17,7 @@ typedef enum opcode {
     _IN, _OUT, _JF,
     _LW_DISK, _SW_DISK, _LW_IM, _SW_IM,
     _MMU_LOWER_IM, _MMU_UPPER_IM, _MMU_LOWER_DM, _MMU_UPPER_DM, _MMU_SELECT,
-    _SYSCALL, _EXEC, _LCD,
+    _SYSCALL, _EXEC, _LCD, _LCD_PGM,
     _J, _JTM, _JAL, _HALT,
     _RTYPE
 } Opcode;

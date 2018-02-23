@@ -28,7 +28,7 @@ const char * toStringOpcode(Opcode op) {
         "in", "out", "jf",        
         "ldk", "sdk", "lim", "sim",
         "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM", "mmuSelect",
-        "syscall", "exec", "lcd", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
+        "syscall", "exec", "lcd", "lcdPgm", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
         "j", "jtm", "jal", "halt",
         "rtype"
     };
@@ -73,8 +73,8 @@ const char * toBinaryOpcode(Opcode op) {
         "010110", "010111", "011000", "011001",
         // mmuLowerIM, mmuUpperIM, mmuLowerDM, mmuUpperDM, mmuSelect,
         "011010", "011011", "011100", "011101", "011110",
-        // syscall, exec,   lcd,
-        "011111", "100000", "100001",
+        // syscall, exec,   lcd,      lcdPgm,
+        "011111", "100000", "100001", "100010",
         // j,     jtm,      jal,      halt
         "111100", "111101", "111110", "111111",
         // rtype
@@ -125,6 +125,10 @@ void emitSpaces(int indent){
 
 void emitCode(const char * c) {
     fprintf(code, "%s\n", c);
+}
+
+void emitBinary(const char * c) {
+    fprintf(binary_file, "%s\n", c);
 }
 
 void emitComment(const char * c, int indent) {

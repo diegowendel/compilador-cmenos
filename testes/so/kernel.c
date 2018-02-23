@@ -180,6 +180,59 @@ int getParticaoLivre(int tamanho) {
 }
 
 /**
+ * Realiza a exponenciação de 2, onde o expoente é passado como
+ * parâmetro.
+ * 
+ * @param n
+ * 		expoente da operação de exponenciação de 2
+ * @return potência de dois do número passado como parâmetro
+ */
+int powByTwo(int n) {
+	int total;
+	
+	if (n == 0) {
+		return 1;
+	}
+
+	total = 1;
+	while (n > 0) {
+		total *= 2;
+		n -= 1;
+	}
+	return total;
+}
+
+int getDescritorProgramasMemoria(void) {
+	int i;
+	int descritor;
+
+	i = 0;
+	descritor = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROGRAMAS_EM_MEMORIA[i] != 0) {
+			descritor += powByTwo(i);
+		}
+		i += 1;
+	}
+	return descritor;
+}
+
+int getDescritorProgramasHD(void) {
+	int i;
+	int descritor;
+
+	i = 0;
+	descritor = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROGRAMAS_EM_HD[i] != 0) {
+			descritor += powByTwo(i);
+		}
+		i += 1;
+	}
+	return descritor;
+}
+
+/**
  * Calcula o tamanho de um programa em disco.
  * 
  * @param beginOnDisk
@@ -207,12 +260,19 @@ int getTamanhoPrograma(int beginOnDisk) {
  * @param nPrograma
  * 		seletor para o qual o programa será atribuído na MMU
  */
-void carregarPrograma(int beginOnDisk, int nPrograma) {
+void carregarPrograma(int nPrograma) {
 	int indexDisk;									// Iterador para o disco
 	int indexMemory;								// Iterador para a memória
 	int instrucao;									// Instrução lida do disco
 	int particao;									// Partição na memória
 	int tamanho;									// Tamanho do programa
+	int beginOnDisk;								// Endereço de início do programa no HD
+	int nProgramaOnDisk;							// Número do programa no HD
+
+	nPrograma -= 1;									// Subtrai 1 de nPrograma pois a inserção de dados não é 0-based
+
+	beginOnDisk = PROGRAMAS_EM_HD_ENDERECO[nPrograma];
+	nProgramaOnDisk = PROGRAMAS_EM_HD[nPrograma];
 
 	indexDisk = beginOnDisk;						// Recebe o endereço para iterar no disco
 	tamanho = getTamanhoPrograma(beginOnDisk);
@@ -228,38 +288,17 @@ void carregarPrograma(int beginOnDisk, int nPrograma) {
 	sim(instrucao, indexMemory);
 
 	// Atribui o seletor da MMU
-	mmuSelect(nPrograma);
+	mmuSelect(nProgramaOnDisk);
 	// Adiciona offset do programa na MMU
 	mmuLowerIM(TAMANHO_PARTICAO * particao);
-}
 
-/**
- * Realiza a exponenciação de 2, onde o expoente é passado como
- * parâmetro.
- * 
- * @param n
- * 		expoente da operação de exponenciação de 2
- * @return potência de dois do número passado como parâmetro
- */
-int powByTwo(int n) {
-	int total;
-	
-	if (n == 0) {
-		return 1;
-	}
-
-	total = 1;
-	while (n > 0) {
-		total *= 2;
-		n -= 1;
-	}
-	return total;
+	// marca
+	PROGRAMAS_EM_MEMORIA[nPrograma] = nProgramaOnDisk;
+	PROGRAMAS_EM_MEMORIA_ENDERECO[nPrograma] = beginOnDisk;
 }
 
 void main(void) {
 	int novoEstadoLCD;
-	int i;
-	int count;
 
 	// Inicializa display LCD
 	lcd(KERNEL_MAIN_MENU);
@@ -280,6 +319,8 @@ void main(void) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			} else if (novoEstadoLCD < 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD == 3) {
+				lcdPgm(getDescritorProgramasMemoria());
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
 			if (novoEstadoLCD > 3) {
@@ -290,17 +331,7 @@ void main(void) {
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
-				i = 0;
-				count = 0;
-
-				while (i < MAX_PROGRAMAS) {
-					if (PROGRAMAS_EM_HD[i] != 0) {
-						output(count, 1);
-						count += powByTwo(i);
-					}
-					i += 1;
-				}
-				output(count, 2);
+				lcdPgm(getDescritorProgramasHD());
 			} else if (novoEstadoLCD > 3) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			} else if (novoEstadoLCD < 1) {
@@ -313,8 +344,8 @@ void main(void) {
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
-			if (novoEstadoLCD > 1) {
-				carregarPrograma(PROGRAMAS_EM_HD_ENDERECO[novoEstadoLCD-1], PROGRAMAS_EM_HD[novoEstadoLCD-1]);
+			if (novoEstadoLCD > 0) {
+				carregarPrograma(novoEstadoLCD);
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		}
