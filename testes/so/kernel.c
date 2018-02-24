@@ -1,4 +1,42 @@
 /**
+ * Sistema Operacional para a máquina alvo iZero.
+ * 
+ * O sistema conta com gerenciamento de processos, gerenciamento de memória, gerenciamento
+ * de arquivos e gerenciamento de entrada e saída.
+ * 
+ * Desenvolvedor: Diego Ferreira.
+ */
+
+/*******************************************************************************************************/
+/******************************************   PROCESSOS   **********************************************/
+/*******************************************************************************************************/
+
+// Estados possíveis de um processo
+int EXECUTANDO;
+int PRONTO;
+int BLOQUEADO;
+
+/**
+ * TABELA DE PROCESSOS
+ * 
+ * Idealmente essa estrutura seria um array de structs bem definidas. Por limitações
+ * da máquina alvo, só é possível trabalhar com vetores e nenhuma estrutura. Logo,
+ * Serão implementados diversos arrays, cada um representando um atributo da estrutura
+ * e além disso um inteiro para se atribuir o índice atual que o Kernel está acessando
+ * em todos vetores.
+ */
+int PROC_ESTADO[10];
+int PROC_PC[10];
+int PROC_STACK_POINTER[10];
+int PROC_GLOBAL_POINTER[10];
+
+int PROC_ATUAL;
+
+/*******************************************************************************************************/
+/*******************************************   MEMORIA   ***********************************************/
+/*******************************************************************************************************/
+
+/**
 	GERENCIAMENTO DE MEMORIA (Memoria de instruções)
 	- Paginação
 	- Gerenciamento de memória com partições de tamanho fixo
@@ -33,19 +71,78 @@ int PROG_INSERT;
 
 int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
 
+/*******************************************************************************************************/
+/********************************   ROTINAS AUXILIARES (BIBLIOTECA)   **********************************/
+/*******************************************************************************************************/
+
 /**
- * Inicializa constantes globais do sistema.
+ * Calcula o tamanho do programa do kernel em disco.
+ *
+ * @return tamanho do kernel
  */ 
-void inicializarConstantes(void) {
+int getTamanhoKernel(void) {
+	int instrucao;
+	int index;
+
+	index = 0;
+	instrucao = ldk(index);
+	while (instrucao >> 26 != HALT) {
+		index += 1;
+		instrucao = ldk(index);
+	}
+	return index;
+}
+
+/**
+ * Realiza a exponenciação de 2, onde o expoente é passado como
+ * parâmetro.
+ * 
+ * @param n
+ * 		expoente da operação de exponenciação de 2
+ * @return potência de dois do número passado como parâmetro
+ */
+int powByTwo(int n) {
+	int total;
+	
+	if (n == 0) {
+		return 1;
+	}
+
+	total = 1;
+	while (n > 0) {
+		total *= 2;
+		n -= 1;
+	}
+	return total;
+}
+
+/*******************************************************************************************************/
+/*****************************   INICIALIZAÇÃO DO SISTEMA OPERACIONAL   ********************************/
+/*******************************************************************************************************/
+
+/**
+ * Inicializa constantes relacionadas ao gerenciamento de processos.
+ */
+void initProcessos(void) {
+	EXECUTANDO = 0;
+	PRONTO = 1;
+	BLOQUEADO = 2;
+}
+
+/**
+ * Inicializa constantes relacionadas ao gerenciamento de memória.
+ */
+void initMemoria(void) {
 	TAMANHO_PARTICAO = 32;
 	ERRO_DE_PARTICAO = 100;
 	MAX_PROGRAMAS = 10;
-	ENDERECO_FIM_HD = 1023;
+}
 
-	SYSCALL = 31;
-	JTM = 61;
-	HALT = 63;
-
+/**
+ * Inicializa constantes relacionadas ao gerenciamento do SHELL-LCD.
+ */
+void initDisplay(void) {
+	// Estados dos menus
 	KERNEL_MAIN_MENU = 0;
 	KERNEL_MENU_HD = 1;
 	KERNEL_MENU_MEM = 2;
@@ -53,7 +150,54 @@ void inicializarConstantes(void) {
 	KERNEL_MENU_MEM_LOAD = 4;	
 	PROG_INSERT = 9;
 	
+	// Atribui o estado inicial do SHELL durante a execução do SO
 	ESTADO_LCD = KERNEL_MAIN_MENU;
+}
+
+/**
+ * Inicializa o constantes diversas do sistema.
+ */
+void initConstantes(void) {
+	// ÚLTIMO ENDEREÇO DO HD
+	ENDERECO_FIM_HD = 1023;
+
+	// OPCODES
+	SYSCALL = 31;
+	JTM = 61;
+	HALT = 63;
+}
+
+/**
+ * Inicializa, primeiramente, todas as partições da memória de
+ * instruções como disponíveis. Em seguida, calcula as partições
+ * necessárias para armazenar o kernel e as marca como ocupadas.
+ */
+void initParticoes(void) {
+	int i;
+	int particoes;
+	int tamanhoKernel;
+
+	// Primeiro zera todas partições
+	i = 0;
+	while (i < 32) {
+		PARTICOES[i] = 0;
+		i += 1;
+	}
+
+	// Calcula a quantidade de partições necessárias para o Kernel	
+	tamanhoKernel = getTamanhoKernel();
+	ENDERECO_INICIO_HD = tamanhoKernel + 1;
+	particoes = tamanhoKernel / TAMANHO_PARTICAO;
+	if (tamanhoKernel % TAMANHO_PARTICAO > 0) {
+		particoes += 1;
+	}
+
+	// Marca as partições em uso pelo Kernel
+	i = 0;
+	while (i < particoes) {
+		PARTICOES[i] = 1;
+		i += 1;
+	}
 }
 
 /**
@@ -62,7 +206,7 @@ void inicializarConstantes(void) {
  * disco em busca de programas ainda não marcados e os mapeia
  * com seu número e seu endereço de início no HD.
  */
-void inicializarProgramas(void) {
+void initProgramas(void) {
 	int index;
 	int prog;
 	int instrucao;
@@ -92,55 +236,21 @@ void inicializarProgramas(void) {
 }
 
 /**
- * Calcula o tamanho do programa do kernel em disco.
- *
- * @return tamanho do kernel
- */ 
-int getTamanhoKernel(void) {
-	int instrucao;
-	int index;
-
-	index = 0;
-	instrucao = ldk(index);
-	while (instrucao >> 26 != HALT) {
-		index += 1;
-		instrucao = ldk(index);
-	}
-	return index;
-}
-
-/**
- * Inicializa inicialmente todas as partições da memória de
- * instruções como disponíveis. Em seguida, calcula as partições
- * necessárias para armazenar o kernel e as marca como ocupadas.
+ * Inicializa o sistema operacional.
  */
-void inicializarParticoes(void) {
-	int i;
-	int particoes;
-	int tamanhoKernel;
-
-	// Primeiro zera todas partições
-	i = 0;
-	while (i < 32) {
-		PARTICOES[i] = 0;
-		i += 1;
-	}
-
-	// Calcula a quantidade de partições necessárias para o Kernel	
-	tamanhoKernel = getTamanhoKernel();
-	ENDERECO_INICIO_HD = tamanhoKernel + 1;
-	particoes = tamanhoKernel / TAMANHO_PARTICAO;
-	if (tamanhoKernel % TAMANHO_PARTICAO > 0) {
-		particoes += 1;
-	}
-
-	// Marca as partições em uso pelo Kernel
-	i = 0;
-	while (i < particoes) {
-		PARTICOES[i] = 1;
-		i += 1;
-	}
+void initKernel(void) {
+	// A ordem de inicialização é fundamental! Não alterar!
+	initProcessos();
+	initMemoria();
+	initDisplay();
+	initConstantes();
+	initParticoes();				// Inicializa partições de memória
+	initProgramas();				// Inicializa os vetores de programas e scaneia o HD
 }
+
+/*******************************************************************************************************/
+/********************************   GERENCIAMENTO DE MEMÓRIA/DISCO   ***********************************/
+/*******************************************************************************************************/
 
 /**
  * Com base no tamanho passado como parâmetro, busca partições livres
@@ -177,29 +287,6 @@ int getParticaoLivre(int tamanho) {
 	}
 
 	return ERRO_DE_PARTICAO;
-}
-
-/**
- * Realiza a exponenciação de 2, onde o expoente é passado como
- * parâmetro.
- * 
- * @param n
- * 		expoente da operação de exponenciação de 2
- * @return potência de dois do número passado como parâmetro
- */
-int powByTwo(int n) {
-	int total;
-	
-	if (n == 0) {
-		return 1;
-	}
-
-	total = 1;
-	while (n > 0) {
-		total *= 2;
-		n -= 1;
-	}
-	return total;
 }
 
 int getDescritorProgramasMemoria(void) {
@@ -297,17 +384,18 @@ void carregarPrograma(int nPrograma) {
 	PROGRAMAS_EM_MEMORIA_ENDERECO[nPrograma] = beginOnDisk;
 }
 
+/*******************************************************************************************************/
+/*************************************   SISTEMA OPERACIONAL   *****************************************/
+/*******************************************************************************************************/
+
 void main(void) {
 	int novoEstadoLCD;
 
+	// Inicializa o Sistema Operacional
+	initKernel();
+
 	// Inicializa display LCD
 	lcd(KERNEL_MAIN_MENU);
-	// Inicializa constantes gerais usadas pelo SO
-	inicializarConstantes();
-	// Inicializa partições de memória
-	inicializarParticoes();
-	// Inicializa os vetores de programas e scaneia o HD
-	inicializarProgramas();
 
 	// Loop infinito
 	while (1) {
