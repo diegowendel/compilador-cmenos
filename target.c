@@ -31,12 +31,13 @@
 #define SHIFT_COUNTER_REG_TEMP 20
 
 #define REG_ZERO 0
-#define REG_RTN_ADDR 31
 #define REG_RTN_VAL 1
-#define REG_STACK 30
-#define REG_OUTPUT 3
+#define REG_INTERRUPTION 2
+#define REG_PC_BAK 3
+#define REG_STACK_BAK 4
 #define REG_GLOBAL 5
-#define REG_INVALID 4
+#define REG_STACK 30
+#define REG_RTN_ADDR 31
 
 /* Tipo de código em compilação */
 CodeType codeType;
@@ -61,13 +62,15 @@ int linha = 0;
 TargetOperand rtnAddrOp;
 TargetOperand rtnValOp;
 TargetOperand stackOp;
-TargetOperand outputOp;
+TargetOperand stackBakOp;
+TargetOperand pcBakOp;
+TargetOperand interruptionOp;
 TargetOperand rZeroOp;
 TargetOperand globalOp;
 
 Registrador registradores[QTD_REG];
 RegisterName regNames[QTD_REG] = {
-    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
+    $rz, $v0, $ic, $pcb, $spb, $gp, $a0, $a1,
     $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
     $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
     $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
@@ -142,7 +145,7 @@ TargetOperand getStackLocation(int offset) {
     return operando;
 }
 
-/* Retorna as posições iniciais da memória de dados de acorodo com o programa escolhido
+/* Retorna as posições iniciais da memória de dados de acordo com o programa escolhido
  * Obs: Posições iniciais de memória devem ser reservadas
  */
 TargetOperand getStackZeroOperandLocation(int offset) {
@@ -177,8 +180,12 @@ TargetOperand getArgReg(int i) {
         return reg.targetOp;
     }
 
-    operando->enderecamento.registrador = regNames[REG_INVALID];
-    Registrador reg = registradores[REG_INVALID];
+    // FIXME
+    printf("FIXME - MAIS DE 4 PARAMETROS NA FUNÇÃO\n");
+    exit(1);
+    
+    operando->enderecamento.registrador = regNames[REG_ZERO];
+    Registrador reg = registradores[REG_ZERO];
     reg.targetOp = operando;
     return reg.targetOp;
 }
@@ -358,7 +365,26 @@ void geraCodigoChamadaFuncao(Quadruple q) {
      * escopo da 'main' não guarda $ra na memória, caso contrário guarda $ra na memória.
      */
     if(!strcmp(q->op1->contents.variable.name, "input")) {
-        printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+        // Gera o bloqueio do programa por conta de operação IO
+        if (codeType == PROGRAMA) {
+            // Salva o Stack Pointer
+            printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackBakOp, stackOp, NULL)));
+            // Motivo da interrupção
+            printCode(insertObjInst(createObjInst(_LI, TYPE_I, interruptionOp, getImediato(111), NULL)));
+
+            /* Desaloca o bloco de memória da função main() da stack, isso é necessário para o SO ter o stackPointer alinhado com sua área de memória */
+            popStackSpace(escopo->tamanhoBlocoMemoria + getTamanhoBlocoMemoriaEscopoGlobal() + 1); // +1 devido ao registrador $ra
+            // Retorna o controle para o sistema operacional e salva o PC + 1 em $pcb
+            printCode(insertObjInst(createObjInst(_BLOCK, TYPE_I, pcBakOp, rtnAddrOp, NULL)));
+
+            // remove registradores para forçar a leitura ao voltar do bloqueio
+            removeAllSavedOperands();
+            escopo->tempRegCount = 0;
+
+            printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+        } else {
+            printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+        }
     } else if(!strcmp(q->op1->contents.variable.name, "output")) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(q->op1->contents.variable.name, "ldk")) {
@@ -384,11 +410,24 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
         printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
         // Executa um programa carregado em memória
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
         printCode(insertObjInst(createObjInst(_EXEC, TYPE_J, NULL, NULL, NULL)));
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
+    } else if(!strcmp(q->op1->contents.variable.name, "execAgain")) {
+        // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
+        printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
+        // Executa um programa carregado em memória + offset
+        printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, getArgReg(1), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
         printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "lcdPgm")) {
-        printCode(insertObjInst(createObjInst(_LCD_PGM, TYPE_I, getArgReg(0), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "lcdPgms")) {
+        printCode(insertObjInst(createObjInst(_LCD_PGMS, TYPE_I, getArgReg(0), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "lcdCurr")) {
+        printCode(insertObjInst(createObjInst(_LCD_CURR, TYPE_I, getArgReg(0), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "getIntrCode")) {
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), interruptionOp, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "getPCBckp")) {
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), pcBakOp, NULL)));
     } else {
         int tamanhoBlocoMemoriaFuncaoChamada = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
@@ -953,7 +992,9 @@ void prepararOperandosEspeciais(void) {
     rtnAddrOp = registradores[REG_RTN_ADDR].targetOp;
     rtnValOp = registradores[REG_RTN_VAL].targetOp;
     stackOp = registradores[REG_STACK].targetOp;
-    outputOp = registradores[REG_OUTPUT].targetOp;
+    stackBakOp = registradores[REG_STACK_BAK].targetOp;
+    pcBakOp = registradores[REG_PC_BAK].targetOp;
+    interruptionOp = registradores[REG_INTERRUPTION].targetOp;
     rZeroOp = registradores[REG_ZERO].targetOp;
     globalOp = registradores[REG_GLOBAL].targetOp;
 }

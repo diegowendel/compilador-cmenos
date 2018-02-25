@@ -147,7 +147,8 @@ char * toStringSysCall(SysCallKind syscall) {
     char * strings[] = {
         "input", "output", "ldk", "sdk", "lim", "sim",
         "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM",
-        "mmuSelect", "exec", "lcd", "lcdPgm"
+        "mmuSelect", "exec", "lcd", "lcdPgms", "lcdCurr",
+        "getIntrCode", "getPCBckp", "execAgain"
     };
     return strings[syscall];
 }

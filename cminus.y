@@ -52,7 +52,11 @@ program
             insertNewNode(createSysCall(VOID_TYPE, MMUSELECT));                 // MMUSelect
             insertNewNode(createSysCall(VOID_TYPE, EXEC));                      // Exec
             insertNewNode(createSysCall(VOID_TYPE, LCD));                       // LCD
-            insertNewNode(createSysCall(VOID_TYPE, LCD_PGM));                   // LCD_PGM
+            insertNewNode(createSysCall(VOID_TYPE, LCD_PGMS));                  // LCD_PGMS
+            insertNewNode(createSysCall(VOID_TYPE, LCD_CURR));                  // LCD_CURR
+            insertNewNode(createSysCall(INTEGER_TYPE, GET_INTR_CODE));          // getIntrCode
+            insertNewNode(createSysCall(INTEGER_TYPE, GET_PC_BCKP));            // getPCBckp
+            insertNewNode(createSysCall(VOID_TYPE, EXEC_AGAIN));                // ExecAgain
 
             TreeNode * temp;
             temp = savedTree;

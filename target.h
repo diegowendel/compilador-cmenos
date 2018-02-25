@@ -17,7 +17,9 @@ typedef enum opcode {
     _IN, _OUT, _JF,
     _LW_DISK, _SW_DISK, _LW_IM, _SW_IM,
     _MMU_LOWER_IM, _MMU_UPPER_IM, _MMU_LOWER_DM, _MMU_UPPER_DM, _MMU_SELECT,
-    _SYSCALL, _EXEC, _LCD, _LCD_PGM,
+    _SYSCALL, _EXEC,
+    _LCD, _LCD_PGMS, _LCD_CURR,
+    _BLOCK, _EXEC_AGAIN,
     _J, _JTM, _JAL, _HALT,
     _RTYPE
 } Opcode;
@@ -40,10 +42,9 @@ typedef enum type {
  *
  * $rz - Registrador zero
  * $v0 - Registrador que guarda o valor retornado de uma função
- * $ms - Registrador que guarda a quantidade de deslocamento para transformar um endereço lógico criado em tempo de compilação
- para endereço físico na memória em tempo de execução (Memory shift) - *** DEPRECATED ***
- * $out
- * $inv
+ * $ic - Interruption Code - Código da interrupção
+ * $pcb - PC backup
+ * $spb - Stack pointer backup
  * $gp - Registrador global
  * $aX - Registradores de parâmetros de função
  * $tX - Registradores temporários
@@ -52,7 +53,7 @@ typedef enum type {
  * $ra - Registrador que guarda o endereço para se realizar um return
  */
 typedef enum registerName {
-    $rz, $v0, $v1, $out, $inv, $gp, $a0, $a1,
+    $rz, $v0, $ic, $pcb, $spb, $gp, $a0, $a1,
     $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
     $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
     $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra

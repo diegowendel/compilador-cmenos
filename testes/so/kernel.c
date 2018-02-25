@@ -40,12 +40,13 @@ int PROC_ATUAL;
 	GERENCIAMENTO DE MEMORIA (Memoria de instruções)
 	- Paginação
 	- Gerenciamento de memória com partições de tamanho fixo
-		São 32 partições de tamanho 32 cada.
+		São 64 partições de tamanho 32 cada.
 */
 
 // Constantes de gerenciamento da memória
-int PARTICOES[32];									// Partições de memória
+int PARTICOES[64];									// Partições de memória
 int TAMANHO_PARTICAO;								// Tamanho da partição
+int QUANTIDADE_PARTICOES;							// Quantidade de partições
 int ERRO_DE_PARTICAO;								// Código de erro
 int MAX_PROGRAMAS;									// Número máximo de programas
 int ENDERECO_INICIO_HD;								// Endereço de início do HD (Após a área do Kernel)
@@ -67,6 +68,7 @@ int KERNEL_MENU_HD;
 int KERNEL_MENU_MEM;
 int KERNEL_MENU_EXE;
 int KERNEL_MENU_MEM_LOAD;
+int KERNEL_MENU_EXEC_N_PREEMPTIVO;
 int PROG_INSERT;
 
 int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
@@ -124,9 +126,21 @@ int powByTwo(int n) {
  * Inicializa constantes relacionadas ao gerenciamento de processos.
  */
 void initProcessos(void) {
-	EXECUTANDO = 0;
-	PRONTO = 1;
-	BLOQUEADO = 2;
+	int i;
+
+	EXECUTANDO = 1;
+	PRONTO = 2;
+	BLOQUEADO =3;
+
+	// Primeiro zera os vetores de programas
+	i = 0;
+	while (i < 10) {
+		PROC_ESTADO[i] = 0;
+		PROC_PC[i] = 0;
+		PROC_STACK_POINTER[i] = 0;
+		PROC_GLOBAL_POINTER[i] = 0;
+		i += 1;
+	}
 }
 
 /**
@@ -134,6 +148,7 @@ void initProcessos(void) {
  */
 void initMemoria(void) {
 	TAMANHO_PARTICAO = 32;
+	QUANTIDADE_PARTICOES = 64;
 	ERRO_DE_PARTICAO = 100;
 	MAX_PROGRAMAS = 10;
 }
@@ -147,8 +162,9 @@ void initDisplay(void) {
 	KERNEL_MENU_HD = 1;
 	KERNEL_MENU_MEM = 2;
 	KERNEL_MENU_EXE = 3;
-	KERNEL_MENU_MEM_LOAD = 4;	
-	PROG_INSERT = 9;
+	KERNEL_MENU_MEM_LOAD = 4;
+	KERNEL_MENU_EXEC_N_PREEMPTIVO = 5;
+	PROG_INSERT = 10;
 	
 	// Atribui o estado inicial do SHELL durante a execução do SO
 	ESTADO_LCD = KERNEL_MAIN_MENU;
@@ -159,7 +175,7 @@ void initDisplay(void) {
  */
 void initConstantes(void) {
 	// ÚLTIMO ENDEREÇO DO HD
-	ENDERECO_FIM_HD = 1023;
+	ENDERECO_FIM_HD = 2047;
 
 	// OPCODES
 	SYSCALL = 31;
@@ -179,7 +195,7 @@ void initParticoes(void) {
 
 	// Primeiro zera todas partições
 	i = 0;
-	while (i < 32) {
+	while (i < QUANTIDADE_PARTICOES) {
 		PARTICOES[i] = 0;
 		i += 1;
 	}
@@ -273,7 +289,7 @@ int getParticaoLivre(int tamanho) {
 	}
 
 	i = 0;
-	while (i < 32) {
+	while (i < QUANTIDADE_PARTICOES) {
 		if (PARTICOES[i] == 0) {
 			particaoInicial = i;
 			while (particoes != 0) {
@@ -317,6 +333,44 @@ int getDescritorProgramasHD(void) {
 		i += 1;
 	}
 	return descritor;
+}
+
+int getProcessoBloqueado(void) {
+	int i;
+
+	i = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROC_ESTADO[i] == BLOQUEADO) {
+			return i;
+		}
+		i += 1;
+	}
+	return ERRO_DE_PARTICAO;
+}
+
+int getProcessoPronto(void) {
+	int i;
+
+	i = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROC_ESTADO[i] == PRONTO) {
+			return i;
+		}
+		i += 1;
+	}
+	return ERRO_DE_PARTICAO;
+}
+
+void carregarTodosFilaPronto(void) {
+	int i;
+
+	i = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROGRAMAS_EM_MEMORIA[i] != 0) {
+			PROC_ESTADO[i] = PRONTO;
+		}
+		i += 1;
+	}
 }
 
 /**
@@ -384,6 +438,22 @@ void carregarPrograma(int nPrograma) {
 	PROGRAMAS_EM_MEMORIA_ENDERECO[nPrograma] = beginOnDisk;
 }
 
+void run(int programa) {
+	lcdCurr(programa);
+	lcd(PROG_INSERT);
+
+	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
+	PROC_PC[PROC_ATUAL] = 0;
+
+	exec(programa);
+
+	if (getIntrCode() == 111) {
+		//setIntrCode(0);
+		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+		PROC_PC[PROC_ATUAL] = getPCBckp();
+	}
+}
+
 /*******************************************************************************************************/
 /*************************************   SISTEMA OPERACIONAL   *****************************************/
 /*******************************************************************************************************/
@@ -407,8 +477,6 @@ void main(void) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			} else if (novoEstadoLCD < 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD == 3) {
-				lcdPgm(getDescritorProgramasMemoria());
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
 			if (novoEstadoLCD > 3) {
@@ -419,21 +487,45 @@ void main(void) {
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
-				lcdPgm(getDescritorProgramasHD());
+				lcdPgms(getDescritorProgramasHD());
 			} else if (novoEstadoLCD > 3) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			} else if (novoEstadoLCD < 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
-			if (novoEstadoLCD > 0) {
+			if (novoEstadoLCD == 1) {
+				carregarTodosFilaPronto();
+				PROC_ATUAL = getProcessoPronto();
+				run(PROC_ATUAL + 1);
+
+				PROC_ATUAL = getProcessoPronto();
+				run(PROC_ATUAL + 1);
+				PROC_ESTADO[PROC_ATUAL] = 0;
+
+				PROC_ATUAL = getProcessoBloqueado();
+				lcdCurr(PROC_ATUAL + 1);
 				lcd(PROG_INSERT);
-				exec(novoEstadoLCD);
+				execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
+				PROC_ESTADO[PROC_ATUAL] = 0;
+
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD == 2) {
+				lcdPgms(getDescritorProgramasMemoria());
+				novoEstadoLCD = KERNEL_MENU_EXEC_N_PREEMPTIVO;
+			} else {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
-			novoEstadoLCD = KERNEL_MAIN_MENU;
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
 			if (novoEstadoLCD > 0) {
 				carregarPrograma(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
+		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_N_PREEMPTIVO) {
+			if (novoEstadoLCD > 0) {
+				PROC_ATUAL = novoEstadoLCD - 1;
+				run(novoEstadoLCD);
+				PROC_ESTADO[PROC_ATUAL] = 0;
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		}
