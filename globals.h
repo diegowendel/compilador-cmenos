@@ -55,7 +55,7 @@ typedef int TokenType;
 extern FILE* source; /* source code text file */
 extern FILE* listing; /* listing output text file */
 extern FILE* code; /* code text file for TM simulator */
-extern FILE * binary_file;
+extern FILE* binary_file;
 
 extern int lineno; /* source line number for listing */
 
@@ -70,7 +70,7 @@ typedef enum {IDK, VECTORK, CONSTK, FUNCTIONK, CALLK} VarKind;
 typedef enum {INPUT, OUTPUT, LDK, SDK, LIM, SIM,
     MMULOWERIM, MMUUPPERIM, MMULOWERDM, MMUUPPERDM,
     MMUSELECT, EXEC, LCD, LCD_PGMS, LCD_CURR,
-    GET_INTR_CODE, GET_PC_BCKP, EXEC_AGAIN} SysCallKind;
+    GET_INTR_CODE, SET_INTR_CODE, GET_PC_BCKP, EXEC_AGAIN} SysCallKind;
 typedef enum {DECLK, ACCESSK} VarAccessK;
 typedef enum {LOCALK, PARAMK, GLOBALK, FUNCTION_MEM} VarMemK;
 

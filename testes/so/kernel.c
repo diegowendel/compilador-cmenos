@@ -16,6 +16,8 @@ int EXECUTANDO;
 int PRONTO;
 int BLOQUEADO;
 
+int LISTA_VAZIA;
+
 /**
  * TABELA DE PROCESSOS
  * 
@@ -51,6 +53,13 @@ int ERRO_DE_PARTICAO;								// Código de erro
 int MAX_PROGRAMAS;									// Número máximo de programas
 int ENDERECO_INICIO_HD;								// Endereço de início do HD (Após a área do Kernel)
 int ENDERECO_FIM_HD;								// Endereço de fim do HD (Tamanho total)
+
+// Códigos das interrupções
+int INTERRUPT_NULL;
+int INTERRUPT_BLOQUEADO;
+int INTERRUPT_CONTEXTO;
+int INTERRUPT_INPUT;
+int INTERRUPT_RESET;
 
 int PROGRAMAS_EM_HD[10];							// Programas armazenados em disco
 int PROGRAMAS_EM_HD_ENDERECO[10];
@@ -118,9 +127,29 @@ int powByTwo(int n) {
 	return total;
 }
 
+/**
+ * Limpa os displays de 7 segmentos com o valor Zero.
+ */
+void limparDisplays(void) {
+	output(0, 0);
+	output(0, 1);
+	output(0, 2);
+}
+
 /*******************************************************************************************************/
 /*****************************   INICIALIZAÇÃO DO SISTEMA OPERACIONAL   ********************************/
 /*******************************************************************************************************/
+
+/**
+ * Inicializa todos códigos das possíveis interrupções do sistema.
+ */ 
+void initInterrupcoes(void) {
+	INTERRUPT_NULL = 0;
+	//INTERRUPT_BLOQUEADO = 10;
+	//INTERRUPT_CONTEXTO = 20;
+	INTERRUPT_INPUT = 1;
+//INTERRUPT_RESET = 40;
+}
 
 /**
  * Inicializa constantes relacionadas ao gerenciamento de processos.
@@ -130,7 +159,8 @@ void initProcessos(void) {
 
 	EXECUTANDO = 1;
 	PRONTO = 2;
-	BLOQUEADO =3;
+	BLOQUEADO = 3;
+	LISTA_VAZIA = 404;
 
 	// Primeiro zera os vetores de programas
 	i = 0;
@@ -345,7 +375,7 @@ int getProcessoBloqueado(void) {
 		}
 		i += 1;
 	}
-	return ERRO_DE_PARTICAO;
+	return LISTA_VAZIA;
 }
 
 int getProcessoPronto(void) {
@@ -358,7 +388,7 @@ int getProcessoPronto(void) {
 		}
 		i += 1;
 	}
-	return ERRO_DE_PARTICAO;
+	return LISTA_VAZIA;
 }
 
 void carregarTodosFilaPronto(void) {
@@ -447,11 +477,20 @@ void run(int programa) {
 
 	exec(programa);
 
-	if (getIntrCode() == 111) {
-		//setIntrCode(0);
-		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
-		PROC_PC[PROC_ATUAL] = getPCBckp();
-	}
+	PROC_ESTADO[PROC_ATUAL] = 0;
+	PROC_PC[PROC_ATUAL] = 0;
+}
+
+void runAgain(int programa) {
+	lcdCurr(programa);
+	lcd(PROG_INSERT);
+
+	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
+
+	execAgain(programa, PROC_PC[PROC_ATUAL]);
+
+	PROC_ESTADO[PROC_ATUAL] = 0;
+	PROC_PC[PROC_ATUAL] = 0;
 }
 
 /*******************************************************************************************************/
@@ -460,79 +499,140 @@ void run(int programa) {
 
 void main(void) {
 	int novoEstadoLCD;
+	int interrupcao;
 
 	// Inicializa o Sistema Operacional
 	initKernel();
-
 	// Inicializa display LCD
 	lcd(KERNEL_MAIN_MENU);
 
-	// Loop infinito
+	setIntrCode(0);
 	while (1) {
-		novoEstadoLCD = input();
-		output(novoEstadoLCD, 0);
+		interrupcao = getIntrCode();
+		//if (interrupcao == 1) {
+			//output(11, 1);
+		//} else {
+			novoEstadoLCD = input();
+			//output(novoEstadoLCD, 0);
+			output(getDescritorProgramasHD(), 0);
 
-		if (ESTADO_LCD == KERNEL_MAIN_MENU) {
-			if (novoEstadoLCD > 3) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD < 1) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-			}
-		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
-			if (novoEstadoLCD > 3) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD < 1) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-			}
-		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
-			if (novoEstadoLCD == 1) {
-				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
-				lcdPgms(getDescritorProgramasHD());
-			} else if (novoEstadoLCD > 3) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD < 1) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-			}
-		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
-			if (novoEstadoLCD == 1) {
-				carregarTodosFilaPronto();
-				PROC_ATUAL = getProcessoPronto();
-				run(PROC_ATUAL + 1);
+			if (ESTADO_LCD == KERNEL_MAIN_MENU) {
+				if (novoEstadoLCD > 4) {
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				} else if (novoEstadoLCD == 4) {
+					limparDisplays();
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				} else if (novoEstadoLCD < 1) {
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				}
+			} else if (ESTADO_LCD == KERNEL_MENU_HD) {
+				if (novoEstadoLCD > 3) {
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				} else if (novoEstadoLCD < 1) {
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				}
+			} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
+				if (novoEstadoLCD == 1) {
+					novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
+					lcdPgms(getDescritorProgramasHD());
+				} else if (novoEstadoLCD > 3) {
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				} else if (novoEstadoLCD < 1) {
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				}
+			} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
+				if (novoEstadoLCD == 1) {
+					carregarTodosFilaPronto();
 
-				PROC_ATUAL = getProcessoPronto();
-				run(PROC_ATUAL + 1);
-				PROC_ESTADO[PROC_ATUAL] = 0;
+					while (getProcessoPronto() != LISTA_VAZIA) {
+						PROC_ATUAL = getProcessoPronto();
+						run(PROC_ATUAL + 1);
+					}
 
-				PROC_ATUAL = getProcessoBloqueado();
-				lcdCurr(PROC_ATUAL + 1);
-				lcd(PROG_INSERT);
-				execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
-				PROC_ESTADO[PROC_ATUAL] = 0;
+					/*while (getProcessoBloqueado() != LISTA_VAZIA) {
+						PROC_ATUAL = getProcessoBloqueado();
+						runAgain(PROC_ATUAL + 1);
+					}*/
 
+					/*lcdCurr(PROC_ATUAL + 1);
+					lcd(PROG_INSERT);
+
+					PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
+
+					execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
+
+					if (getIntrCode() == 111) {
+						setIntrCode(0);
+						PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+						PROC_PC[PROC_ATUAL] = getPCBckp();
+					} else {
+						PROC_ESTADO[PROC_ATUAL] = 0;
+						PROC_PC[PROC_ATUAL] = 0;
+					}*/
+
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				} else if (novoEstadoLCD == 2) {
+					lcdPgms(getDescritorProgramasMemoria());
+					novoEstadoLCD = KERNEL_MENU_EXEC_N_PREEMPTIVO;
+				} else {
+					novoEstadoLCD = KERNEL_MAIN_MENU;
+				}
+			} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
+				if (novoEstadoLCD > 0) {
+					carregarPrograma(novoEstadoLCD);
+				}
 				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD == 2) {
-				lcdPgms(getDescritorProgramasMemoria());
-				novoEstadoLCD = KERNEL_MENU_EXEC_N_PREEMPTIVO;
-			} else {
+			} else if (ESTADO_LCD == KERNEL_MENU_EXEC_N_PREEMPTIVO) {
+				if (novoEstadoLCD > 0) {
+					PROC_ATUAL = novoEstadoLCD - 1;
+					run(novoEstadoLCD);
+					while (PROC_ESTADO[PROC_ATUAL] == BLOQUEADO) {
+						output(PROC_PC[PROC_ATUAL], 2);
+						output(32, 1);
+						runAgain(novoEstadoLCD);
+					}
+				}
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
-		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
-			if (novoEstadoLCD > 0) {
-				carregarPrograma(novoEstadoLCD);
-			}
-			novoEstadoLCD = KERNEL_MAIN_MENU;
-		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_N_PREEMPTIVO) {
-			if (novoEstadoLCD > 0) {
-				PROC_ATUAL = novoEstadoLCD - 1;
-				run(novoEstadoLCD);
-				PROC_ESTADO[PROC_ATUAL] = 0;
-			}
-			novoEstadoLCD = KERNEL_MAIN_MENU;
-		}
 
-		ESTADO_LCD = novoEstadoLCD;
-		lcd(ESTADO_LCD);
+			ESTADO_LCD = novoEstadoLCD;
+			lcd(ESTADO_LCD);
+		//}
 	}
+
+	/*initInterrupcoes();
+
+	// INTERRUPÇÕES RESETAM O SISTEMA
+	// - LER O REGISTRADOR DE CODIGO DE INTERRUPÇÃO
+	// - ESTADOS POSSIVEIS : INSERT, BLOCK, NORMAL (VEIO DA BIOS), RESET, CONTEXTO
+	interrupcao = getIntrptCode();
+	
+	if (interrupcao == INTERRUPT_BLOQUEADO) {
+		/*PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+		PROC_PC[PROC_ATUAL] = getPCBckp();
+		// PROC_STACK_POINTER[PROC_ATUAL] = something;
+		// PROC_GLOBAL_POINTER[PROC_ATUAL] = something;*
+		output(1111, 2);
+	} else if (interrupcao == INTERRUPT_INPUT) {
+		// input();
+		output(2222, 2);
+	} else if (interrupcao == INTERRUPT_CONTEXTO) {
+		// troca de contexto
+		output(3333, 2);
+	} else if (interrupcao == INTERRUPT_RESET) {
+		// reset
+		output(4444, 2);
+	} else {
+		output(5555, 2);
+		// INTERRUPT_NULL
+		// NORMAL
+
+		
+
+		// Loop infinito
+		while (1) {
+			
+	}*/
 }
 
 /**

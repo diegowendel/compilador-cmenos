@@ -28,9 +28,8 @@ const char * toStringOpcode(Opcode op) {
         "in", "out", "jf",        
         "ldk", "sdk", "lim", "sim",
         "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM", "mmuSelect",
-        "syscall", "exec", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMBÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
+        "syscall", "exec", "execAgain", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMBÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
         "lcd", "lcdPgms", "lcdCurr",
-        "block", "execAgain",
         "j", "jtm", "jal", "halt",
         "rtype"
     };
@@ -51,10 +50,10 @@ const char * toStringFunction(Function func) {
 
 const char * toStringRegName(RegisterName rn) {
     const char * strings[] = {
-        "$rz", "$v0", "$ic", "$pcb", "$spb", "$gp", "$a0", "$a1",
-        "$a2", "$a3", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5",
-        "$s6", "$s7", "$s8", "$s9", "$t0", "$t1", "$t2", "$t3",
-        "$t4", "$t5", "$t6", "$t7", "$t8", "$t9", "$sp", "$ra"
+        "$rz", "$a0", "$a1"," $a2", "$a3", "$s0", "$s1", "$s2",
+        "$s3", "$s4", "$s5", "$s6", "$s7", "$s8", "$s9", "$t0",
+        "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8",
+        "$t9", "$v0", "$ic", "$pcb", "$spb", "$gp", "$sp", "$ra"
     };
     return strings[rn];
 }
@@ -75,12 +74,10 @@ const char * toBinaryOpcode(Opcode op) {
         "010110", "010111", "011000", "011001",
         // mmuLowerIM, mmuUpperIM, mmuLowerDM, mmuUpperDM, mmuSelect,
         "011010", "011011", "011100", "011101", "011110",
-        // syscall, exec,
-        "011111", "100000",
+        // syscall, exec,   execAgain,
+        "011111", "100000", "100001",
         // lcd,   lcdPgms,  lcdCurr,
-        "100001", "100010", "100011",
-        // block, execAgain,
-        "100100", "100101",
+        "100010", "100011", "100100",
         // j,     jtm,      jal,      halt
         "111100", "111101", "111110", "111111",
         // rtype
@@ -109,13 +106,13 @@ const char * toBinaryFunction(Function func) {
 
 const char * toBinaryRegister(RegisterName rn) {
     const char * strings[] = {
-        // "$rz", "$v0",  "$ic",   "$pcb",  "$spb",  "$gp",   "$a0",   "$a1",
+        // "$rz", "$a0", "$a1"," $a2", "$a3", "$s0", "$s1", "$s2",
         "00000", "00001", "00010", "00011", "00100", "00101", "00110", "00111",
-        // "$a2", "$a3",  "$s0",   "$s1",   "$s2",   "$s3",   "$s4",   "$s5"
+        // "$s3", "$s4", "$s5", "$s6", "$s7", "$s8", "$s9", "$t0",
         "01000", "01001", "01010", "01011", "01100", "01101", "01110", "01111",
-        // "$s6", "$s7",  "$s8",   "$s9",   "$t0",   "$t1",   "$t2",   "$t3"
+        // "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8",
         "10000", "10001", "10010", "10011", "10100", "10101", "10110", "10111",
-        // "$t4", "$t5",  "$t6",   "$t7",   "$t8",   "$t9",   "$sp",   "$ra"
+        // "$t9", "$v0", "$ic", "$pcb", "$spb", "$gp", "$sp", "$ra"
         "11000", "11001", "11010", "11011", "11100", "11101", "11110", "11111"
     };
     return strings[rn];

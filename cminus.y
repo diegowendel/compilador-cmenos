@@ -51,12 +51,13 @@ program
             insertNewNode(createSysCall(VOID_TYPE, MMUUPPERDM));                // MMUUpperDM
             insertNewNode(createSysCall(VOID_TYPE, MMUSELECT));                 // MMUSelect
             insertNewNode(createSysCall(VOID_TYPE, EXEC));                      // Exec
+            insertNewNode(createSysCall(VOID_TYPE, EXEC_AGAIN));                // ExecAgain
             insertNewNode(createSysCall(VOID_TYPE, LCD));                       // LCD
             insertNewNode(createSysCall(VOID_TYPE, LCD_PGMS));                  // LCD_PGMS
             insertNewNode(createSysCall(VOID_TYPE, LCD_CURR));                  // LCD_CURR
             insertNewNode(createSysCall(INTEGER_TYPE, GET_INTR_CODE));          // getIntrCode
+            insertNewNode(createSysCall(VOID_TYPE, SET_INTR_CODE));             // setIntrCode
             insertNewNode(createSysCall(INTEGER_TYPE, GET_PC_BCKP));            // getPCBckp
-            insertNewNode(createSysCall(VOID_TYPE, EXEC_AGAIN));                // ExecAgain
 
             TreeNode * temp;
             temp = savedTree;

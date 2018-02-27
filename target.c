@@ -365,26 +365,7 @@ void geraCodigoChamadaFuncao(Quadruple q) {
      * escopo da 'main' não guarda $ra na memória, caso contrário guarda $ra na memória.
      */
     if(!strcmp(q->op1->contents.variable.name, "input")) {
-        // Gera o bloqueio do programa por conta de operação IO
-        if (codeType == PROGRAMA) {
-            // Salva o Stack Pointer
-            printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackBakOp, stackOp, NULL)));
-            // Motivo da interrupção
-            printCode(insertObjInst(createObjInst(_LI, TYPE_I, interruptionOp, getImediato(111), NULL)));
-
-            /* Desaloca o bloco de memória da função main() da stack, isso é necessário para o SO ter o stackPointer alinhado com sua área de memória */
-            popStackSpace(escopo->tamanhoBlocoMemoria + getTamanhoBlocoMemoriaEscopoGlobal() + 1); // +1 devido ao registrador $ra
-            // Retorna o controle para o sistema operacional e salva o PC + 1 em $pcb
-            printCode(insertObjInst(createObjInst(_BLOCK, TYPE_I, pcBakOp, rtnAddrOp, NULL)));
-
-            // remove registradores para forçar a leitura ao voltar do bloqueio
-            removeAllSavedOperands();
-            escopo->tempRegCount = 0;
-
-            printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
-        } else {
-            printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
-        }
+        printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "output")) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
     } else if(!strcmp(q->op1->contents.variable.name, "ldk")) {
@@ -417,7 +398,9 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
         printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
         // Executa um programa carregado em memória + offset
+        //printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
         printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, getArgReg(1), NULL)));
+        //printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
     } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
         printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lcdPgms")) {
@@ -426,8 +409,12 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_LCD_CURR, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "getIntrCode")) {
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), interruptionOp, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "setIntrCode")) {
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, interruptionOp, getArgReg(0), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "getPCBckp")) {
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), pcBakOp, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "getStackBckp")) {
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), stackBakOp, NULL)));
     } else {
         int tamanhoBlocoMemoriaFuncaoChamada = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
@@ -564,8 +551,11 @@ void geraCodigoFuncao(Quadruple q) {
         int tamanho = getTamanhoBlocoMemoriaEscopoGlobal();
 
         if (codeType == KERNEL) {
+            printCode(insertObjInst(createObjInst(_LI, TYPE_I, rZeroOp, getImediato(0), NULL)));
+            // Apontador para o registrador da stack ($sp) inicia em Zero
+            printCode(insertObjInst(createObjInst(_LI, TYPE_I, stackOp, getImediato(0), NULL)));
             // Apontador para o registrador de escopo global ($gp) inicia em Zero
-            printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, rZeroOp, NULL)));
+            printCode(insertObjInst(createObjInst(_LI, TYPE_I, globalOp, getImediato(0), NULL)));
         } else if (tamanho > 0) { // Se tamanho do escopo global for maior que Zero, quer dizer que existem variávies globais declaradas
             // Apontador para o registrador de escopo global ($gp)
             printCode(insertObjInst(createObjInst(_ADDI, TYPE_I, stackOp, globalOp, getImediato(1))));
