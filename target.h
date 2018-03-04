@@ -19,6 +19,8 @@ typedef enum opcode {
     _MMU_LOWER_IM, _MMU_UPPER_IM, _MMU_LOWER_DM, _MMU_UPPER_DM, _MMU_SELECT,
     _SYSCALL, _EXEC, _EXEC_AGAIN,
     _LCD, _LCD_PGMS, _LCD_CURR,
+    _GIC, _CIC, _GIP,
+    _PRE_IO,
     _J, _JTM, _JAL, _HALT,
     _RTYPE
 } Opcode;
@@ -45,7 +47,7 @@ typedef enum type {
  * $tX - Registradores temporários
  * $v0 - Registrador que guarda o valor retornado de uma função
  * $ic - Interruption Code - Código da interrupção
- * $pcb - PC backup
+ * $gpb - Global pointer backup
  * $spb - Stack pointer backup
  * $gp - Registrador global
  * $sp - Registrador da Stack
@@ -55,7 +57,7 @@ typedef enum registerName {
     $rz, $a0, $a1, $a2, $a3, $s0, $s1, $s2,
     $s3, $s4, $s5, $s6, $s7, $s8, $s9, $t0,
     $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8,
-    $t9, $v0, $ic, $pcb, $spb, $gp, $sp, $ra
+    $t9, $v0, $ic, $gpb, $spb, $gp, $sp, $ra
 } RegisterName;
 
 typedef enum addressingType {

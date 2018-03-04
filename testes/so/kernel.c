@@ -87,6 +87,26 @@ int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
 /*******************************************************************************************************/
 
 /**
+ * Salva o contexto atual do Sistema Operacional
+ * 
+ * @param pagina
+ * 		página de memória onde será salvo o contexto
+ */
+void saveContext(int pagina) {
+	saveCtx(pagina * TAMANHO_PARTICAO);
+}
+
+/**
+ * Lê um contexto salvo em memória
+ * 
+ * @param pagina
+ * 		número da página de memória de onde será lido o contexto
+ */
+void loadContext(int pagina) {
+	loadCtx(pagina * TAMANHO_PARTICAO);
+}
+
+/**
  * Calcula o tamanho do programa do kernel em disco.
  *
  * @return tamanho do kernel
@@ -145,10 +165,10 @@ void limparDisplays(void) {
  */ 
 void initInterrupcoes(void) {
 	INTERRUPT_NULL = 0;
-	//INTERRUPT_BLOQUEADO = 10;
+	INTERRUPT_BLOQUEADO = 1;
 	//INTERRUPT_CONTEXTO = 20;
-	INTERRUPT_INPUT = 1;
-//INTERRUPT_RESET = 40;
+	//INTERRUPT_INPUT = 1;
+	//INTERRUPT_RESET = 40;
 }
 
 /**
@@ -479,6 +499,8 @@ void run(int programa) {
 
 	PROC_ESTADO[PROC_ATUAL] = 0;
 	PROC_PC[PROC_ATUAL] = 0;
+
+	lcd(KERNEL_MAIN_MENU);
 }
 
 void runAgain(int programa) {
@@ -487,152 +509,115 @@ void runAgain(int programa) {
 
 	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 
-	execAgain(programa, PROC_PC[PROC_ATUAL]);
+	//loadContext(50);
+	execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
 
 	PROC_ESTADO[PROC_ATUAL] = 0;
 	PROC_PC[PROC_ATUAL] = 0;
+
+	lcd(KERNEL_MAIN_MENU);
 }
 
 /*******************************************************************************************************/
 /*************************************   SISTEMA OPERACIONAL   *****************************************/
 /*******************************************************************************************************/
 
+void runNaoPreemptivo(int programa) {
+	PROC_ATUAL = programa - 1;
+	run(programa);
+}
+
+void runPreemptivo(void) {
+	// Coloca todos processos em memória na fila de execução
+	carregarTodosFilaPronto();
+
+	// Enquanto tiver processos na fila, executa o próximo
+	while (getProcessoPronto() != LISTA_VAZIA) {
+		PROC_ATUAL = getProcessoPronto();
+		run(PROC_ATUAL + 1);
+	}
+}
+
 void main(void) {
 	int novoEstadoLCD;
 	int interrupcao;
+	int inicializando;
 
-	// Inicializa o Sistema Operacional
-	initKernel();
-	// Inicializa display LCD
-	lcd(KERNEL_MAIN_MENU);
+	if (inicializando == 0) {
+		// Inicializa o Sistema Operacional
+		initKernel();
+		// Inicializa display LCD
+		lcd(KERNEL_MAIN_MENU);
+		// Marca como inicializado
+		inicializando = 1;
+		cic();
+	}
+	
+	interrupcao = gic();
+	if (interrupcao == 1) {
+		//saveContext(50);
 
-	setIntrCode(0);
+		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+		PROC_PC[PROC_ATUAL] = gip() + 1; // Salva pc + 1
+		
+		cic();
+		runAgain(PROC_ATUAL);
+		rgnsp();
+	}
+	
 	while (1) {
-		interrupcao = getIntrCode();
-		//if (interrupcao == 1) {
-			//output(11, 1);
-		//} else {
-			novoEstadoLCD = input();
-			//output(novoEstadoLCD, 0);
-			output(getDescritorProgramasHD(), 0);
+		novoEstadoLCD = input();
+		output(novoEstadoLCD, 0);
 
-			if (ESTADO_LCD == KERNEL_MAIN_MENU) {
-				if (novoEstadoLCD > 4) {
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				} else if (novoEstadoLCD == 4) {
-					limparDisplays();
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				} else if (novoEstadoLCD < 1) {
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				}
-			} else if (ESTADO_LCD == KERNEL_MENU_HD) {
-				if (novoEstadoLCD > 3) {
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				} else if (novoEstadoLCD < 1) {
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				}
-			} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
-				if (novoEstadoLCD == 1) {
-					novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
-					lcdPgms(getDescritorProgramasHD());
-				} else if (novoEstadoLCD > 3) {
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				} else if (novoEstadoLCD < 1) {
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				}
-			} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
-				if (novoEstadoLCD == 1) {
-					carregarTodosFilaPronto();
-
-					while (getProcessoPronto() != LISTA_VAZIA) {
-						PROC_ATUAL = getProcessoPronto();
-						run(PROC_ATUAL + 1);
-					}
-
-					/*while (getProcessoBloqueado() != LISTA_VAZIA) {
-						PROC_ATUAL = getProcessoBloqueado();
-						runAgain(PROC_ATUAL + 1);
-					}*/
-
-					/*lcdCurr(PROC_ATUAL + 1);
-					lcd(PROG_INSERT);
-
-					PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
-
-					execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
-
-					if (getIntrCode() == 111) {
-						setIntrCode(0);
-						PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
-						PROC_PC[PROC_ATUAL] = getPCBckp();
-					} else {
-						PROC_ESTADO[PROC_ATUAL] = 0;
-						PROC_PC[PROC_ATUAL] = 0;
-					}*/
-
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				} else if (novoEstadoLCD == 2) {
-					lcdPgms(getDescritorProgramasMemoria());
-					novoEstadoLCD = KERNEL_MENU_EXEC_N_PREEMPTIVO;
-				} else {
-					novoEstadoLCD = KERNEL_MAIN_MENU;
-				}
-			} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
-				if (novoEstadoLCD > 0) {
-					carregarPrograma(novoEstadoLCD);
-				}
+		if (ESTADO_LCD == KERNEL_MAIN_MENU) {
+			if (novoEstadoLCD > 4) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (ESTADO_LCD == KERNEL_MENU_EXEC_N_PREEMPTIVO) {
-				if (novoEstadoLCD > 0) {
-					PROC_ATUAL = novoEstadoLCD - 1;
-					run(novoEstadoLCD);
-					while (PROC_ESTADO[PROC_ATUAL] == BLOQUEADO) {
-						output(PROC_PC[PROC_ATUAL], 2);
-						output(32, 1);
-						runAgain(novoEstadoLCD);
-					}
-				}
+			} else if (novoEstadoLCD == 4) {
+				limparDisplays();
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD < 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
+		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
+			if (novoEstadoLCD > 3) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD < 1) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			}
+		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
+			if (novoEstadoLCD == 1) {
+				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
+				lcdPgms(getDescritorProgramasHD());
+			} else if (novoEstadoLCD > 3) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD < 1) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			}
+		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
+			if (novoEstadoLCD == 1) {
+				runPreemptivo();
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			} else if (novoEstadoLCD == 2) {
+				lcdPgms(getDescritorProgramasMemoria());
+				novoEstadoLCD = KERNEL_MENU_EXEC_N_PREEMPTIVO;
+			} else {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+			}
+		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
+			if (novoEstadoLCD > 0) {
+				carregarPrograma(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
+		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_N_PREEMPTIVO) {
+			if (novoEstadoLCD > 0) {
+				runNaoPreemptivo(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
+		}
 
-			ESTADO_LCD = novoEstadoLCD;
-			lcd(ESTADO_LCD);
-		//}
+		ESTADO_LCD = novoEstadoLCD;
+		lcd(ESTADO_LCD);
 	}
-
-	/*initInterrupcoes();
-
-	// INTERRUPÇÕES RESETAM O SISTEMA
-	// - LER O REGISTRADOR DE CODIGO DE INTERRUPÇÃO
-	// - ESTADOS POSSIVEIS : INSERT, BLOCK, NORMAL (VEIO DA BIOS), RESET, CONTEXTO
-	interrupcao = getIntrptCode();
-	
-	if (interrupcao == INTERRUPT_BLOQUEADO) {
-		/*PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
-		PROC_PC[PROC_ATUAL] = getPCBckp();
-		// PROC_STACK_POINTER[PROC_ATUAL] = something;
-		// PROC_GLOBAL_POINTER[PROC_ATUAL] = something;*
-		output(1111, 2);
-	} else if (interrupcao == INTERRUPT_INPUT) {
-		// input();
-		output(2222, 2);
-	} else if (interrupcao == INTERRUPT_CONTEXTO) {
-		// troca de contexto
-		output(3333, 2);
-	} else if (interrupcao == INTERRUPT_RESET) {
-		// reset
-		output(4444, 2);
-	} else {
-		output(5555, 2);
-		// INTERRUPT_NULL
-		// NORMAL
-
-		
-
-		// Loop infinito
-		while (1) {
-			
-	}*/
 }
 
 /**

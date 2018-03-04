@@ -55,9 +55,16 @@ program
             insertNewNode(createSysCall(VOID_TYPE, LCD));                       // LCD
             insertNewNode(createSysCall(VOID_TYPE, LCD_PGMS));                  // LCD_PGMS
             insertNewNode(createSysCall(VOID_TYPE, LCD_CURR));                  // LCD_CURR
-            insertNewNode(createSysCall(INTEGER_TYPE, GET_INTR_CODE));          // getIntrCode
-            insertNewNode(createSysCall(VOID_TYPE, SET_INTR_CODE));             // setIntrCode
-            insertNewNode(createSysCall(INTEGER_TYPE, GET_PC_BCKP));            // getPCBckp
+            insertNewNode(createSysCall(INTEGER_TYPE, GIC));                    // GetInterruptionCause
+            insertNewNode(createSysCall(VOID_TYPE, CIC));                       // ClearInterruptionCause
+            insertNewNode(createSysCall(INTEGER_TYPE, GIP));                    // GetInterruptionPC
+            insertNewNode(createSysCall(VOID_TYPE, SAVE_CTX));                  // SaveCtx
+            insertNewNode(createSysCall(VOID_TYPE, LOAD_CTX));                  // LoadCtx
+            insertNewNode(createSysCall(INTEGER_TYPE, GSPB));                   // GetStackPointerBackup
+            insertNewNode(createSysCall(INTEGER_TYPE, GGPB));                   // GetGlobalPointerBackup
+            insertNewNode(createSysCall(VOID_TYPE, SSPB));                      // SetStackPointerBackup
+            insertNewNode(createSysCall(VOID_TYPE, SGPB));                      // SetGlobalPointerBackup
+            insertNewNode(createSysCall(VOID_TYPE, RGNSP));                     // RestoreGlobalN'StackPointers
 
             TreeNode * temp;
             temp = savedTree;

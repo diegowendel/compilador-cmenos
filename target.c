@@ -18,24 +18,24 @@
 #define QTD_REG 32
 
 #define QTD_ARG_REG 4
-#define REG_ARG_INICIO 6
-#define REG_ARG_FIM 9
-#define SHIFT_COUNTER_REG_ARG 6
+#define REG_ARG_INICIO 1
+#define REG_ARG_FIM 4
+#define SHIFT_COUNTER_REG_ARG 1
 
-#define REG_SAVED_INICIO 10
-#define REG_SAVED_FIM 19
-#define SHIFT_COUNTER_REG_SAVED 10
+#define REG_SAVED_INICIO 5
+#define REG_SAVED_FIM 14
+#define SHIFT_COUNTER_REG_SAVED 5
 
-#define REG_TEMP_INICIO 20
-#define REG_TEMP_FIM 29
-#define SHIFT_COUNTER_REG_TEMP 20
+#define REG_TEMP_INICIO 15
+#define REG_TEMP_FIM 24
+#define SHIFT_COUNTER_REG_TEMP 15
 
 #define REG_ZERO 0
-#define REG_RTN_VAL 1
-#define REG_INTERRUPTION 2
-#define REG_PC_BAK 3
-#define REG_STACK_BAK 4
-#define REG_GLOBAL 5
+#define REG_RTN_VAL 25
+#define REG_INTERRUPTION 26
+#define REG_GLOBAL_BAK 27
+#define REG_STACK_BAK 28
+#define REG_GLOBAL 29
 #define REG_STACK 30
 #define REG_RTN_ADDR 31
 
@@ -66,14 +66,15 @@ TargetOperand stackBakOp;
 TargetOperand pcBakOp;
 TargetOperand interruptionOp;
 TargetOperand rZeroOp;
+TargetOperand globalBakOp;
 TargetOperand globalOp;
 
 Registrador registradores[QTD_REG];
 RegisterName regNames[QTD_REG] = {
-    $rz, $v0, $ic, $pcb, $spb, $gp, $a0, $a1,
-    $a2, $a3, $s0, $s1, $s2, $s3, $s4, $s5,
-    $s6, $s7, $s8, $s9, $t0, $t1, $t2, $t3,
-    $t4, $t5, $t6, $t7, $t8, $t9, $sp, $ra
+    $rz, $a0, $a1, $a2, $a3, $s0, $s1, $s2,
+    $s3, $s4, $s5, $s6, $s7, $s8, $s9, $t0,
+    $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8,
+    $t9, $v0, $ic, $gpb, $spb, $gp, $sp, $ra
 };
 
 Opcode funcToOpcode(Function func) {
@@ -154,6 +155,15 @@ TargetOperand getStackZeroOperandLocation(int offset) {
     operando->tipoEnderecamento = INDEXADO;
     operando->enderecamento.indexado.offset = offset;
     operando->enderecamento.indexado.registrador = regNames[REG_ZERO];
+    return operando;
+}
+
+TargetOperand getContextLocation(int offset) {
+    // Operando que representa o modo de endereçamento indexado
+    TargetOperand operando = (TargetOperand) malloc(sizeof(struct targetOperand));
+    operando->tipoEnderecamento = INDEXADO;
+    operando->enderecamento.indexado.offset = offset;
+    operando->enderecamento.indexado.registrador = regNames[REG_ARG_INICIO];
     return operando;
 }
 
@@ -359,12 +369,33 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
     }
 }
 
+void saveRegistradores() {
+    int i;
+
+    for(i = 0; i < REG_INTERRUPTION; i++) { // -1 para não contar o registrador $ra
+        Registrador reg = registradores[i];
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg.targetOp, getContextLocation(i), NULL))); // sw $ra
+    }
+}
+
+void loadRegistradores() {
+    int i;
+    
+    for(i = 0; i < REG_INTERRUPTION; i++) { // -1 para não contar o registrador $ra
+        Registrador reg = registradores[i];
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, getContextLocation(i), NULL))); // sw $ra
+    }
+}
+
 void geraCodigoChamadaFuncao(Quadruple q) {
     /* Verifica o nome da função/procedimento que está sendo chamada, se for input ou output imprime as
      * instruções específicas 'in' e 'out'. Depois verifica o escopo de onde vem a chamada, se for do
      * escopo da 'main' não guarda $ra na memória, caso contrário guarda $ra na memória.
      */
     if(!strcmp(q->op1->contents.variable.name, "input")) {
+        if (codeType == PROGRAMA) {
+            printCode(insertObjInst(createObjInst(_PRE_IO, TYPE_J, NULL, NULL, NULL)));
+        }
         printCode(insertObjInst(createObjInst(_IN, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "output")) {
         printCode(insertObjInst(createObjInst(_OUT, TYPE_I, getArgReg(0), NULL, getImediato(q->display))));
@@ -390,6 +421,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "exec")) {
         // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
         printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
+
+        removeAllSavedOperands();
         // Executa um programa carregado em memória
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
         printCode(insertObjInst(createObjInst(_EXEC, TYPE_J, NULL, NULL, NULL)));
@@ -397,24 +430,41 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "execAgain")) {
         // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
         printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
+
+        removeAllSavedOperands();
         // Executa um programa carregado em memória + offset
-        //printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackOp, stackBakOp, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, globalBakOp, NULL)));
         printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, getArgReg(1), NULL)));
-        //printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
     } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
         printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lcdPgms")) {
         printCode(insertObjInst(createObjInst(_LCD_PGMS, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "lcdCurr")) {
         printCode(insertObjInst(createObjInst(_LCD_CURR, TYPE_I, getArgReg(0), NULL, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "getIntrCode")) {
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), interruptionOp, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "setIntrCode")) {
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, interruptionOp, getArgReg(0), NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "getPCBckp")) {
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), pcBakOp, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "getStackBckp")) {
+    } else if(!strcmp(q->op1->contents.variable.name, "gic")) {
+        printCode(insertObjInst(createObjInst(_GIC, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "cic")) {
+        printCode(insertObjInst(createObjInst(_CIC, TYPE_I, NULL, NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "gip")) {
+        printCode(insertObjInst(createObjInst(_GIP, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "gspb")) { // getStackPointerBackup
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), stackBakOp, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "ggpb")) { // getGlobalPointerBackup
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), globalBakOp, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "sspb")) { // setStackPointerBackup
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackBakOp, getArgReg(0), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "sgpb")) { // setStackPointerBackup
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalBakOp, getArgReg(0), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "rgnsp")) { // restoreGlobalN'StackPointers
+        printCode(insertObjInst(createObjInst(_LI, TYPE_I, globalOp, getImediato(0), NULL)));
+        printCode(insertObjInst(createObjInst(_LI, TYPE_I, stackOp, getImediato(escopo->tamanhoBlocoMemoria + getTamanhoBlocoMemoriaEscopoGlobal() + 1), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "saveCtx")) {
+        saveRegistradores();
+    } else if(!strcmp(q->op1->contents.variable.name, "loadCtx")) {
+        loadRegistradores();
     } else {
         int tamanhoBlocoMemoriaFuncaoChamada = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
@@ -551,6 +601,11 @@ void geraCodigoFuncao(Quadruple q) {
         int tamanho = getTamanhoBlocoMemoriaEscopoGlobal();
 
         if (codeType == KERNEL) {
+            // Backup do registrador ponteiro para a stack
+            printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackBakOp, stackOp, NULL)));
+            // Backup do registrador ponteiro para área de variáveis globais
+            printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalBakOp, globalOp, NULL)));
+            // Zera o registrador $rz
             printCode(insertObjInst(createObjInst(_LI, TYPE_I, rZeroOp, getImediato(0), NULL)));
             // Apontador para o registrador da stack ($sp) inicia em Zero
             printCode(insertObjInst(createObjInst(_LI, TYPE_I, stackOp, getImediato(0), NULL)));
@@ -983,10 +1038,10 @@ void prepararOperandosEspeciais(void) {
     rtnValOp = registradores[REG_RTN_VAL].targetOp;
     stackOp = registradores[REG_STACK].targetOp;
     stackBakOp = registradores[REG_STACK_BAK].targetOp;
-    pcBakOp = registradores[REG_PC_BAK].targetOp;
     interruptionOp = registradores[REG_INTERRUPTION].targetOp;
     rZeroOp = registradores[REG_ZERO].targetOp;
     globalOp = registradores[REG_GLOBAL].targetOp;
+    globalBakOp = registradores[REG_GLOBAL_BAK].targetOp;
 }
 
 Objeto getCodigoObjeto(void) {
