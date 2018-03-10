@@ -31,6 +31,7 @@ int PROC_ESTADO[10];
 int PROC_PC[10];
 int PROC_STACK_POINTER[10];
 int PROC_GLOBAL_POINTER[10];
+int PROC_STACK_SIZE[10];
 
 int PROC_ATUAL;
 
@@ -46,13 +47,18 @@ int PROC_ATUAL;
 */
 
 // Constantes de gerenciamento da memória
-int PARTICOES[64];									// Partições de memória
+int PARTICOES_MEM_INST[64];							// Partições da memória de instruções
 int TAMANHO_PARTICAO;								// Tamanho da partição
 int QUANTIDADE_PARTICOES;							// Quantidade de partições
 int ERRO_DE_PARTICAO;								// Código de erro
 int MAX_PROGRAMAS;									// Número máximo de programas
 int ENDERECO_INICIO_HD;								// Endereço de início do HD (Após a área do Kernel)
 int ENDERECO_FIM_HD;								// Endereço de fim do HD (Tamanho total)
+
+int STACK_INICIO;
+int STACK_FIM;
+
+int PARTICOES_MEM_DATA[64];							// Partições da memória de dados
 
 // Códigos das interrupções
 int INTERRUPT_NULL;
@@ -85,26 +91,6 @@ int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
 /*******************************************************************************************************/
 /********************************   ROTINAS AUXILIARES (BIBLIOTECA)   **********************************/
 /*******************************************************************************************************/
-
-/**
- * Salva o contexto atual do Sistema Operacional
- * 
- * @param pagina
- * 		página de memória onde será salvo o contexto
- */
-void saveContext(int pagina) {
-	saveCtx(pagina * TAMANHO_PARTICAO);
-}
-
-/**
- * Lê um contexto salvo em memória
- * 
- * @param pagina
- * 		número da página de memória de onde será lido o contexto
- */
-void loadContext(int pagina) {
-	loadCtx(pagina * TAMANHO_PARTICAO);
-}
 
 /**
  * Calcula o tamanho do programa do kernel em disco.
@@ -189,6 +175,7 @@ void initProcessos(void) {
 		PROC_PC[i] = 0;
 		PROC_STACK_POINTER[i] = 0;
 		PROC_GLOBAL_POINTER[i] = 0;
+		PROC_STACK_SIZE[i] = 0;
 		i += 1;
 	}
 }
@@ -197,8 +184,8 @@ void initProcessos(void) {
  * Inicializa constantes relacionadas ao gerenciamento de memória.
  */
 void initMemoria(void) {
-	TAMANHO_PARTICAO = 32;
-	QUANTIDADE_PARTICOES = 64;
+	TAMANHO_PARTICAO = 32;			// Se alterar aqui, lembrar de alterar target.c (endereço para salvar contexto)
+	QUANTIDADE_PARTICOES = 64;		// Se alterar aqui, lembrar de alterar target.c (endereço para salvar contexto)
 	ERRO_DE_PARTICAO = 100;
 	MAX_PROGRAMAS = 10;
 }
@@ -243,14 +230,15 @@ void initParticoes(void) {
 	int particoes;
 	int tamanhoKernel;
 
-	// Primeiro zera todas partições
+	// Primeiro zera todas partições das memórias de DADOS e INSTRUÇÕES
 	i = 0;
 	while (i < QUANTIDADE_PARTICOES) {
-		PARTICOES[i] = 0;
+		PARTICOES_MEM_INST[i] = 0;
+		PARTICOES_MEM_DATA[i] = 0;
 		i += 1;
 	}
 
-	// Calcula a quantidade de partições necessárias para o Kernel	
+	// Calcula a quantidade de partições necessárias para o Kerne na memória de INSTRUÇÕES
 	tamanhoKernel = getTamanhoKernel();
 	ENDERECO_INICIO_HD = tamanhoKernel + 1;
 	particoes = tamanhoKernel / TAMANHO_PARTICAO;
@@ -258,10 +246,23 @@ void initParticoes(void) {
 		particoes += 1;
 	}
 
-	// Marca as partições em uso pelo Kernel
+	// Marca as partições em uso pelo Kernel na memória de INSTRUÇÕES
 	i = 0;
 	while (i < particoes) {
-		PARTICOES[i] = 1;
+		PARTICOES_MEM_INST[i] = 1;
+		i += 1;
+	}
+
+	// Calcula a quantidade de partições necessárias para o Kerne na memória de DADOS
+	particoes = gsp() / TAMANHO_PARTICAO;
+	if (gsp() % TAMANHO_PARTICAO > 0) {
+		particoes += 1;
+	}
+
+	// Marca as partições em uso pelo Kernel na memória de DADOS
+	i = 0;
+	while (i < particoes) {
+		PARTICOES_MEM_DATA[i] = 1;
 		i += 1;
 	}
 }
@@ -340,10 +341,10 @@ int getParticaoLivre(int tamanho) {
 
 	i = 0;
 	while (i < QUANTIDADE_PARTICOES) {
-		if (PARTICOES[i] == 0) {
+		if (PARTICOES_MEM_INST[i] == 0) {
 			particaoInicial = i;
 			while (particoes != 0) {
-				PARTICOES[i] = 1;
+				PARTICOES_MEM_INST[i] = 1;
 				particoes -= 1;
 				i += 1;
 			}
@@ -489,32 +490,57 @@ void carregarPrograma(int nPrograma) {
 }
 
 void run(int programa) {
-	lcdCurr(programa);
-	lcd(PROG_INSERT);
+	if (PROGRAMAS_EM_MEMORIA[PROC_ATUAL] != 0) {
+		lcdCurr(programa);
+		lcd(PROG_INSERT);
 
-	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
-	PROC_PC[PROC_ATUAL] = 0;
+		STACK_INICIO = gsp() + 1;
 
-	exec(programa);
+		PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
+		PROC_PC[PROC_ATUAL] = 0;
+		exec(programa);
 
-	PROC_ESTADO[PROC_ATUAL] = 0;
-	PROC_PC[PROC_ATUAL] = 0;
+		PROC_ESTADO[PROC_ATUAL] = 0;
+		PROC_PC[PROC_ATUAL] = 0;
 
-	lcd(KERNEL_MAIN_MENU);
+		lcd(KERNEL_MAIN_MENU);
+	}	
 }
 
 void runAgain(int programa) {
+	int var;
+	int pagina;
+	int indexVar;
+	int indexMemory;
+	int tamanhoStack;
+
 	lcdCurr(programa);
 	lcd(PROG_INSERT);
 
 	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
+	
+	pagina = 50;
+	indexVar = gsp() + 1;
+	indexMemory = pagina * TAMANHO_PARTICAO;
+	tamanhoStack = PROC_STACK_SIZE[PROC_ATUAL];
+	
+	while (tamanhoStack > 0) {
+		var = ldm(indexMemory);
+		sdm(var, indexVar);
+		indexVar += 1;
+		indexMemory += 1;
+		tamanhoStack -= 1;
+	}
+	
+	// Atribui a stack correta para a re-execução do programa
+	sspb(gsp() + PROC_STACK_SIZE[PROC_ATUAL]);
+	// TODO:: GLOBAL POINTER	
 
-	//loadContext(50);
+	// execAgain() já realiza a leitura dos registradores do novo contexto, não precisa chamar loadRegs().
 	execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
 
 	PROC_ESTADO[PROC_ATUAL] = 0;
 	PROC_PC[PROC_ATUAL] = 0;
-
 	lcd(KERNEL_MAIN_MENU);
 }
 
@@ -543,6 +569,16 @@ void main(void) {
 	int interrupcao;
 	int inicializando;
 
+	int pagina;
+
+	int var;
+	int indexVar;
+	int indexMemory;
+	int tamanhoStack;
+
+	// Salva sempre registradores no início para serem úteis em uma possível troca de contexto
+	saveRegs();
+
 	if (inicializando == 0) {
 		// Inicializa o Sistema Operacional
 		initKernel();
@@ -555,14 +591,27 @@ void main(void) {
 	
 	interrupcao = gic();
 	if (interrupcao == 1) {
-		//saveContext(50);
+		STACK_FIM = gspb();
+
+		pagina = 50;
+		indexVar = STACK_INICIO;
+		indexMemory = pagina * TAMANHO_PARTICAO;
+		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
+		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
+
+		while (tamanhoStack > 0) {
+			var = ldm(indexVar);
+			sdm(var, indexMemory);
+			indexVar += 1;
+			indexMemory += 1;
+			tamanhoStack -= 1;
+		}
 
 		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
 		PROC_PC[PROC_ATUAL] = gip() + 1; // Salva pc + 1
-		
-		cic();
 		runAgain(PROC_ATUAL);
 		rgnsp();
+		cic();
 	}
 	
 	while (1) {

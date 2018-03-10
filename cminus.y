@@ -58,8 +58,11 @@ program
             insertNewNode(createSysCall(INTEGER_TYPE, GIC));                    // GetInterruptionCause
             insertNewNode(createSysCall(VOID_TYPE, CIC));                       // ClearInterruptionCause
             insertNewNode(createSysCall(INTEGER_TYPE, GIP));                    // GetInterruptionPC
-            insertNewNode(createSysCall(VOID_TYPE, SAVE_CTX));                  // SaveCtx
-            insertNewNode(createSysCall(VOID_TYPE, LOAD_CTX));                  // LoadCtx
+            insertNewNode(createSysCall(VOID_TYPE, SAVE_REGS));                 // SaveRegs
+            insertNewNode(createSysCall(VOID_TYPE, LOAD_REGS));                 // LoadRegs
+            insertNewNode(createSysCall(INTEGER_TYPE, LDM));                    // LoadDataMemory
+            insertNewNode(createSysCall(VOID_TYPE, SDM));                       // StoreDataMemory
+            insertNewNode(createSysCall(INTEGER_TYPE, GSP));                    // GetStackPointer
             insertNewNode(createSysCall(INTEGER_TYPE, GSPB));                   // GetStackPointerBackup
             insertNewNode(createSysCall(INTEGER_TYPE, GGPB));                   // GetGlobalPointerBackup
             insertNewNode(createSysCall(VOID_TYPE, SSPB));                      // SetStackPointerBackup

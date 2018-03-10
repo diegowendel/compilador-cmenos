@@ -3,8 +3,8 @@
 /* Implementacao da tabela de simbolos C minus      */
 /* A tabela de simbolos eh implementada como uma    */
 /* tabela hash com encadeamento                     */
-/* Diego Wendel de Oliveira Ferreira		    */
-/* 86774                               		    */
+/* Diego Wendel de Oliveira Ferreira                */
+/* 86774                               		        */
 /****************************************************/
 
 #include <stdio.h>
@@ -18,7 +18,7 @@
    in hash function  */
 #define SHIFT 4
 
-#define MAX_SCOPE 20
+#define MAX_SCOPE 40
 
 #define ESCOPO_GLOBAL 0
 #define ESCOPO_NAO_GLOBAL 1

@@ -39,6 +39,9 @@
 #define REG_STACK 30
 #define REG_RTN_ADDR 31
 
+#define TAMANHO_PARTICAO 32
+#define ULTIMA_PARTICAO_MEM_DADOS 63
+
 /* Tipo de código em compilação */
 CodeType codeType;
 
@@ -163,6 +166,24 @@ TargetOperand getContextLocation(int offset) {
     TargetOperand operando = (TargetOperand) malloc(sizeof(struct targetOperand));
     operando->tipoEnderecamento = INDEXADO;
     operando->enderecamento.indexado.offset = offset;
+    operando->enderecamento.indexado.registrador = regNames[REG_ARG_INICIO];
+    return operando;
+}
+
+TargetOperand getLocationToSaveContexto(void) {
+    // Operando que representa o modo de endereçamento indexado
+    TargetOperand operando = (TargetOperand) malloc(sizeof(struct targetOperand));
+    operando->tipoEnderecamento = INDEXADO;
+    operando->enderecamento.indexado.offset = 0;
+    operando->enderecamento.indexado.registrador = regNames[REG_ARG_INICIO + 1];
+    return operando;
+}
+
+TargetOperand getLocationToReadContexto(void) {
+    // Operando que representa o modo de endereçamento indexado
+    TargetOperand operando = (TargetOperand) malloc(sizeof(struct targetOperand));
+    operando->tipoEnderecamento = INDEXADO;
+    operando->enderecamento.indexado.offset = 0;
     operando->enderecamento.indexado.registrador = regNames[REG_ARG_INICIO];
     return operando;
 }
@@ -369,21 +390,33 @@ void geraCodigoInstrucaoAtribuicao(Quadruple q) {
     }
 }
 
-void saveRegistradores() {
+/**
+ * Salva todos os registradores para se preparar para uma possível troca de contexto.
+ * Salva sempre na última partição da memória de dados.
+ */
+void saveRegistradores(void) {
     int i;
+    int index = ULTIMA_PARTICAO_MEM_DADOS * TAMANHO_PARTICAO;
 
-    for(i = 0; i < REG_INTERRUPTION; i++) { // -1 para não contar o registrador $ra
+    for(i = 0; i < REG_INTERRUPTION; i++) {
         Registrador reg = registradores[i];
-        printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg.targetOp, getContextLocation(i), NULL))); // sw $ra
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg.targetOp, getStackZeroOperandLocation(index), NULL)));
+        index++;
     }
 }
 
-void loadRegistradores() {
+/**
+ * Lê todos os registradores para realizar troca de contexto.
+ * Lê sempre na última partição da memória de dados.
+ */
+void loadRegistradores(void) {
     int i;
+    int index = ULTIMA_PARTICAO_MEM_DADOS * TAMANHO_PARTICAO;
     
-    for(i = 0; i < REG_INTERRUPTION; i++) { // -1 para não contar o registrador $ra
+    for(i = 0; i < REG_INTERRUPTION; i++) {
         Registrador reg = registradores[i];
-        printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, getContextLocation(i), NULL))); // sw $ra
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, getStackZeroOperandLocation(index), NULL)));
+        index++;
     }
 }
 
@@ -436,7 +469,15 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackOp, stackBakOp, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, globalBakOp, NULL)));
-        printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, getArgReg(1), NULL)));
+
+        // Workaround para o endereço de execAgain não ser sobrescrito pela leitura de registradores do contexto
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, interruptionOp, getArgReg(1), NULL)));
+
+        // Recupera registradores do novo contexto
+        loadRegistradores();
+
+        // Usa interruptionOp aqui por conveniência. Assim não é necessário reservar outro reg só para a chamada execAgain()
+        printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, interruptionOp, NULL)));
         printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
     } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
         printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));
@@ -450,6 +491,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_CIC, TYPE_I, NULL, NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "gip")) {
         printCode(insertObjInst(createObjInst(_GIP, TYPE_I, getTempReg(q->op3), NULL, NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "gsp")) { // getStackPointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), stackOp, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "gspb")) { // getStackPointerBackup
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), stackBakOp, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "ggpb")) { // getGlobalPointerBackup
@@ -461,10 +504,14 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "rgnsp")) { // restoreGlobalN'StackPointers
         printCode(insertObjInst(createObjInst(_LI, TYPE_I, globalOp, getImediato(0), NULL)));
         printCode(insertObjInst(createObjInst(_LI, TYPE_I, stackOp, getImediato(escopo->tamanhoBlocoMemoria + getTamanhoBlocoMemoriaEscopoGlobal() + 1), NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "saveCtx")) {
+    } else if(!strcmp(q->op1->contents.variable.name, "saveRegs")) {
         saveRegistradores();
-    } else if(!strcmp(q->op1->contents.variable.name, "loadCtx")) {
+    } else if(!strcmp(q->op1->contents.variable.name, "loadRegs")) {
         loadRegistradores();
+    } else if(!strcmp(q->op1->contents.variable.name, "ldm")) {
+        printCode(insertObjInst(createObjInst(_LW, TYPE_I, getTempReg(q->op3), getLocationToReadContexto(), NULL)));
+    } else if(!strcmp(q->op1->contents.variable.name, "sdm")) {
+        printCode(insertObjInst(createObjInst(_SW, TYPE_I, getArgReg(0), getLocationToSaveContexto(), NULL)));
     } else {
         int tamanhoBlocoMemoriaFuncaoChamada = getTamanhoBlocoMemoriaEscopo(q->op1->contents.variable.name);
         int tamanhoBlocoMemoriaEscopoAtual = escopo->tamanhoBlocoMemoria;
