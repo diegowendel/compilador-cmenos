@@ -32,7 +32,9 @@ int PROC_PC[10];
 int PROC_STACK_POINTER[10];
 int PROC_GLOBAL_POINTER[10];
 int PROC_STACK_SIZE[10];
+int PROC_PAGINA_MEM_DADOS[10];
 
+int PROTAGONISTA;
 int PROC_ATUAL;
 
 /*******************************************************************************************************/
@@ -84,6 +86,8 @@ int KERNEL_MENU_MEM;
 int KERNEL_MENU_EXE;
 int KERNEL_MENU_MEM_LOAD;
 int KERNEL_MENU_EXEC_N_PREEMPTIVO;
+int KERNEL_MENU_EXEC_BLOCKED;
+
 int PROG_INSERT;
 
 int ESTADO_LCD;										// Estado LCD - Menu que será mostrado no Display LCD
@@ -176,6 +180,7 @@ void initProcessos(void) {
 		PROC_STACK_POINTER[i] = 0;
 		PROC_GLOBAL_POINTER[i] = 0;
 		PROC_STACK_SIZE[i] = 0;
+		PROC_PAGINA_MEM_DADOS[i] = 0;
 		i += 1;
 	}
 }
@@ -188,6 +193,7 @@ void initMemoria(void) {
 	QUANTIDADE_PARTICOES = 64;		// Se alterar aqui, lembrar de alterar target.c (endereço para salvar contexto)
 	ERRO_DE_PARTICAO = 100;
 	MAX_PROGRAMAS = 10;
+	PROTAGONISTA = 999;
 }
 
 /**
@@ -201,7 +207,9 @@ void initDisplay(void) {
 	KERNEL_MENU_EXE = 3;
 	KERNEL_MENU_MEM_LOAD = 4;
 	KERNEL_MENU_EXEC_N_PREEMPTIVO = 5;
-	PROG_INSERT = 10;
+	KERNEL_MENU_EXEC_BLOCKED = 6;
+
+	PROG_INSERT = 30;
 	
 	// Atribui o estado inicial do SHELL durante a execução do SO
 	ESTADO_LCD = KERNEL_MAIN_MENU;
@@ -224,6 +232,10 @@ void initConstantes(void) {
  * Inicializa, primeiramente, todas as partições da memória de
  * instruções como disponíveis. Em seguida, calcula as partições
  * necessárias para armazenar o kernel e as marca como ocupadas.
+ * 
+ * Também marca as partições da memória de dados utilizadas pelo Kernel
+ * e marca a última partição da memória de dados como usada, isso porque
+ * é nela que é salvo/lido o contexto de um programa.
  */
 void initParticoes(void) {
 	int i;
@@ -265,6 +277,9 @@ void initParticoes(void) {
 		PARTICOES_MEM_DATA[i] = 1;
 		i += 1;
 	}
+	
+	// Marca a última partição de dados como usada (Para salvar e carregar contextos)
+	PARTICOES_MEM_DATA[QUANTIDADE_PARTICOES - 1] = 1;
 }
 
 /**
@@ -326,9 +341,9 @@ void initKernel(void) {
  * 
  * @param
  * 		tamanho do programa
- * @return primeira partição livre na memória
+ * @return primeira partição livre na memória de intruções
  */
-int getParticaoLivre(int tamanho) {
+int getParticaoLivreMemInstrucoes(int tamanho) {
 	int i;
 	int particoes;
 	int particaoInicial;
@@ -343,7 +358,7 @@ int getParticaoLivre(int tamanho) {
 	while (i < QUANTIDADE_PARTICOES) {
 		if (PARTICOES_MEM_INST[i] == 0) {
 			particaoInicial = i;
-			while (particoes != 0) {
+			while (particoes > 0) {
 				PARTICOES_MEM_INST[i] = 1;
 				particoes -= 1;
 				i += 1;
@@ -351,6 +366,34 @@ int getParticaoLivre(int tamanho) {
 			return particaoInicial;
 		}
 		i += 1;
+	}
+
+	return ERRO_DE_PARTICAO;
+}
+
+int getParticaoLivreMemDados(void) {
+	int i;
+	int particoes;
+	int particaoInicial;
+
+	// Calcula quantas partições serão necessárias
+	particoes = (PROC_STACK_SIZE[PROC_ATUAL] / TAMANHO_PARTICAO) + 1; // +1 dos registradores
+	if (PROC_STACK_SIZE[PROC_ATUAL] % TAMANHO_PARTICAO > 0) {
+		particoes += 1;
+	}
+
+	i = QUANTIDADE_PARTICOES - 1;
+	while (i > 0) {
+		if (PARTICOES_MEM_DATA[i] == 0) {
+			while (particoes > 0) {
+				particaoInicial = i;
+				PARTICOES_MEM_DATA[i] = 1;
+				particoes -= 1;
+				i -= 1;
+			}
+			return particaoInicial;
+		}
+		i -= 1;
 	}
 
 	return ERRO_DE_PARTICAO;
@@ -453,23 +496,23 @@ int getTamanhoPrograma(int beginOnDisk) {
  * 		seletor para o qual o programa será atribuído na MMU
  */
 void carregarPrograma(int nPrograma) {
-	int indexDisk;									// Iterador para o disco
-	int indexMemory;								// Iterador para a memória
-	int instrucao;									// Instrução lida do disco
-	int particao;									// Partição na memória
-	int tamanho;									// Tamanho do programa
-	int beginOnDisk;								// Endereço de início do programa no HD
-	int nProgramaOnDisk;							// Número do programa no HD
+	int indexDisk;										// Iterador para o disco
+	int indexMemory;									// Iterador para a memória
+	int instrucao;										// Instrução lida do disco
+	int particao;										// Partição na memória
+	int tamanho;										// Tamanho do programa
+	int beginOnDisk;									// Endereço de início do programa no HD
+	int nProgramaOnDisk;								// Número do programa no HD
 
-	nPrograma -= 1;									// Subtrai 1 de nPrograma pois a inserção de dados não é 0-based
+	nPrograma -= 1;										// Subtrai 1 de nPrograma pois a inserção de dados não é 0-based
 
 	beginOnDisk = PROGRAMAS_EM_HD_ENDERECO[nPrograma];
 	nProgramaOnDisk = PROGRAMAS_EM_HD[nPrograma];
 
-	indexDisk = beginOnDisk;						// Recebe o endereço para iterar no disco
+	indexDisk = beginOnDisk;							// Recebe o endereço para iterar no disco
 	tamanho = getTamanhoPrograma(beginOnDisk);
-	particao = getParticaoLivre(tamanho);			// Obtém partições livres na memória
-	indexMemory = TAMANHO_PARTICAO * particao;		// Endereço para iterar na memória
+	particao = getParticaoLivreMemInstrucoes(tamanho);	// Obtém partições livres na memória
+	indexMemory = TAMANHO_PARTICAO * particao;			// Endereço para iterar na memória
 	instrucao = ldk(indexDisk);
 	while(instrucao >> 26 != SYSCALL) {
 		sim(instrucao, indexMemory);
@@ -519,7 +562,7 @@ void runAgain(int programa) {
 
 	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 	
-	pagina = 50;
+	pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
 	indexVar = gsp() + 1;
 	indexMemory = pagina * TAMANHO_PARTICAO;
 	tamanhoStack = PROC_STACK_SIZE[PROC_ATUAL];
@@ -550,6 +593,7 @@ void runAgain(int programa) {
 
 void runNaoPreemptivo(int programa) {
 	PROC_ATUAL = programa - 1;
+	PROTAGONISTA = PROC_ATUAL;
 	run(programa);
 }
 
@@ -568,9 +612,7 @@ void main(void) {
 	int novoEstadoLCD;
 	int interrupcao;
 	int inicializando;
-
 	int pagina;
-
 	int var;
 	int indexVar;
 	int indexMemory;
@@ -592,13 +634,22 @@ void main(void) {
 	interrupcao = gic();
 	if (interrupcao == 1) {
 		STACK_FIM = gspb();
-
-		pagina = 50;
-		indexVar = STACK_INICIO;
-		indexMemory = pagina * TAMANHO_PARTICAO;
 		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
+		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+		PROC_PC[PROC_ATUAL] = gip() + 1; // Salva pc + 1
+		
+		if (PROC_PAGINA_MEM_DADOS[PROC_ATUAL] == 0) {
+			pagina = getParticaoLivreMemDados();
+			PROC_PAGINA_MEM_DADOS[PROC_ATUAL] = pagina;
+		} else {
+			pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
+		}
+		
+		indexVar = STACK_INICIO;
+		indexMemory = pagina * TAMANHO_PARTICAO;
 
+		// Salva toda a área de memória stack utilizada pelo processo
 		while (tamanhoStack > 0) {
 			var = ldm(indexVar);
 			sdm(var, indexMemory);
@@ -607,10 +658,27 @@ void main(void) {
 			tamanhoStack -= 1;
 		}
 
-		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
-		PROC_PC[PROC_ATUAL] = gip() + 1; // Salva pc + 1
-		runAgain(PROC_ATUAL);
-		rgnsp();
+		if (PROC_ATUAL == PROTAGONISTA) {
+			// Processo bloqueado enquanto era executado em modo não preemptivo, ou seja, é o processo protagonista. Logo, é retomada a execução.
+			runAgain(PROC_ATUAL);
+			rgnsp();
+			PROTAGONISTA = 999;
+		} else {
+			// Processo bloqueado enquanto era executado em modo preemptivo, salva o contexto para uso posterior.
+			pagina += 1;
+			indexVar = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
+			indexMemory = pagina * TAMANHO_PARTICAO;
+
+			while (indexVar < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
+				var = ldm(indexVar);
+				sdm(var, indexMemory);
+				indexVar += 1;
+				indexMemory += 1;
+			}			
+		}
+		
+		ESTADO_LCD = KERNEL_MAIN_MENU;
+		lcd(ESTADO_LCD);
 		cic();
 	}
 	
@@ -649,6 +717,9 @@ void main(void) {
 			} else if (novoEstadoLCD == 2) {
 				lcdPgms(getDescritorProgramasMemoria());
 				novoEstadoLCD = KERNEL_MENU_EXEC_N_PREEMPTIVO;
+			} else if (novoEstadoLCD == 3) {
+				lcdPgms(getDescritorProgramasMemoria());
+				novoEstadoLCD = KERNEL_MENU_EXEC_BLOCKED;
 			} else {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}

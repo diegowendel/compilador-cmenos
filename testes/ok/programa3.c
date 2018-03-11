@@ -14,7 +14,6 @@ void main(void) {
     int a;
     int b;
     int number;
-    // FUNCIONA NA MEMORIA MAS NAO COM REG
     a = 93;
     b = a;
     number = input();

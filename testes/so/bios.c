@@ -2,13 +2,13 @@
  * Realiza o teste de partida antes de carregar o SO.
  */
 void checarComponentes(void) {
-	lcd(6); // Checa HD
+	lcd(20); // Checa HD
 	input();
-	lcd(7); // Checa memória de instruções
+	lcd(21); // Checa memória de instruções
 	input();
-	lcd(8); // Checa memória de dados
+	lcd(22); // Checa memória de dados
 	input();
-	lcd(9); // Inicia o Sistema Operacional
+	lcd(23); // Inicia o Sistema Operacional
 	input();
 }
 
