@@ -429,6 +429,21 @@ int getDescritorProgramasHD(void) {
 	return descritor;
 }
 
+int getDescritorProgramasBloqueados(void) {
+	int i;
+	int descritor;
+
+	i = 0;
+	descritor = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROC_ESTADO[i] == BLOQUEADO) {
+			descritor += powByTwo(i);
+		}
+		i += 1;
+	}
+	return descritor;
+}
+
 int getProcessoBloqueado(void) {
 	int i;
 
@@ -591,12 +606,39 @@ void runAgain(int programa) {
 /*************************************   SISTEMA OPERACIONAL   *****************************************/
 /*******************************************************************************************************/
 
+void chooseAndRunProtagonista(int programa) {
+	int var;
+	int pagina;
+	int indexVar;
+	int indexMemory;
+	
+	PROC_ATUAL = programa - 1;
+	PROTAGONISTA = PROC_ATUAL;
+
+	pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL] + 1;
+	indexVar = pagina * TAMANHO_PARTICAO;
+	indexMemory = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
+
+	// Passa os registradores para a área de memoria onde o contexto consegue ler
+	while (indexMemory < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
+		var = ldm(indexVar);
+		sdm(var, indexMemory);
+		indexVar += 1;
+		indexMemory += 1;
+	}
+
+	runAgain(programa);
+}
+
 void runNaoPreemptivo(int programa) {
 	PROC_ATUAL = programa - 1;
 	PROTAGONISTA = PROC_ATUAL;
 	run(programa);
 }
 
+/**
+ * Executa todos processos com estado PRONTO da fila de processos, um em seguida do outro.
+ */
 void runPreemptivo(void) {
 	// Coloca todos processos em memória na fila de execução
 	carregarTodosFilaPronto();
@@ -674,7 +716,9 @@ void main(void) {
 				sdm(var, indexMemory);
 				indexVar += 1;
 				indexMemory += 1;
-			}			
+			}
+
+			PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
 		}
 		
 		ESTADO_LCD = KERNEL_MAIN_MENU;
@@ -718,7 +762,7 @@ void main(void) {
 				lcdPgms(getDescritorProgramasMemoria());
 				novoEstadoLCD = KERNEL_MENU_EXEC_N_PREEMPTIVO;
 			} else if (novoEstadoLCD == 3) {
-				lcdPgms(getDescritorProgramasMemoria());
+				lcdPgms(getDescritorProgramasBloqueados());
 				novoEstadoLCD = KERNEL_MENU_EXEC_BLOCKED;
 			} else {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
@@ -733,6 +777,10 @@ void main(void) {
 				runNaoPreemptivo(novoEstadoLCD);
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
+		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_BLOCKED) {
+			if (novoEstadoLCD > 0) {
+				chooseAndRunProtagonista(novoEstadoLCD);
+			}
 		}
 
 		ESTADO_LCD = novoEstadoLCD;
