@@ -29,10 +29,13 @@ int LISTA_VAZIA;
  */
 int PROC_ESTADO[10];
 int PROC_PC[10];
+int PROC_STACK_SIZE[10];
 int PROC_STACK_POINTER[10];
 int PROC_GLOBAL_POINTER[10];
-int PROC_STACK_SIZE[10];
+int PROC_PAGINA_MEM_INST[10];
 int PROC_PAGINA_MEM_DADOS[10];
+int PROC_QTD_PAGINAS_MEM_INST[10];
+int PROC_QTD_PAGINAS_MEM_DADOS[10];
 
 int PROTAGONISTA;
 int PROC_ATUAL;
@@ -83,8 +86,9 @@ int HALT;											// OPCODE da instrução HALT
 int KERNEL_MAIN_MENU;
 int KERNEL_MENU_HD;
 int KERNEL_MENU_MEM;
-int KERNEL_MENU_EXE;
 int KERNEL_MENU_MEM_LOAD;
+int KERNEL_MENU_MEM_DEL;
+int KERNEL_MENU_EXE;
 int KERNEL_MENU_EXEC_N_PREEMPTIVO;
 int KERNEL_MENU_EXEC_BLOCKED;
 
@@ -177,10 +181,12 @@ void initProcessos(void) {
 	while (i < 10) {
 		PROC_ESTADO[i] = 0;
 		PROC_PC[i] = 0;
+		PROC_STACK_SIZE[i] = 0;
 		PROC_STACK_POINTER[i] = 0;
 		PROC_GLOBAL_POINTER[i] = 0;
-		PROC_STACK_SIZE[i] = 0;
 		PROC_PAGINA_MEM_DADOS[i] = 0;
+		PROC_QTD_PAGINAS_MEM_INST[i] = 0;
+		PROC_QTD_PAGINAS_MEM_DADOS[i] = 0;
 		i += 1;
 	}
 }
@@ -204,10 +210,11 @@ void initDisplay(void) {
 	KERNEL_MAIN_MENU = 0;
 	KERNEL_MENU_HD = 1;
 	KERNEL_MENU_MEM = 2;
-	KERNEL_MENU_EXE = 3;
-	KERNEL_MENU_MEM_LOAD = 4;
-	KERNEL_MENU_EXEC_N_PREEMPTIVO = 5;
-	KERNEL_MENU_EXEC_BLOCKED = 6;
+	KERNEL_MENU_MEM_LOAD = 3;
+	KERNEL_MENU_MEM_DEL = 4;
+	KERNEL_MENU_EXE = 5;
+	KERNEL_MENU_EXEC_N_PREEMPTIVO = 6;
+	KERNEL_MENU_EXEC_BLOCKED = 7;
 
 	PROG_INSERT = 30;
 	
@@ -353,6 +360,8 @@ int getParticaoLivreMemInstrucoes(int tamanho) {
 	if (tamanho % TAMANHO_PARTICAO > 0) {
 		particoes += 1;
 	}
+
+	PROC_QTD_PAGINAS_MEM_INST[PROC_ATUAL] = particoes;
 
 	i = 0;
 	while (i < QUANTIDADE_PARTICOES) {
@@ -520,6 +529,7 @@ void carregarPrograma(int nPrograma) {
 	int nProgramaOnDisk;								// Número do programa no HD
 
 	nPrograma -= 1;										// Subtrai 1 de nPrograma pois a inserção de dados não é 0-based
+	PROC_ATUAL = nPrograma;
 
 	beginOnDisk = PROGRAMAS_EM_HD_ENDERECO[nPrograma];
 	nProgramaOnDisk = PROGRAMAS_EM_HD[nPrograma];
@@ -527,6 +537,7 @@ void carregarPrograma(int nPrograma) {
 	indexDisk = beginOnDisk;							// Recebe o endereço para iterar no disco
 	tamanho = getTamanhoPrograma(beginOnDisk);
 	particao = getParticaoLivreMemInstrucoes(tamanho);	// Obtém partições livres na memória
+	PROC_PAGINA_MEM_INST[PROC_ATUAL] = particao;		// Salva a partição inicial da memória de instruções utilizada pelo processo
 	indexMemory = TAMANHO_PARTICAO * particao;			// Endereço para iterar na memória
 	instrucao = ldk(indexDisk);
 	while(instrucao >> 26 != SYSCALL) {
@@ -545,6 +556,7 @@ void carregarPrograma(int nPrograma) {
 	// marca
 	PROGRAMAS_EM_MEMORIA[nPrograma] = nProgramaOnDisk;
 	PROGRAMAS_EM_MEMORIA_ENDERECO[nPrograma] = beginOnDisk;
+	PROC_ATUAL = 0;
 }
 
 void run(int programa) {
@@ -600,11 +612,40 @@ void runAgain(int programa) {
 	PROC_ESTADO[PROC_ATUAL] = 0;
 	PROC_PC[PROC_ATUAL] = 0;
 	lcd(KERNEL_MAIN_MENU);
+
+	PROTAGONISTA = 999;
 }
 
 /*******************************************************************************************************/
 /*************************************   SISTEMA OPERACIONAL   *****************************************/
 /*******************************************************************************************************/
+
+void killProcess(int processo) {
+	int i;
+	int paginas;
+
+	PROC_ATUAL = processo - 1;
+	i = PROC_PAGINA_MEM_INST[PROC_ATUAL];
+	paginas = PROC_QTD_PAGINAS_MEM_INST[PROC_ATUAL];
+	while (paginas > 0) {
+		PARTICOES_MEM_INST[i] = 0;
+		i += 1;
+		paginas -= 1;
+	}
+	// Elimina a referência da memória
+	PROGRAMAS_EM_MEMORIA[PROC_ATUAL] = 0;
+	
+	// Elimina o restante das referências
+	PROC_ESTADO[PROC_ATUAL] = 0;
+	PROC_PC[PROC_ATUAL] = 0;
+	PROC_STACK_SIZE[PROC_ATUAL] = 0;
+	PROC_STACK_POINTER[PROC_ATUAL] = 0;
+	PROC_GLOBAL_POINTER[PROC_ATUAL] = 0;
+	PROC_PAGINA_MEM_DADOS[PROC_ATUAL] = 0;
+	PROC_QTD_PAGINAS_MEM_INST[PROC_ATUAL] = 0;
+	PROC_QTD_PAGINAS_MEM_DADOS[PROC_ATUAL] = 0;
+	PROC_ATUAL = 0;
+}
 
 void chooseAndRunProtagonista(int programa) {
 	int var;
@@ -704,7 +745,6 @@ void main(void) {
 			// Processo bloqueado enquanto era executado em modo não preemptivo, ou seja, é o processo protagonista. Logo, é retomada a execução.
 			runAgain(PROC_ATUAL);
 			rgnsp();
-			PROTAGONISTA = 999;
 		} else {
 			// Processo bloqueado enquanto era executado em modo preemptivo, salva o contexto para uso posterior.
 			pagina += 1;
@@ -731,12 +771,16 @@ void main(void) {
 		output(novoEstadoLCD, 0);
 
 		if (ESTADO_LCD == KERNEL_MAIN_MENU) {
-			if (novoEstadoLCD > 4) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
+			if (novoEstadoLCD == 1) {
+				novoEstadoLCD = KERNEL_MENU_HD;
+			} else if (novoEstadoLCD == 2) {
+				novoEstadoLCD = KERNEL_MENU_MEM;
+			} else if (novoEstadoLCD == 3) {
+				novoEstadoLCD = KERNEL_MENU_EXE;
 			} else if (novoEstadoLCD == 4) {
 				limparDisplays();
 				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD < 1) {
+			} else {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
@@ -749,11 +793,24 @@ void main(void) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
 				lcdPgms(getDescritorProgramasHD());
+			} else if (novoEstadoLCD == 3) {
+				novoEstadoLCD = KERNEL_MENU_MEM_DEL;
+				lcdPgms(getDescritorProgramasMemoria());
 			} else if (novoEstadoLCD > 3) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			} else if (novoEstadoLCD < 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
+		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
+			if (novoEstadoLCD > 0) {
+				carregarPrograma(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
+		} else if (ESTADO_LCD == KERNEL_MENU_MEM_DEL) {
+			if (novoEstadoLCD > 0) {
+				killProcess(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
 		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
 			if (novoEstadoLCD == 1) {
 				runPreemptivo();
@@ -767,11 +824,6 @@ void main(void) {
 			} else {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
-		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
-			if (novoEstadoLCD > 0) {
-				carregarPrograma(novoEstadoLCD);
-			}
-			novoEstadoLCD = KERNEL_MAIN_MENU;
 		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_N_PREEMPTIVO) {
 			if (novoEstadoLCD > 0) {
 				runNaoPreemptivo(novoEstadoLCD);
