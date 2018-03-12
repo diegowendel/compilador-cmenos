@@ -85,6 +85,7 @@ int HALT;											// OPCODE da instrução HALT
 // Estados dos menus do display LCD
 int KERNEL_MAIN_MENU;
 int KERNEL_MENU_HD;
+int KERNEL_MENU_HD_DEL;
 int KERNEL_MENU_MEM;
 int KERNEL_MENU_MEM_LOAD;
 int KERNEL_MENU_MEM_DEL;
@@ -209,12 +210,13 @@ void initDisplay(void) {
 	// Estados dos menus
 	KERNEL_MAIN_MENU = 0;
 	KERNEL_MENU_HD = 1;
-	KERNEL_MENU_MEM = 2;
-	KERNEL_MENU_MEM_LOAD = 3;
-	KERNEL_MENU_MEM_DEL = 4;
-	KERNEL_MENU_EXE = 5;
-	KERNEL_MENU_EXEC_N_PREEMPTIVO = 6;
-	KERNEL_MENU_EXEC_BLOCKED = 7;
+	KERNEL_MENU_HD_DEL = 2;
+	KERNEL_MENU_MEM = 3;
+	KERNEL_MENU_MEM_LOAD = 4;
+	KERNEL_MENU_MEM_DEL = 5;
+	KERNEL_MENU_EXE = 6;
+	KERNEL_MENU_EXEC_N_PREEMPTIVO = 7;
+	KERNEL_MENU_EXEC_BLOCKED = 8;
 
 	PROG_INSERT = 30;
 	
@@ -620,6 +622,25 @@ void runAgain(int programa) {
 /*************************************   SISTEMA OPERACIONAL   *****************************************/
 /*******************************************************************************************************/
 
+void purgarPrograma(int programa) {
+	int index;
+	int instrucao;
+
+	programa -= 1;
+	index = PROGRAMAS_EM_HD_ENDERECO[programa];
+
+	instrucao = ldk(index);
+	while(instrucao >> 26 != SYSCALL) {
+		sdk(0, index);
+		index += 1;
+		instrucao = ldk(index);
+	}
+	sdk(0, index);
+
+	// Escaneia o HD novamente (workaround)
+	initProgramas();
+}
+
 void killProcess(int processo) {
 	int i;
 	int paginas;
@@ -784,11 +805,23 @@ void main(void) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
-			if (novoEstadoLCD > 3) {
+			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD < 1) {
+				// TODO:: implementar
+			} else if (novoEstadoLCD == 2) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+				// TODO:: implementar
+			} else if (novoEstadoLCD == 3) {
+				novoEstadoLCD = KERNEL_MENU_HD_DEL;
+				lcdPgms(getDescritorProgramasHD());
+			} else {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
+		} else if (ESTADO_LCD == KERNEL_MENU_HD_DEL) {
+			if (novoEstadoLCD > 0) {
+				purgarPrograma(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
