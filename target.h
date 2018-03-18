@@ -46,7 +46,9 @@ typedef enum type {
  * $sX - Registradores salvos
  * $tX - Registradores temporários
  * $v0 - Registrador que guarda o valor retornado de uma função
- * $ic - Interruption Code - Código da interrupção
+ * $kX - Registradores de uso específico do Kernel
+ *  - $k0: Endereço de retorno para o Kernel
+ *  - $k1: Endereço usado para começar um programa de posição arbitrária
  * $gpb - Global pointer backup
  * $spb - Stack pointer backup
  * $gp - Registrador global
@@ -57,7 +59,7 @@ typedef enum registerName {
     $rz, $a0, $a1, $a2, $a3, $s0, $s1, $s2,
     $s3, $s4, $s5, $s6, $s7, $s8, $s9, $t0,
     $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8,
-    $t9, $v0, $ic, $gpb, $spb, $gp, $sp, $ra
+    $v0, $k0, $k1, $gpb, $spb, $gp, $sp, $ra
 } RegisterName;
 
 typedef enum addressingType {

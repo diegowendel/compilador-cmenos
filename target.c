@@ -27,12 +27,13 @@
 #define SHIFT_COUNTER_REG_SAVED 5
 
 #define REG_TEMP_INICIO 15
-#define REG_TEMP_FIM 24
+#define REG_TEMP_FIM 23
 #define SHIFT_COUNTER_REG_TEMP 15
 
 #define REG_ZERO 0
-#define REG_RTN_VAL 25
-#define REG_INTERRUPTION 26
+#define REG_RTN_VAL 24
+#define REG_KERNEL_0 25
+#define REG_KERNEL_1 26
 #define REG_GLOBAL_BAK 27
 #define REG_STACK_BAK 28
 #define REG_GLOBAL 29
@@ -67,7 +68,8 @@ TargetOperand rtnValOp;
 TargetOperand stackOp;
 TargetOperand stackBakOp;
 TargetOperand pcBakOp;
-TargetOperand interruptionOp;
+TargetOperand kernelOp0;
+TargetOperand kernelOp1;
 TargetOperand rZeroOp;
 TargetOperand globalBakOp;
 TargetOperand globalOp;
@@ -77,7 +79,7 @@ RegisterName regNames[QTD_REG] = {
     $rz, $a0, $a1, $a2, $a3, $s0, $s1, $s2,
     $s3, $s4, $s5, $s6, $s7, $s8, $s9, $t0,
     $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8,
-    $t9, $v0, $ic, $gpb, $spb, $gp, $sp, $ra
+    $v0, $k0, $k1, $gpb, $spb, $gp, $sp, $ra
 };
 
 Opcode funcToOpcode(Function func) {
@@ -226,7 +228,7 @@ TargetOperand getTempReg(Operand op) {
      * sem fazer nenhuma verificação adicional, pois os registradores temporários
      * não garantem persistência dos dados
      */
-    if(escopo->tempRegCount > 9) {
+    if(escopo->tempRegCount > 8) {
         escopo->tempRegCount = 0;
     }
 
@@ -398,11 +400,13 @@ void saveRegistradores(void) {
     int i;
     int index = ULTIMA_PARTICAO_MEM_DADOS * TAMANHO_PARTICAO;
 
-    for(i = 0; i < REG_INTERRUPTION; i++) {
+    for(i = 0; i < REG_KERNEL_0; i++) {
         Registrador reg = registradores[i];
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, reg.targetOp, getStackZeroOperandLocation(index), NULL)));
         index++;
     }
+    // Salva também o registrador de endereço de retorno
+    printCode(insertObjInst(createObjInst(_SW, TYPE_I, registradores[REG_RTN_ADDR].targetOp, getStackZeroOperandLocation(index), NULL)));
 }
 
 /**
@@ -413,11 +417,13 @@ void loadRegistradores(void) {
     int i;
     int index = ULTIMA_PARTICAO_MEM_DADOS * TAMANHO_PARTICAO;
     
-    for(i = 0; i < REG_INTERRUPTION; i++) {
+    for(i = 0; i < REG_KERNEL_0; i++) {
         Registrador reg = registradores[i];
         printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, getStackZeroOperandLocation(index), NULL)));
         index++;
     }
+    // Carrega também o registrador de endereço de retorno
+    printCode(insertObjInst(createObjInst(_LW, TYPE_I, registradores[REG_RTN_ADDR].targetOp, getStackZeroOperandLocation(index), NULL)));
 }
 
 void geraCodigoChamadaFuncao(Quadruple q) {
@@ -448,6 +454,7 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         // printCode(insertObjInst(createObjInst(_MMU_LOWER, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuUpperDM")) {
         // printCode(insertObjInst(createObjInst(_MMU_UPPER, TYPE_I, getArgReg(0), NULL, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), rtnAddrOp, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuSelect")) {
         // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
         printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));
@@ -469,15 +476,13 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackOp, stackBakOp, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, globalBakOp, NULL)));
-
-        // Workaround para o endereço de execAgain não ser sobrescrito pela leitura de registradores do contexto
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, interruptionOp, getArgReg(1), NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, kernelOp1, getArgReg(1), NULL)));
 
         // Recupera registradores do novo contexto
         loadRegistradores();
 
-        // Usa interruptionOp aqui por conveniência. Assim não é necessário reservar outro reg só para a chamada execAgain()
-        printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, interruptionOp, NULL)));
+        // kernelOp1 é o endereço arbitrário do qual se retomará a execução do programa
+        printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, kernelOp1, NULL)));
         printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
     } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
         printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));
@@ -824,7 +829,7 @@ void geraCodigoObjeto(Quadruple q, CodeInfo codeInfo) {
                 /* Desaloca o bloco de memória da função main() da stack, isso é necessário para o SO ter o stackPointer alinhado com sua área de memória */
                 popStackSpace(escopo->tamanhoBlocoMemoria + getTamanhoBlocoMemoriaEscopoGlobal() + 1); // +1 devido ao registrador $ra
                 // Retorna o controle para o sistema operacional
-                printCode(insertObjInst(createObjInst(_SYSCALL, TYPE_I, NULL, rtnAddrOp, NULL)));
+                printCode(insertObjInst(createObjInst(_SYSCALL, TYPE_I, NULL, kernelOp0, NULL)));
                 break;
         }
         q = q->next;
@@ -1085,7 +1090,8 @@ void prepararOperandosEspeciais(void) {
     rtnValOp = registradores[REG_RTN_VAL].targetOp;
     stackOp = registradores[REG_STACK].targetOp;
     stackBakOp = registradores[REG_STACK_BAK].targetOp;
-    interruptionOp = registradores[REG_INTERRUPTION].targetOp;
+    kernelOp0 = registradores[REG_KERNEL_0].targetOp;
+    kernelOp1 = registradores[REG_KERNEL_1].targetOp;
     rZeroOp = registradores[REG_ZERO].targetOp;
     globalOp = registradores[REG_GLOBAL].targetOp;
     globalBakOp = registradores[REG_GLOBAL_BAK].targetOp;

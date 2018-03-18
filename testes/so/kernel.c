@@ -589,6 +589,7 @@ void runAgain(int programa) {
 	lcdCurr(programa);
 	lcd(PROG_INSERT);
 
+	STACK_INICIO = gsp() + 1;
 	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 	
 	pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
@@ -690,6 +691,7 @@ void chooseAndRunProtagonista(int programa) {
 	}
 
 	runAgain(programa);
+	rgnsp();
 }
 
 void runNaoPreemptivo(int programa) {
@@ -785,6 +787,48 @@ void main(void) {
 		ESTADO_LCD = KERNEL_MAIN_MENU;
 		lcd(ESTADO_LCD);
 		cic();
+	} else if (interrupcao == 2) {
+		STACK_FIM = gspb();
+		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
+		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
+		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+		PROC_PC[PROC_ATUAL] = gip(); // Salva pc (não é +1 porque existem situações que deve-se voltar exatamente no pc [branches])
+		
+		if (PROC_PAGINA_MEM_DADOS[PROC_ATUAL] == 0) {
+			pagina = getParticaoLivreMemDados();
+			PROC_PAGINA_MEM_DADOS[PROC_ATUAL] = pagina;
+		} else {
+			pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
+		}
+		
+		indexVar = STACK_INICIO;
+		indexMemory = pagina * TAMANHO_PARTICAO;
+
+		// Salva toda a área de memória stack utilizada pelo processo
+		while (tamanhoStack > 0) {
+			var = ldm(indexVar);
+			sdm(var, indexMemory);
+			indexVar += 1;
+			indexMemory += 1;
+			tamanhoStack -= 1;
+		}
+
+		// Processo bloqueado enquanto era executado em modo preemptivo, salva o contexto para uso posterior.
+		pagina += 1;
+		indexVar = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
+		indexMemory = pagina * TAMANHO_PARTICAO;
+
+		while (indexVar < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
+			var = ldm(indexVar);
+			sdm(var, indexMemory);
+			indexVar += 1;
+			indexMemory += 1;
+		}
+
+		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+		ESTADO_LCD = KERNEL_MAIN_MENU;
+		lcd(ESTADO_LCD);
+		cic();
 	}
 	
 	while (1) {
@@ -826,12 +870,13 @@ void main(void) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
 				lcdPgms(getDescritorProgramasHD());
+			} else if (novoEstadoLCD == 2) {
+				novoEstadoLCD = KERNEL_MAIN_MENU;
+				// TODO:: implementar
 			} else if (novoEstadoLCD == 3) {
 				novoEstadoLCD = KERNEL_MENU_MEM_DEL;
 				lcdPgms(getDescritorProgramasMemoria());
-			} else if (novoEstadoLCD > 3) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-			} else if (novoEstadoLCD < 1) {
+			} else {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_MEM_LOAD) {
@@ -866,6 +911,7 @@ void main(void) {
 			if (novoEstadoLCD > 0) {
 				chooseAndRunProtagonista(novoEstadoLCD);
 			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
 		}
 
 		ESTADO_LCD = novoEstadoLCD;
