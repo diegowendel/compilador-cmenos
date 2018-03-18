@@ -743,7 +743,7 @@ void main(void) {
 		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
 		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
-		PROC_PC[PROC_ATUAL] = gip() + 1; // Salva pc + 1
+		PROC_PC[PROC_ATUAL] = gip(); // Salva o pc
 		
 		if (PROC_PAGINA_MEM_DADOS[PROC_ATUAL] == 0) {
 			pagina = getParticaoLivreMemDados();
