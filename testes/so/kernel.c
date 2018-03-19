@@ -40,6 +40,8 @@ int PROC_QTD_PAGINAS_MEM_DADOS[10];
 int PROTAGONISTA;
 int PROC_ATUAL;
 
+int QUEUE_PRONTO[10];
+
 /*******************************************************************************************************/
 /*******************************************   MEMORIA   ***********************************************/
 /*******************************************************************************************************/
@@ -66,11 +68,8 @@ int STACK_FIM;
 int PARTICOES_MEM_DATA[64];							// Partições da memória de dados
 
 // Códigos das interrupções
-int INTERRUPT_NULL;
-int INTERRUPT_BLOQUEADO;
 int INTERRUPT_CONTEXTO;
 int INTERRUPT_INPUT;
-int INTERRUPT_RESET;
 
 int PROGRAMAS_EM_HD[10];							// Programas armazenados em disco
 int PROGRAMAS_EM_HD_ENDERECO[10];
@@ -159,11 +158,8 @@ void limparDisplays(void) {
  * Inicializa todos códigos das possíveis interrupções do sistema.
  */ 
 void initInterrupcoes(void) {
-	INTERRUPT_NULL = 0;
-	INTERRUPT_BLOQUEADO = 1;
-	//INTERRUPT_CONTEXTO = 20;
-	//INTERRUPT_INPUT = 1;
-	//INTERRUPT_RESET = 40;
+	INTERRUPT_CONTEXTO = 2;
+	INTERRUPT_INPUT = 1;
 }
 
 /**
@@ -188,6 +184,9 @@ void initProcessos(void) {
 		PROC_PAGINA_MEM_DADOS[i] = 0;
 		PROC_QTD_PAGINAS_MEM_INST[i] = 0;
 		PROC_QTD_PAGINAS_MEM_DADOS[i] = 0;
+		
+		// Filas de processos
+		QUEUE_PRONTO[i] = 0;
 		i += 1;
 	}
 }
@@ -337,6 +336,7 @@ void initKernel(void) {
 	initConstantes();
 	initParticoes();				// Inicializa partições de memória
 	initProgramas();				// Inicializa os vetores de programas e scaneia o HD
+	initInterrupcoes();
 }
 
 /*******************************************************************************************************/
@@ -468,26 +468,49 @@ int getProcessoBloqueado(void) {
 	return LISTA_VAZIA;
 }
 
-int getProcessoPronto(void) {
+void organizeQueuePronto(void) {
 	int i;
-
-	i = 0;
+	i = 1;
+	
 	while (i < MAX_PROGRAMAS) {
-		if (PROC_ESTADO[i] == PRONTO) {
-			return i;
-		}
+		QUEUE_PRONTO[i-1] = QUEUE_PRONTO[i];
 		i += 1;
+	}
+	QUEUE_PRONTO[MAX_PROGRAMAS-1] = 0;
+}
+
+int dequeuePronto(void) {
+	int processo;
+
+	if (QUEUE_PRONTO[0] != 0) {
+		processo = QUEUE_PRONTO[0];
+		organizeQueuePronto();
+		return processo;
 	}
 	return LISTA_VAZIA;
 }
 
+void enqueuePronto(int processo) {
+	int i;
+	i = 0;
+
+	while (i < MAX_PROGRAMAS) {
+		if (QUEUE_PRONTO[i] == 0) {
+			QUEUE_PRONTO[i] = processo;
+			return;
+		}
+		i += 1;
+	}
+}
+
 void carregarTodosFilaPronto(void) {
 	int i;
-
 	i = 0;
+	
 	while (i < MAX_PROGRAMAS) {
 		if (PROGRAMAS_EM_MEMORIA[i] != 0) {
 			PROC_ESTADO[i] = PRONTO;
+			enqueuePronto(i+1);
 		}
 		i += 1;
 	}
@@ -704,13 +727,23 @@ void runNaoPreemptivo(int programa) {
  * Executa todos processos com estado PRONTO da fila de processos, um em seguida do outro.
  */
 void runPreemptivo(void) {
+	int processo;
 	// Coloca todos processos em memória na fila de execução
 	carregarTodosFilaPronto();
 
 	// Enquanto tiver processos na fila, executa o próximo
-	while (getProcessoPronto() != LISTA_VAZIA) {
-		PROC_ATUAL = getProcessoPronto();
-		run(PROC_ATUAL + 1);
+	processo = dequeuePronto();
+	while (processo != LISTA_VAZIA) {
+		PROC_ATUAL = processo - 1;
+
+		if (PROC_PC[PROC_ATUAL] == 0) {
+			run(processo);
+		} else {
+			runAgain(processo);
+		}
+		killProcess(processo);
+		
+		processo = dequeuePronto();
 	}
 }
 
@@ -738,7 +771,7 @@ void main(void) {
 	}
 	
 	interrupcao = gic();
-	if (interrupcao == 1) {
+	if (interrupcao == INTERRUPT_INPUT) {
 		STACK_FIM = gspb();
 		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
@@ -787,7 +820,7 @@ void main(void) {
 		ESTADO_LCD = KERNEL_MAIN_MENU;
 		lcd(ESTADO_LCD);
 		cic();
-	} else if (interrupcao == 2) {
+	} else if (interrupcao == INTERRUPT_CONTEXTO) {
 		STACK_FIM = gspb();
 		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
@@ -825,10 +858,14 @@ void main(void) {
 			indexMemory += 1;
 		}
 
-		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+		PROC_ESTADO[PROC_ATUAL] = PRONTO;
+
 		ESTADO_LCD = KERNEL_MAIN_MENU;
 		lcd(ESTADO_LCD);
 		cic();
+
+		enqueuePronto(PROC_ATUAL + 1);
+		runPreemptivo();
 	}
 	
 	while (1) {
