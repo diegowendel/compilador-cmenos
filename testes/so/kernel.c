@@ -150,6 +150,53 @@ void limparDisplays(void) {
 	output(0, 2);
 }
 
+/**
+ * Passa os registradores do processo atual para a área de memória onde o contexto consegue
+ * ler. (Consegue retormar contexto dos registradores).
+ */
+void loadRegistradores(void) {
+	int var;
+	int pagina;
+	int indexVar;
+	int indexMemory;
+	
+	pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL] + 1;
+	indexVar = pagina * TAMANHO_PARTICAO;
+	indexMemory = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
+
+	// Passa os registradores para a área de memoria onde o contexto consegue ler
+	while (indexMemory < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
+		var = ldm(indexVar);
+		sdm(var, indexMemory);
+		indexVar += 1;
+		indexMemory += 1;
+	}
+}
+
+/**
+ * Salva os registradores em uso na página de memória de registradores do processo em questão.
+ * 
+ * @param pagina
+ * 		pagina de memória de dados do processo que se quer salvar
+ */
+void saveRegistradores(int pagina) {
+	int var;
+	int indexVar;
+	int indexMemory;
+
+	// Processo bloqueado enquanto era executado em modo preemptivo, salva o contexto para uso posterior.
+	pagina += 1;
+	indexVar = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
+	indexMemory = pagina * TAMANHO_PARTICAO;
+
+	while (indexVar < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
+		var = ldm(indexVar);
+		sdm(var, indexMemory);
+		indexVar += 1;
+		indexMemory += 1;
+	}
+}
+
 /*******************************************************************************************************/
 /*****************************   INICIALIZAÇÃO DO SISTEMA OPERACIONAL   ********************************/
 /*******************************************************************************************************/
@@ -692,29 +739,11 @@ void killProcess(int processo) {
 	PROC_ATUAL = 0;
 }
 
-void chooseAndRunProtagonista(int programa) {
-	int var;
-	int pagina;
-	int indexVar;
-	int indexMemory;
-	
+void chooseAndRunProtagonista(int programa) {	
 	PROC_ATUAL = programa - 1;
 	PROTAGONISTA = PROC_ATUAL;
-
-	pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL] + 1;
-	indexVar = pagina * TAMANHO_PARTICAO;
-	indexMemory = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
-
-	// Passa os registradores para a área de memoria onde o contexto consegue ler
-	while (indexMemory < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
-		var = ldm(indexVar);
-		sdm(var, indexMemory);
-		indexVar += 1;
-		indexMemory += 1;
-	}
-
+	loadRegistradores();
 	runAgain(programa);
-	rgnsp();
 }
 
 void runNaoPreemptivo(int programa) {
@@ -739,10 +768,11 @@ void runPreemptivo(void) {
 		if (PROC_PC[PROC_ATUAL] == 0) {
 			run(processo);
 		} else {
+			loadRegistradores();
 			runAgain(processo);
 		}
+
 		killProcess(processo);
-		
 		processo = dequeuePronto();
 	}
 }
@@ -800,32 +830,21 @@ void main(void) {
 		if (PROC_ATUAL == PROTAGONISTA) {
 			// Processo bloqueado enquanto era executado em modo não preemptivo, ou seja, é o processo protagonista. Logo, é retomada a execução.
 			runAgain(PROC_ATUAL);
-			rgnsp();
 		} else {
-			// Processo bloqueado enquanto era executado em modo preemptivo, salva o contexto para uso posterior.
-			pagina += 1;
-			indexVar = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
-			indexMemory = pagina * TAMANHO_PARTICAO;
-
-			while (indexVar < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
-				var = ldm(indexVar);
-				sdm(var, indexMemory);
-				indexVar += 1;
-				indexMemory += 1;
-			}
-
+			saveRegistradores(pagina);
 			PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
 		}
-		
+
 		ESTADO_LCD = KERNEL_MAIN_MENU;
 		lcd(ESTADO_LCD);
+		rgnsp();
 		cic();
 	} else if (interrupcao == INTERRUPT_CONTEXTO) {
 		STACK_FIM = gspb();
 		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
 		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
-		PROC_PC[PROC_ATUAL] = gip(); // Salva pc (não é +1 porque existem situações que deve-se voltar exatamente no pc [branches])
+		PROC_PC[PROC_ATUAL] = gip(); // Salva pc
 		
 		if (PROC_PAGINA_MEM_DADOS[PROC_ATUAL] == 0) {
 			pagina = getParticaoLivreMemDados();
@@ -846,26 +865,16 @@ void main(void) {
 			tamanhoStack -= 1;
 		}
 
-		// Processo bloqueado enquanto era executado em modo preemptivo, salva o contexto para uso posterior.
-		pagina += 1;
-		indexVar = TAMANHO_PARTICAO * (QUANTIDADE_PARTICOES - 1);
-		indexMemory = pagina * TAMANHO_PARTICAO;
-
-		while (indexVar < TAMANHO_PARTICAO * QUANTIDADE_PARTICOES) {
-			var = ldm(indexVar);
-			sdm(var, indexMemory);
-			indexVar += 1;
-			indexMemory += 1;
-		}
-
+		saveRegistradores(pagina);
+		
 		PROC_ESTADO[PROC_ATUAL] = PRONTO;
-
 		ESTADO_LCD = KERNEL_MAIN_MENU;
 		lcd(ESTADO_LCD);
 		cic();
 
 		enqueuePronto(PROC_ATUAL + 1);
 		runPreemptivo();
+		rgnsp();
 	}
 	
 	while (1) {
@@ -947,6 +956,7 @@ void main(void) {
 		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_BLOCKED) {
 			if (novoEstadoLCD > 0) {
 				chooseAndRunProtagonista(novoEstadoLCD);
+				rgnsp();
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		}
