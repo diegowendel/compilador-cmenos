@@ -465,7 +465,15 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         removeAllSavedOperands();
         // Executa um programa carregado em memória
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getArgReg(2), stackOp, NULL)));         // Backup stack pointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getArgReg(3), globalOp, NULL)));        // Backup global pointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackOp, stackBakOp, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, globalBakOp, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackBakOp, getArgReg(2), NULL)));      // Backup stack pointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalBakOp, getArgReg(3), NULL)));     // Backup global pointer
         printCode(insertObjInst(createObjInst(_EXEC, TYPE_J, NULL, NULL, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackOp, stackBakOp, NULL)));           // Restaura stack pointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, globalBakOp, NULL)));         // Restaura global pointer
         printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
     } else if(!strcmp(q->op1->contents.variable.name, "execAgain")) {
         // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
@@ -474,8 +482,12 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         removeAllSavedOperands();
         // Executa um programa carregado em memória + offset
         printCode(insertObjInst(createObjInst(_SW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // sw $ra
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getArgReg(2), stackOp, NULL)));         // Backup stack pointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getArgReg(3), globalOp, NULL)));        // Backup global pointer
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackOp, stackBakOp, NULL)));
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, globalBakOp, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackBakOp, getArgReg(2), NULL)));      // Backup stack pointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalBakOp, getArgReg(3), NULL)));     // Backup global pointer
         printCode(insertObjInst(createObjInst(_MOV, TYPE_I, kernelOp1, getArgReg(1), NULL)));
 
         // Recupera registradores do novo contexto
@@ -483,6 +495,8 @@ void geraCodigoChamadaFuncao(Quadruple q) {
 
         // kernelOp1 é o endereço arbitrário do qual se retomará a execução do programa
         printCode(insertObjInst(createObjInst(_EXEC_AGAIN, TYPE_I, NULL, kernelOp1, NULL)));
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, stackOp, stackBakOp, NULL)));           // Restaura stack pointer
+        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, globalOp, globalBakOp, NULL)));         // Restaura global pointer
         printCode(insertObjInst(createObjInst(_LW, TYPE_I, rtnAddrOp, getStackLocation(-escopo->tamanhoBlocoMemoria), NULL))); // lw $ra
     } else if(!strcmp(q->op1->contents.variable.name, "lcd")) {
         printCode(insertObjInst(createObjInst(_LCD, TYPE_I, getArgReg(0), NULL, NULL)));

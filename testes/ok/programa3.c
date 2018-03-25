@@ -16,8 +16,6 @@ void main(void) {
     int number;
     a = 93;
     b = a;
-    number = input();
-    output(a, 0);
-    output(b, 1);
+    number = 7;//input();
     output(fatorial(number), 2);
 }

@@ -305,7 +305,7 @@ void initParticoes(void) {
 		i += 1;
 	}
 
-	// Calcula a quantidade de partições necessárias para o Kerne na memória de INSTRUÇÕES
+	// Calcula a quantidade de partições necessárias para o Kernel na memória de INSTRUÇÕES
 	tamanhoKernel = getTamanhoKernel();
 	ENDERECO_INICIO_HD = tamanhoKernel + 1;
 	particoes = tamanhoKernel / TAMANHO_PARTICAO;
@@ -320,11 +320,12 @@ void initParticoes(void) {
 		i += 1;
 	}
 
-	// Calcula a quantidade de partições necessárias para o Kerne na memória de DADOS
+	// Calcula a quantidade de partições necessárias para o Kernel na memória de DADOS
 	particoes = gsp() / TAMANHO_PARTICAO;
 	if (gsp() % TAMANHO_PARTICAO > 0) {
 		particoes += 1;
 	}
+	particoes += 1;
 
 	// Marca as partições em uso pelo Kernel na memória de DADOS
 	i = 0;
@@ -332,7 +333,8 @@ void initParticoes(void) {
 		PARTICOES_MEM_DATA[i] = 1;
 		i += 1;
 	}
-	
+
+	STACK_INICIO = particoes * TAMANHO_PARTICAO;
 	// Marca a última partição de dados como usada (Para salvar e carregar contextos)
 	PARTICOES_MEM_DATA[QUANTIDADE_PARTICOES - 1] = 1;
 }
@@ -636,10 +638,9 @@ void run(int programa) {
 		lcdCurr(programa);
 		lcd(PROG_INSERT);
 
-		STACK_INICIO = gsp() + 1;
-
 		PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 		PROC_PC[PROC_ATUAL] = 0;
+		sspb(STACK_INICIO);
 		exec(programa);
 
 		PROC_ESTADO[PROC_ATUAL] = 0;
@@ -659,11 +660,10 @@ void runAgain(int programa) {
 	lcdCurr(programa);
 	lcd(PROG_INSERT);
 
-	STACK_INICIO = gsp() + 1;
 	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 	
 	pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
-	indexVar = gsp() + 1;
+	indexVar = STACK_INICIO;
 	indexMemory = pagina * TAMANHO_PARTICAO;
 	tamanhoStack = PROC_STACK_SIZE[PROC_ATUAL];
 	
@@ -676,8 +676,8 @@ void runAgain(int programa) {
 	}
 	
 	// Atribui a stack correta para a re-execução do programa
-	sspb(gsp() + PROC_STACK_SIZE[PROC_ATUAL]);
-	// TODO:: GLOBAL POINTER	
+	sspb(STACK_INICIO + PROC_STACK_SIZE[PROC_ATUAL]);
+	// TODO:: GLOBAL POINTER
 
 	// execAgain() já realiza a leitura dos registradores do novo contexto, não precisa chamar loadRegs().
 	execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
@@ -803,7 +803,7 @@ void main(void) {
 	interrupcao = gic();
 	if (interrupcao == INTERRUPT_INPUT) {
 		STACK_FIM = gspb();
-		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
+		tamanhoStack = STACK_FIM - STACK_INICIO;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
 		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
 		PROC_PC[PROC_ATUAL] = gip(); // Salva o pc
@@ -841,7 +841,7 @@ void main(void) {
 		cic();
 	} else if (interrupcao == INTERRUPT_CONTEXTO) {
 		STACK_FIM = gspb();
-		tamanhoStack = STACK_FIM - STACK_INICIO + 1;
+		tamanhoStack = STACK_FIM - STACK_INICIO;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
 		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
 		PROC_PC[PROC_ATUAL] = gip(); // Salva pc
