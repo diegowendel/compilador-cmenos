@@ -41,6 +41,7 @@ int PROTAGONISTA;
 int PROC_ATUAL;
 
 int QUEUE_PRONTO[10];
+int IS_EXECUCAO_PREEMPTIVA;
 
 /*******************************************************************************************************/
 /*******************************************   MEMORIA   ***********************************************/
@@ -62,7 +63,8 @@ int MAX_PROGRAMAS;									// Número máximo de programas
 int ENDERECO_INICIO_HD;								// Endereço de início do HD (Após a área do Kernel)
 int ENDERECO_FIM_HD;								// Endereço de fim do HD (Tamanho total)
 
-int STACK_INICIO;
+int STACK_AREA_INICIO;
+int STACK_PROG_INICIO;
 int STACK_FIM;
 
 int PARTICOES_MEM_DATA[64];							// Partições da memória de dados
@@ -197,6 +199,41 @@ void saveRegistradores(int pagina) {
 	}
 }
 
+/**
+ * Mata um processo, ou seja, remove todos seus recursos e apontadores.
+ * TODO:: REMOVER AREA DE MEMORIA DE DADOS
+ * 
+ * @param processo
+ * 		processo a ser removido da memória de instruções e de dados
+ */
+void killProcess(int processo) {
+	int i;
+	int paginas;
+
+	PROC_ATUAL = processo - 1;
+	i = PROC_PAGINA_MEM_INST[PROC_ATUAL];
+	paginas = PROC_QTD_PAGINAS_MEM_INST[PROC_ATUAL];
+	while (paginas > 0) {
+		PARTICOES_MEM_INST[i] = 0;
+		i += 1;
+		paginas -= 1;
+	}
+	// Elimina a referência da memória
+	PROGRAMAS_EM_MEMORIA[PROC_ATUAL] = 0;
+	
+	// Elimina o restante das referências
+	PROC_ESTADO[PROC_ATUAL] = 0;
+	PROC_PC[PROC_ATUAL] = 0;
+	PROC_STACK_SIZE[PROC_ATUAL] = 0;
+	PROC_STACK_POINTER[PROC_ATUAL] = 0;
+	PROC_GLOBAL_POINTER[PROC_ATUAL] = 0;
+	PROC_PAGINA_MEM_DADOS[PROC_ATUAL] = 0;
+	PROC_QTD_PAGINAS_MEM_INST[PROC_ATUAL] = 0;
+	PROC_QTD_PAGINAS_MEM_DADOS[PROC_ATUAL] = 0;
+	PROC_ATUAL = 0;
+	PROTAGONISTA = 999;
+}
+
 /*******************************************************************************************************/
 /*****************************   INICIALIZAÇÃO DO SISTEMA OPERACIONAL   ********************************/
 /*******************************************************************************************************/
@@ -236,6 +273,7 @@ void initProcessos(void) {
 		QUEUE_PRONTO[i] = 0;
 		i += 1;
 	}
+	IS_EXECUCAO_PREEMPTIVA = 0;
 }
 
 /**
@@ -334,7 +372,7 @@ void initParticoes(void) {
 		i += 1;
 	}
 
-	STACK_INICIO = particoes * TAMANHO_PARTICAO;
+	STACK_AREA_INICIO = particoes * TAMANHO_PARTICAO;
 	// Marca a última partição de dados como usada (Para salvar e carregar contextos)
 	PARTICOES_MEM_DATA[QUANTIDADE_PARTICOES - 1] = 1;
 }
@@ -517,6 +555,29 @@ int getProcessoBloqueado(void) {
 	return LISTA_VAZIA;
 }
 
+void removeFromQueuePronto(int processo) {
+	int i;
+	int j;
+	i = 0;
+	
+	// Remove o processo da fila de pronto
+	while (i < MAX_PROGRAMAS) {
+		if (QUEUE_PRONTO[i] == processo) {
+			QUEUE_PRONTO[i] = 0;
+			j = i + 1;
+		}
+		i += 1;
+	}
+
+	// Reorganiza a fila
+	while (j < MAX_PROGRAMAS) {
+		QUEUE_PRONTO[j-1] = QUEUE_PRONTO[j];
+		j += 1;
+	}
+
+	QUEUE_PRONTO[MAX_PROGRAMAS-1] = 0;
+}
+
 void organizeQueuePronto(void) {
 	int i;
 	i = 1;
@@ -558,8 +619,10 @@ void carregarTodosFilaPronto(void) {
 	
 	while (i < MAX_PROGRAMAS) {
 		if (PROGRAMAS_EM_MEMORIA[i] != 0) {
-			PROC_ESTADO[i] = PRONTO;
-			enqueuePronto(i+1);
+			if (PROC_ESTADO[i] != BLOQUEADO) {
+				PROC_ESTADO[i] = PRONTO;
+				enqueuePronto(i+1);
+			}
 		}
 		i += 1;
 	}
@@ -638,14 +701,14 @@ void run(int programa) {
 		lcdCurr(programa);
 		lcd(PROG_INSERT);
 
+		STACK_PROG_INICIO = STACK_AREA_INICIO + 1;
 		PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 		PROC_PC[PROC_ATUAL] = 0;
-		sspb(STACK_INICIO);
+		sspb(STACK_PROG_INICIO);
+		//sgpb(0);
+		
 		exec(programa);
-
-		PROC_ESTADO[PROC_ATUAL] = 0;
-		PROC_PC[PROC_ATUAL] = 0;
-
+		killProcess(programa);
 		lcd(KERNEL_MAIN_MENU);
 	}	
 }
@@ -660,10 +723,11 @@ void runAgain(int programa) {
 	lcdCurr(programa);
 	lcd(PROG_INSERT);
 
+	STACK_PROG_INICIO = STACK_AREA_INICIO + 1;
 	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 	
 	pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
-	indexVar = STACK_INICIO;
+	indexVar = STACK_PROG_INICIO;
 	indexMemory = pagina * TAMANHO_PARTICAO;
 	tamanhoStack = PROC_STACK_SIZE[PROC_ATUAL];
 	
@@ -676,17 +740,13 @@ void runAgain(int programa) {
 	}
 	
 	// Atribui a stack correta para a re-execução do programa
-	sspb(STACK_INICIO + PROC_STACK_SIZE[PROC_ATUAL]);
-	// TODO:: GLOBAL POINTER
+	sspb(STACK_AREA_INICIO + PROC_STACK_SIZE[PROC_ATUAL]);
+	//sgpb(0);
 
 	// execAgain() já realiza a leitura dos registradores do novo contexto, não precisa chamar loadRegs().
 	execAgain(PROC_ATUAL + 1, PROC_PC[PROC_ATUAL]);
-
-	PROC_ESTADO[PROC_ATUAL] = 0;
-	PROC_PC[PROC_ATUAL] = 0;
-	lcd(KERNEL_MAIN_MENU);
-
-	PROTAGONISTA = 999;
+	killProcess(programa);
+	lcd(KERNEL_MAIN_MENU);	
 }
 
 /*******************************************************************************************************/
@@ -712,34 +772,7 @@ void purgarPrograma(int programa) {
 	initProgramas();
 }
 
-void killProcess(int processo) {
-	int i;
-	int paginas;
-
-	PROC_ATUAL = processo - 1;
-	i = PROC_PAGINA_MEM_INST[PROC_ATUAL];
-	paginas = PROC_QTD_PAGINAS_MEM_INST[PROC_ATUAL];
-	while (paginas > 0) {
-		PARTICOES_MEM_INST[i] = 0;
-		i += 1;
-		paginas -= 1;
-	}
-	// Elimina a referência da memória
-	PROGRAMAS_EM_MEMORIA[PROC_ATUAL] = 0;
-	
-	// Elimina o restante das referências
-	PROC_ESTADO[PROC_ATUAL] = 0;
-	PROC_PC[PROC_ATUAL] = 0;
-	PROC_STACK_SIZE[PROC_ATUAL] = 0;
-	PROC_STACK_POINTER[PROC_ATUAL] = 0;
-	PROC_GLOBAL_POINTER[PROC_ATUAL] = 0;
-	PROC_PAGINA_MEM_DADOS[PROC_ATUAL] = 0;
-	PROC_QTD_PAGINAS_MEM_INST[PROC_ATUAL] = 0;
-	PROC_QTD_PAGINAS_MEM_DADOS[PROC_ATUAL] = 0;
-	PROC_ATUAL = 0;
-}
-
-void chooseAndRunProtagonista(int programa) {	
+void chooseAndRunProtagonista(int programa) {
 	PROC_ATUAL = programa - 1;
 	PROTAGONISTA = PROC_ATUAL;
 	loadRegistradores();
@@ -771,10 +804,10 @@ void runPreemptivo(void) {
 			loadRegistradores();
 			runAgain(processo);
 		}
-
-		killProcess(processo);
+		
 		processo = dequeuePronto();
 	}
+	IS_EXECUCAO_PREEMPTIVA = 0;
 }
 
 void main(void) {
@@ -803,7 +836,7 @@ void main(void) {
 	interrupcao = gic();
 	if (interrupcao == INTERRUPT_INPUT) {
 		STACK_FIM = gspb();
-		tamanhoStack = STACK_FIM - STACK_INICIO;
+		tamanhoStack = STACK_FIM - STACK_PROG_INICIO + 1;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
 		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
 		PROC_PC[PROC_ATUAL] = gip(); // Salva o pc
@@ -815,7 +848,7 @@ void main(void) {
 			pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
 		}
 		
-		indexVar = STACK_INICIO;
+		indexVar = STACK_PROG_INICIO;
 		indexMemory = pagina * TAMANHO_PARTICAO;
 
 		// Salva toda a área de memória stack utilizada pelo processo
@@ -829,10 +862,19 @@ void main(void) {
 
 		if (PROC_ATUAL == PROTAGONISTA) {
 			// Processo bloqueado enquanto era executado em modo não preemptivo, ou seja, é o processo protagonista. Logo, é retomada a execução.
-			runAgain(PROC_ATUAL);
+			runAgain(PROC_ATUAL + 1);
 		} else {
 			saveRegistradores(pagina);
 			PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
+			removeFromQueuePronto(PROC_ATUAL + 1);
+
+			if (IS_EXECUCAO_PREEMPTIVA == 1) {
+				ESTADO_LCD = KERNEL_MAIN_MENU;
+				lcd(ESTADO_LCD);
+				rgnsp();
+				cic();
+				runPreemptivo();
+			}
 		}
 
 		ESTADO_LCD = KERNEL_MAIN_MENU;
@@ -841,7 +883,7 @@ void main(void) {
 		cic();
 	} else if (interrupcao == INTERRUPT_CONTEXTO) {
 		STACK_FIM = gspb();
-		tamanhoStack = STACK_FIM - STACK_INICIO;
+		tamanhoStack = STACK_FIM - STACK_PROG_INICIO + 1;
 		PROC_STACK_SIZE[PROC_ATUAL] = tamanhoStack;
 		PROC_ESTADO[PROC_ATUAL] = BLOQUEADO;
 		PROC_PC[PROC_ATUAL] = gip(); // Salva pc
@@ -853,7 +895,7 @@ void main(void) {
 			pagina = PROC_PAGINA_MEM_DADOS[PROC_ATUAL];
 		}
 		
-		indexVar = STACK_INICIO;
+		indexVar = STACK_PROG_INICIO;
 		indexMemory = pagina * TAMANHO_PARTICAO;
 
 		// Salva toda a área de memória stack utilizada pelo processo
@@ -870,11 +912,16 @@ void main(void) {
 		PROC_ESTADO[PROC_ATUAL] = PRONTO;
 		ESTADO_LCD = KERNEL_MAIN_MENU;
 		lcd(ESTADO_LCD);
+		rgnsp();
 		cic();
 
 		enqueuePronto(PROC_ATUAL + 1);
 		runPreemptivo();
+
+		ESTADO_LCD = KERNEL_MAIN_MENU;
+		lcd(ESTADO_LCD);
 		rgnsp();
+		cic();
 	}
 	
 	while (1) {
@@ -937,6 +984,7 @@ void main(void) {
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		} else if (ESTADO_LCD == KERNEL_MENU_EXE) {
 			if (novoEstadoLCD == 1) {
+				IS_EXECUCAO_PREEMPTIVA = 1;
 				runPreemptivo();
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 			} else if (novoEstadoLCD == 2) {
@@ -956,7 +1004,6 @@ void main(void) {
 		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_BLOCKED) {
 			if (novoEstadoLCD > 0) {
 				chooseAndRunProtagonista(novoEstadoLCD);
-				rgnsp();
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
 		}
