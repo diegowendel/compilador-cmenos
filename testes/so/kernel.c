@@ -301,6 +301,42 @@ int getDescritorProgramasHD(void) {
 	return descritor;
 }
 
+/**
+ * Obtém o descritor dos programas da memória de instruções.
+ */
+int getDescritorProgramasMemoria(void) {
+	int i;
+	int descritor;
+
+	i = 0;
+	descritor = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROGRAMAS_EM_MEMORIA[i] != 0) {
+			descritor += powByTwo(PROGRAMAS_EM_HD_NOME[i] - 1);
+		}
+		i += 1;
+	}
+	return descritor;
+}
+
+/**
+ * Obtém o descritor dos programas em estado bloqueado.
+ */
+int getDescritorProgramasBloqueados(void) {
+	int i;
+	int descritor;
+
+	i = 0;
+	descritor = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROC_ESTADO[i] == BLOQUEADO) {
+			descritor += powByTwo(PROGRAMAS_EM_HD_NOME[i] - 1);
+		}
+		i += 1;
+	}
+	return descritor;
+}
+
 /*******************************************************************************************************/
 /*****************************   INICIALIZAÇÃO DO SISTEMA OPERACIONAL   ********************************/
 /*******************************************************************************************************/
@@ -567,36 +603,6 @@ int getParticaoLivreMemDados(void) {
 	return ERRO_DE_PARTICAO;
 }
 
-int getDescritorProgramasMemoria(void) {
-	int i;
-	int descritor;
-
-	i = 0;
-	descritor = 0;
-	while (i < MAX_PROGRAMAS) {
-		if (PROGRAMAS_EM_MEMORIA[i] != 0) {
-			descritor += powByTwo(i);
-		}
-		i += 1;
-	}
-	return descritor;
-}
-
-int getDescritorProgramasBloqueados(void) {
-	int i;
-	int descritor;
-
-	i = 0;
-	descritor = 0;
-	while (i < MAX_PROGRAMAS) {
-		if (PROC_ESTADO[i] == BLOQUEADO) {
-			descritor += powByTwo(i);
-		}
-		i += 1;
-	}
-	return descritor;
-}
-
 int getProcessoBloqueado(void) {
 	int i;
 
@@ -821,14 +827,16 @@ void runAgain(int programa) {
 /*******************************************************************************************************/
 
 void chooseAndRunProtagonista(int programa) {
-	PROC_ATUAL = programa - 1;
+	PROC_ATUAL = getIdProgramaByName(programa);
+    programa = PROC_ATUAL + 1;
 	PROTAGONISTA = PROC_ATUAL;
 	loadRegistradores();
 	runAgain(programa);
 }
 
 void runNaoPreemptivo(int programa) {
-	PROC_ATUAL = programa - 1;
+	PROC_ATUAL = getIdProgramaByName(programa);
+    programa = PROC_ATUAL + 1;
 	PROTAGONISTA = PROC_ATUAL;
 	run(programa);
 }
@@ -1017,9 +1025,6 @@ void main(void) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
 				lcdPgms(getDescritorProgramasHD());
 			} else if (novoEstadoLCD == 2) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-				// TODO:: implementar
-			} else if (novoEstadoLCD == 3) {
 				novoEstadoLCD = KERNEL_MENU_MEM_DEL;
 				lcdPgms(getDescritorProgramasMemoria());
 			} else {
