@@ -201,6 +201,18 @@ void saveRegistradores(int pagina) {
 	}
 }
 
+int getIdProgramaByName(int programa) {
+    int i;
+	i = 0;
+
+	while (i < MAX_PROGRAMAS) {
+		if (PROGRAMAS_EM_HD_NOME[i] == programa) {
+			return PROGRAMAS_EM_HD[i] - 1;              // Subtrai 1 do id do programa pois a inserção de dados não é 0-based
+		}
+		i += 1;
+	}
+}
+
 /**
  * Mata um processo, ou seja, remove todos seus recursos e apontadores.
  * TODO:: REMOVER AREA DE MEMORIA DE DADOS
@@ -246,7 +258,7 @@ void purgarPrograma(int programa) {
 	int index;
 	int instrucao;
 
-	programa -= 1;
+	programa = getIdProgramaByName(programa);
 
     // Se o programa estiver na memória, remove-o
     if (PROC_ESTADO[programa] != 0) {
@@ -709,18 +721,6 @@ int getTamanhoPrograma(int beginOnDisk) {
 	return index - beginOnDisk;
 }
 
-int getIdProgramaByName(int programa) {
-    int i;
-	i = 0;
-
-	while (i < MAX_PROGRAMAS) {
-		if (PROGRAMAS_EM_HD_NOME[i] == programa) {
-			return PROGRAMAS_EM_HD[i] - 1;              // Subtrai 1 do id do programa pois a inserção de dados não é 0-based
-		}
-		i += 1;
-	}
-}
-
 /**
  * Carrega um programa do HD para a memória de instruções.
  * 
@@ -767,6 +767,64 @@ void carregarPrograma(int nPrograma) {
 	PROGRAMAS_EM_MEMORIA[nPrograma] = nProgramaOnDisk;
 	PROGRAMAS_EM_MEMORIA_ENDERECO[nPrograma] = beginOnDisk;
 	PROC_ATUAL = 0;
+}
+
+/**
+ * Só suporta até 32 instruções no max
+ */
+void criarPrograma(void) {
+    int prog;
+    int indexDisk;
+    int instrucao;
+    int opcao;
+
+    indexDisk = ENDERECO_INICIO_HD;
+
+    output(1111, 2);
+    prog = input();
+	PROGRAMAS_EM_HD[prog] = prog+1; // Vetor continua 0-based, só muda o numero do programa que é +1
+    PROGRAMAS_EM_HD_NOME[prog] = prog+1;
+	PROGRAMAS_EM_HD_ENDERECO[prog] = indexDisk;
+
+    // Jump to Main
+    instrucao = JTM;
+    instrucao <<= 26;
+    instrucao += 1;
+    sdk(instrucao, indexDisk);
+    indexDisk += 1;
+    
+    output(2222, 2);
+    opcao = input();
+    while (opcao != 0) {
+        output(3333, 2);
+        instrucao = input();
+        
+        output(4444, 2);
+		instrucao <<= 8;
+        instrucao += input();
+        
+        output(5555, 2);
+		instrucao <<= 8;
+        instrucao += input();
+        
+        output(6666, 2);
+		instrucao <<= 8;
+        instrucao += input();
+        sdk(instrucao, indexDisk);
+        indexDisk += 1;
+        output(7777, 2);
+        opcao = input();
+    }
+
+    // Syscall
+    // 1ª parte
+    instrucao = 127;
+    instrucao <<= 8;
+    // 2ª parte
+    instrucao += 32;
+    instrucao <<= 17;
+    instrucao >>= 1;
+    sdk(instrucao, indexDisk);
 }
 
 void run(int programa) {
@@ -982,7 +1040,6 @@ void main(void) {
 	
 	while (1) {
 		novoEstadoLCD = input();
-		output(novoEstadoLCD, 0);
 
 		if (ESTADO_LCD == KERNEL_MAIN_MENU) {
 			if (novoEstadoLCD == 1) {
@@ -999,8 +1056,8 @@ void main(void) {
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_HD) {
 			if (novoEstadoLCD == 1) {
+                criarPrograma();
 				novoEstadoLCD = KERNEL_MAIN_MENU;
-				// TODO:: implementar
 			} else if (novoEstadoLCD == 2) {
 				novoEstadoLCD = KERNEL_MENU_HD_REN;
 				lcdPgms(getDescritorProgramasHD());
@@ -1056,6 +1113,7 @@ void main(void) {
 			}
 		} else if (ESTADO_LCD == KERNEL_MENU_EXEC_N_PREEMPTIVO) {
 			if (novoEstadoLCD > 0) {
+				IS_EXECUCAO_PREEMPTIVA = 0;
 				runNaoPreemptivo(novoEstadoLCD);
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;

@@ -41,7 +41,7 @@ void carregarKernel(void) {
  * início da memória de dados.
  */
 void main(void) {		
-	// checarComponentes();
+	checarComponentes();
 	carregarKernel();
 }
 
