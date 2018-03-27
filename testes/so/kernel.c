@@ -51,11 +51,11 @@ int IS_EXECUCAO_PREEMPTIVA;
 	GERENCIAMENTO DE MEMORIA (Memoria de instruções)
 	- Paginação
 	- Gerenciamento de memória com partições de tamanho fixo
-		São 64 partições de tamanho 32 cada.
+		São 128 partições de tamanho 32 cada.
 */
 
 // Constantes de gerenciamento da memória
-int PARTICOES_MEM_INST[64];							// Partições da memória de instruções
+int PARTICOES_MEM_INST[128];						// Partições da memória de instruções
 int TAMANHO_PARTICAO;								// Tamanho da partição
 int QUANTIDADE_PARTICOES;							// Quantidade de partições
 int ERRO_DE_PARTICAO;								// Código de erro
@@ -67,16 +67,17 @@ int STACK_AREA_INICIO;
 int STACK_PROG_INICIO;
 int STACK_FIM;
 
-int PARTICOES_MEM_DATA[64];							// Partições da memória de dados
+int PARTICOES_MEM_DATA[128];						// Partições da memória de dados
 
 // Códigos das interrupções
 int INTERRUPT_CONTEXTO;
 int INTERRUPT_INPUT;
 
 int PROGRAMAS_EM_HD[10];							// Programas armazenados em disco
-int PROGRAMAS_EM_HD_ENDERECO[10];
+int PROGRAMAS_EM_HD_ENDERECO[10];					// Endereço do início do programa no disco
+int PROGRAMAS_EM_HD_NOME[10];                       // Nome do programa no disco
 int PROGRAMAS_EM_MEMORIA[10];						// Programas carregados na memória de instruções
-int PROGRAMAS_EM_MEMORIA_ENDERECO[10];
+int PROGRAMAS_EM_MEMORIA_ENDERECO[10];				// Endereço do início do programa na memória de instruções
 
 // OPCODE's
 int SYSCALL;										// OPCODE da instrução SYSCALL
@@ -87,6 +88,7 @@ int HALT;											// OPCODE da instrução HALT
 int KERNEL_MAIN_MENU;
 int KERNEL_MENU_HD;
 int KERNEL_MENU_HD_DEL;
+int KERNEL_MENU_HD_REN;
 int KERNEL_MENU_MEM;
 int KERNEL_MENU_MEM_LOAD;
 int KERNEL_MENU_MEM_DEL;
@@ -234,6 +236,71 @@ void killProcess(int processo) {
 	PROTAGONISTA = 999;
 }
 
+/**
+ * Remove um programa do disco rígido. Não será mais possível carregá-lo em memória.
+ * 
+ * @param programa
+ * 		programa a ser removido do disco
+ */
+void purgarPrograma(int programa) {
+	int index;
+	int instrucao;
+
+	programa -= 1;
+
+    // Se o programa estiver na memória, remove-o
+    if (PROC_ESTADO[programa] != 0) {
+        killProcess(programa + 1);
+    }
+
+	index = PROGRAMAS_EM_HD_ENDERECO[programa];
+	instrucao = ldk(index);
+	while(instrucao >> 26 != SYSCALL) {
+		sdk(0, index);
+		index += 1;
+		instrucao = ldk(index);
+	}
+	sdk(0, index);
+
+    PROGRAMAS_EM_HD[programa] = 0;
+    PROGRAMAS_EM_HD_NOME[programa] = 0;
+	PROGRAMAS_EM_HD_ENDERECO[programa] = 0;
+}
+
+/**
+ * Renomeia um programa armazenado no disco rígido.
+ * 
+ * @param programa
+ *      programa a ser renomeado
+ */
+void renomearPrograma(int programa) {
+    int novoNome;
+    
+    programa -= 1;
+    lcdCurr(0);
+	lcd(PROG_INSERT);
+    novoNome = input();
+    PROGRAMAS_EM_HD_NOME[programa] = novoNome;
+}
+
+/**
+ * Obtém o descritor dos programas do disco rígido.
+ */
+int getDescritorProgramasHD(void) {
+	int i;
+	int descritor;
+
+	i = 0;
+	descritor = 0;
+	while (i < MAX_PROGRAMAS) {
+		if (PROGRAMAS_EM_HD[i] != 0) {
+			descritor += powByTwo(PROGRAMAS_EM_HD_NOME[i] - 1);
+		}
+		i += 1;
+	}
+	return descritor;
+}
+
 /*******************************************************************************************************/
 /*****************************   INICIALIZAÇÃO DO SISTEMA OPERACIONAL   ********************************/
 /*******************************************************************************************************/
@@ -281,7 +348,7 @@ void initProcessos(void) {
  */
 void initMemoria(void) {
 	TAMANHO_PARTICAO = 32;			// Se alterar aqui, lembrar de alterar target.c (endereço para salvar contexto)
-	QUANTIDADE_PARTICOES = 64;		// Se alterar aqui, lembrar de alterar target.c (endereço para salvar contexto)
+	QUANTIDADE_PARTICOES = 128;		// Se alterar aqui, lembrar de alterar target.c (endereço para salvar contexto)
 	ERRO_DE_PARTICAO = 100;
 	MAX_PROGRAMAS = 10;
 	PROTAGONISTA = 999;
@@ -295,12 +362,13 @@ void initDisplay(void) {
 	KERNEL_MAIN_MENU = 0;
 	KERNEL_MENU_HD = 1;
 	KERNEL_MENU_HD_DEL = 2;
-	KERNEL_MENU_MEM = 3;
-	KERNEL_MENU_MEM_LOAD = 4;
-	KERNEL_MENU_MEM_DEL = 5;
-	KERNEL_MENU_EXE = 6;
-	KERNEL_MENU_EXEC_N_PREEMPTIVO = 7;
-	KERNEL_MENU_EXEC_BLOCKED = 8;
+    KERNEL_MENU_HD_REN = 3;
+	KERNEL_MENU_MEM = 4;
+	KERNEL_MENU_MEM_LOAD = 5;
+	KERNEL_MENU_MEM_DEL = 6;
+	KERNEL_MENU_EXE = 7;
+	KERNEL_MENU_EXEC_N_PREEMPTIVO = 8;
+	KERNEL_MENU_EXEC_BLOCKED = 9;
 
 	PROG_INSERT = 30;
 	
@@ -313,7 +381,7 @@ void initDisplay(void) {
  */
 void initConstantes(void) {
 	// ÚLTIMO ENDEREÇO DO HD
-	ENDERECO_FIM_HD = 2047;
+	ENDERECO_FIM_HD = 4095;
 
 	// OPCODES
 	SYSCALL = 31;
@@ -393,6 +461,7 @@ void initProgramas(void) {
 	while (prog < MAX_PROGRAMAS) {
 		PROGRAMAS_EM_HD[prog] = 0;
 		PROGRAMAS_EM_HD_ENDERECO[prog] = 0;
+        PROGRAMAS_EM_HD_NOME[prog] = 0;
 		PROGRAMAS_EM_MEMORIA[prog] = 0;
 		PROGRAMAS_EM_MEMORIA_ENDERECO[prog] = 0;
 		prog += 1;
@@ -405,6 +474,7 @@ void initProgramas(void) {
 		instrucao = ldk(index);
 		if (instrucao >> 26 == JTM) {
 			PROGRAMAS_EM_HD[prog] = prog + 1; // Vetor continua 0-based, só muda o numero do programa que é +1
+            PROGRAMAS_EM_HD_NOME[prog] = PROGRAMAS_EM_HD[prog];
 			PROGRAMAS_EM_HD_ENDERECO[prog] = index;
 			prog += 1;
 		}
@@ -505,21 +575,6 @@ int getDescritorProgramasMemoria(void) {
 	descritor = 0;
 	while (i < MAX_PROGRAMAS) {
 		if (PROGRAMAS_EM_MEMORIA[i] != 0) {
-			descritor += powByTwo(i);
-		}
-		i += 1;
-	}
-	return descritor;
-}
-
-int getDescritorProgramasHD(void) {
-	int i;
-	int descritor;
-
-	i = 0;
-	descritor = 0;
-	while (i < MAX_PROGRAMAS) {
-		if (PROGRAMAS_EM_HD[i] != 0) {
 			descritor += powByTwo(i);
 		}
 		i += 1;
@@ -648,6 +703,18 @@ int getTamanhoPrograma(int beginOnDisk) {
 	return index - beginOnDisk;
 }
 
+int getIdProgramaByName(int programa) {
+    int i;
+	i = 0;
+
+	while (i < MAX_PROGRAMAS) {
+		if (PROGRAMAS_EM_HD_NOME[i] == programa) {
+			return PROGRAMAS_EM_HD[i] - 1;              // Subtrai 1 do id do programa pois a inserção de dados não é 0-based
+		}
+		i += 1;
+	}
+}
+
 /**
  * Carrega um programa do HD para a memória de instruções.
  * 
@@ -665,7 +732,7 @@ void carregarPrograma(int nPrograma) {
 	int beginOnDisk;									// Endereço de início do programa no HD
 	int nProgramaOnDisk;								// Número do programa no HD
 
-	nPrograma -= 1;										// Subtrai 1 de nPrograma pois a inserção de dados não é 0-based
+    nPrograma = getIdProgramaByName(nPrograma);
 	PROC_ATUAL = nPrograma;
 
 	beginOnDisk = PROGRAMAS_EM_HD_ENDERECO[nPrograma];
@@ -752,25 +819,6 @@ void runAgain(int programa) {
 /*******************************************************************************************************/
 /*************************************   SISTEMA OPERACIONAL   *****************************************/
 /*******************************************************************************************************/
-
-void purgarPrograma(int programa) {
-	int index;
-	int instrucao;
-
-	programa -= 1;
-	index = PROGRAMAS_EM_HD_ENDERECO[programa];
-
-	instrucao = ldk(index);
-	while(instrucao >> 26 != SYSCALL) {
-		sdk(0, index);
-		index += 1;
-		instrucao = ldk(index);
-	}
-	sdk(0, index);
-
-	// Escaneia o HD novamente (workaround)
-	initProgramas();
-}
 
 void chooseAndRunProtagonista(int programa) {
 	PROC_ATUAL = programa - 1;
@@ -946,8 +994,8 @@ void main(void) {
 				novoEstadoLCD = KERNEL_MAIN_MENU;
 				// TODO:: implementar
 			} else if (novoEstadoLCD == 2) {
-				novoEstadoLCD = KERNEL_MAIN_MENU;
-				// TODO:: implementar
+				novoEstadoLCD = KERNEL_MENU_HD_REN;
+				lcdPgms(getDescritorProgramasHD());
 			} else if (novoEstadoLCD == 3) {
 				novoEstadoLCD = KERNEL_MENU_HD_DEL;
 				lcdPgms(getDescritorProgramasHD());
@@ -959,7 +1007,12 @@ void main(void) {
 				purgarPrograma(novoEstadoLCD);
 			}
 			novoEstadoLCD = KERNEL_MAIN_MENU;
-		} else if (ESTADO_LCD == KERNEL_MENU_MEM) {
+		} else if (ESTADO_LCD == KERNEL_MENU_HD_REN) {
+            if (novoEstadoLCD > 0) {
+				renomearPrograma(novoEstadoLCD);
+			}
+			novoEstadoLCD = KERNEL_MAIN_MENU;
+        } else if (ESTADO_LCD == KERNEL_MENU_MEM) {
 			if (novoEstadoLCD == 1) {
 				novoEstadoLCD = KERNEL_MENU_MEM_LOAD;
 				lcdPgms(getDescritorProgramasHD());

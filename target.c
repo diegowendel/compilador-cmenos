@@ -41,7 +41,7 @@
 #define REG_RTN_ADDR 31
 
 #define TAMANHO_PARTICAO 32
-#define ULTIMA_PARTICAO_MEM_DADOS 63
+#define ULTIMA_PARTICAO_MEM_DADOS 127
 
 /* Tipo de código em compilação */
 CodeType codeType;
