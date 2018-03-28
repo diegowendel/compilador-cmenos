@@ -89,6 +89,13 @@ int KERNEL_MAIN_MENU;
 int KERNEL_MENU_HD;
 int KERNEL_MENU_HD_DEL;
 int KERNEL_MENU_HD_REN;
+int KERNEL_MENU_HD_REN_NOME;
+int KERNEL_MENU_HD_ADD_NOME;
+int KERNEL_MENU_HD_ADD_QUIT;
+int KERNEL_MENU_HD_ADD_FIRST_PART;
+int KERNEL_MENU_HD_ADD_SECOND_PART;
+int KERNEL_MENU_HD_ADD_THIRD_PART;
+int KERNEL_MENU_HD_ADD_FOURTH_PART;
 int KERNEL_MENU_MEM;
 int KERNEL_MENU_MEM_LOAD;
 int KERNEL_MENU_MEM_DEL;
@@ -289,8 +296,7 @@ void renomearPrograma(int programa) {
     int novoNome;
     
     programa -= 1;
-    lcdCurr(0);
-	lcd(PROG_INSERT);
+	lcd(KERNEL_MENU_HD_REN_NOME);
     novoNome = input();
     PROGRAMAS_EM_HD_NOME[programa] = novoNome;
 }
@@ -411,15 +417,21 @@ void initDisplay(void) {
 	KERNEL_MENU_HD = 1;
 	KERNEL_MENU_HD_DEL = 2;
     KERNEL_MENU_HD_REN = 3;
-	KERNEL_MENU_MEM = 4;
-	KERNEL_MENU_MEM_LOAD = 5;
-	KERNEL_MENU_MEM_DEL = 6;
-	KERNEL_MENU_EXE = 7;
-	KERNEL_MENU_EXEC_N_PREEMPTIVO = 8;
-	KERNEL_MENU_EXEC_BLOCKED = 9;
+	KERNEL_MENU_HD_REN_NOME = 4;
+	KERNEL_MENU_HD_ADD_NOME = 5;
+	KERNEL_MENU_HD_ADD_QUIT = 6;
+	KERNEL_MENU_HD_ADD_FIRST_PART = 7;
+	KERNEL_MENU_HD_ADD_SECOND_PART = 8;
+	KERNEL_MENU_HD_ADD_THIRD_PART = 9;
+	KERNEL_MENU_HD_ADD_FOURTH_PART = 10;
+	KERNEL_MENU_MEM = 11;
+	KERNEL_MENU_MEM_LOAD = 12;
+	KERNEL_MENU_MEM_DEL = 13;
+	KERNEL_MENU_EXE = 14;
+	KERNEL_MENU_EXEC_N_PREEMPTIVO = 15;
+	KERNEL_MENU_EXEC_BLOCKED = 16;
 
 	PROG_INSERT = 30;
-	
 	// Atribui o estado inicial do SHELL durante a execução do SO
 	ESTADO_LCD = KERNEL_MAIN_MENU;
 }
@@ -780,10 +792,11 @@ void criarPrograma(void) {
 
     indexDisk = ENDERECO_INICIO_HD;
 
-    output(1111, 2);
+	lcd(KERNEL_MENU_HD_ADD_NOME);
     prog = input();
-	PROGRAMAS_EM_HD[prog] = prog+1; // Vetor continua 0-based, só muda o numero do programa que é +1
-    PROGRAMAS_EM_HD_NOME[prog] = prog+1;
+	prog -= 1;
+	PROGRAMAS_EM_HD[prog] = prog + 1; // Vetor continua 0-based, só muda o numero do programa que é +1
+    PROGRAMAS_EM_HD_NOME[prog] = PROGRAMAS_EM_HD[prog];
 	PROGRAMAS_EM_HD_ENDERECO[prog] = indexDisk;
 
     // Jump to Main
@@ -793,26 +806,27 @@ void criarPrograma(void) {
     sdk(instrucao, indexDisk);
     indexDisk += 1;
     
-    output(2222, 2);
+	lcd(KERNEL_MENU_HD_ADD_QUIT);
     opcao = input();
     while (opcao != 0) {
-        output(3333, 2);
+		lcd(KERNEL_MENU_HD_ADD_FIRST_PART);
         instrucao = input();
         
-        output(4444, 2);
+		lcd(KERNEL_MENU_HD_ADD_SECOND_PART);
 		instrucao <<= 8;
         instrucao += input();
         
-        output(5555, 2);
+		lcd(KERNEL_MENU_HD_ADD_THIRD_PART);
 		instrucao <<= 8;
         instrucao += input();
         
-        output(6666, 2);
+		lcd(KERNEL_MENU_HD_ADD_FOURTH_PART);
 		instrucao <<= 8;
         instrucao += input();
         sdk(instrucao, indexDisk);
         indexDisk += 1;
-        output(7777, 2);
+		
+		lcd(KERNEL_MENU_HD_ADD_QUIT);
         opcao = input();
     }
 
