@@ -11,8 +11,6 @@ int fatorial(int number) {
 }
 
 void main(void) {
-    int a;
-    int b;
     int number;
     number = input();
     output(fatorial(number), 2);
