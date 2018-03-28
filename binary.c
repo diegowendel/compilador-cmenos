@@ -10,7 +10,12 @@
 #include "util.h"
 
 char temp[100];
-int MAIN_POSITION;
+
+// Boilerplate strings
+const char * boilerplateBios1 = "assign bios[";
+const char * boilerplateBios2 = "] = 32'b";
+const char * boilerplateDisk1 = "disk[";
+const char * boilerplateDisk2 = "] <= 32'b";
 
 const char * getZeros(int n) {
     int i = 0;
@@ -37,30 +42,41 @@ const char * decimalToBinaryStr(unsigned x, int qtdBits) {
     return bin;
 }
 
-void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, CodeType codeType, int offset) {
+void inserirJumpToMain(CodeType codeType, int linha) {
+    char str[26];
+    // Limpa o vetor de caracteres auxiliar
+    memset(temp, '\0', sizeof(temp));
+    // Boilerplate
+    strcat(temp, codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
+    sprintf(str, "%d", linha);
+    strcat(temp, str);
+    strcat(temp, codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
+    strcat(temp, toBinaryOpcode(codeType == PROGRAMA ? _JTM : _J));
+    strcat(temp, "_");
+    strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
+    strcat(temp, ";\t\t// Jump to Main");
+    emitCode(temp);
+    emitBinary(temp);
+}
+
+void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo) {
     emitCode("\n********** Código binário **********\n");
     Objeto obj = codigoObjeto;
     char str[26];
-    int linha = offset;
-    int posicoesReservadas;
+    int linha = codeInfo.offset + 1;
+    int MAIN_POSITION;
+
+    inserirJumpToMain(codeInfo.codeType, codeInfo.offset);
     MAIN_POSITION = getLinhaLabel((char*) "main");
 
-    // Boilerplate fragments
-    const char * boilerplateBios1 = "assign bios[";
-    const char * boilerplateBios2 = "] = 32'b";
-    const char * boilerplateDisk1 = "disk[";
-    const char * boilerplateDisk2 = "] <= 32'b";
-
     while(obj != NULL) {
-        // Workaround
-        posicoesReservadas = codeType == KERNEL && linha == MAIN_POSITION ? 9 : 0;
         // Limpa o vetor de caracteres auxiliar
         memset(temp, '\0', sizeof(temp));
         // Boilerplate
-        strcat(temp, codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
+        strcat(temp, codeInfo.codeType == BIOS ? boilerplateBios1 : boilerplateDisk1);
         sprintf(str, "%d", linha++);
         strcat(temp, str);
-        strcat(temp, codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
+        strcat(temp, codeInfo.codeType == BIOS ? boilerplateBios2 : boilerplateDisk2);
 
         // Traduz o opcode para binário
         strcat(temp, toBinaryOpcode(obj->opcode));
@@ -96,18 +112,14 @@ void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, CodeType codeType, in
                     strcat(temp, "_");
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                     strcat(temp, "_");
-                    if (obj->op2->tipoEnderecamento == LABEL) {
-                        strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op2->enderecamento.label), 16));
-                    } else {
-                        strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.imediato, 16));
-                    }
+                    strcat(temp, decimalToBinaryStr(obj->op2->enderecamento.imediato, 16));
                     break;
-                } else if (obj->opcode == _JAL) {
+                } else if(obj->opcode == _JF) {
                     strcat(temp, toBinaryRegister(obj->op1->enderecamento.registrador));
                     strcat(temp, "_");
                     strcat(temp, getZeros(5));
                     strcat(temp, "_");
-                    strcat(temp, getZeros(16));
+                    strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op2->enderecamento.label), 16));
                     break;
                 }
 
@@ -140,7 +152,7 @@ void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, CodeType codeType, in
                     strcat(temp, getZeros(16));
                 } else {
                     if(obj->op3->tipoEnderecamento == IMEDIATO) {
-                        strcat(temp, decimalToBinaryStr(obj->op3->enderecamento.imediato + posicoesReservadas, 16));
+                        strcat(temp, decimalToBinaryStr(obj->op3->enderecamento.imediato, 16));
                     } else if(obj->op3->tipoEnderecamento == LABEL) {
                         strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op3->enderecamento.label), 16));
                     }
@@ -148,9 +160,9 @@ void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, CodeType codeType, in
 
                 break;
             case TYPE_J:
-                if(obj->opcode == _J) {
+                if(obj->opcode == _J || obj->opcode == _JAL) {
                     strcat(temp, decimalToBinaryStr(getLinhaLabel(obj->op1->enderecamento.label), 26));
-                } else { // HALT, NOP
+                } else { // HALT, NOP, EXEC
                     strcat(temp, getZeros(26));
                 }
                 break;
@@ -158,6 +170,7 @@ void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, CodeType codeType, in
         strcat(temp, "; \t// ");
         strcat(temp, obj->func == _DONT_CARE ? toStringOpcode(obj->opcode) : toStringFunction(obj->func));
         emitCode(temp);
+        emitBinary(temp);
         obj = obj->next;
     }
 }

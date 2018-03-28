@@ -9,6 +9,6 @@
 
 #include "target.h"
 
-void geraCodigoBinarioComDeslocamento(Objeto codigoObjeto, CodeType codeType, int offset);
+void geraCodigoBinario(Objeto codigoObjeto, CodeInfo codeInfo);
 
 #endif

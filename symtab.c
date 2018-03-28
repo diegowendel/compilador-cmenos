@@ -3,8 +3,8 @@
 /* Implementacao da tabela de simbolos C minus      */
 /* A tabela de simbolos eh implementada como uma    */
 /* tabela hash com encadeamento                     */
-/* Diego Wendel de Oliveira Ferreira		    */
-/* 86774                               		    */
+/* Diego Wendel de Oliveira Ferreira                */
+/* 86774                               		        */
 /****************************************************/
 
 #include <stdio.h>
@@ -12,20 +12,21 @@
 #include <string.h>
 #include "globals.h"
 #include "symtab.h"
+#include "util.h"
 
 /* SHIFT is the power of two used as multiplier
    in hash function  */
 #define SHIFT 4
 
-#define MAX_SCOPE 20
+#define MAX_SCOPE 40
 
 #define ESCOPO_GLOBAL 0
 #define ESCOPO_NAO_GLOBAL 1
 
-static Scope scopes[MAX_SCOPE];
-static int nScope = 0;
-static Scope scopeStack[MAX_SCOPE];
-static int nScopeStack = 0;
+Scope scopes[MAX_SCOPE];
+int nScope = 0;
+Scope scopeStack[MAX_SCOPE];
+int nScopeStack = 0;
 
 /* the hash function */
 static int hash (char * key) {
@@ -68,6 +69,50 @@ void incScope() {
 
 void sc_push(Scope scope) {
     scopeStack[nScopeStack++] = scope;
+}
+
+SysCall sys_create(char * name, TreeNode * treeNode) {
+    SysCall sc = (SysCall) malloc(sizeof(struct SysCallRec));
+    sc->name = name;
+    sc->treeNode = treeNode;
+    sc->next = NULL;
+    return sc;
+}
+
+void sys_insert(SysCall syscall) {
+    if (syscallHead == NULL) {
+        syscallHead = syscall;
+    } else {
+        SysCall temp = syscallHead;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = syscall;
+    }
+}
+
+SysCall sys_lookup(char * name) {
+    SysCall temp = syscallHead;
+    while (temp != NULL) {
+        if (!strcmp(name, toStringSysCall(temp->treeNode->kind.sys))) {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+void sys_free(void) {
+    if (syscallHead == NULL) {
+        return;
+    }
+    
+    SysCall temp;
+    while (syscallHead != NULL) {
+        temp = syscallHead;
+        syscallHead = syscallHead->next;
+        free(temp);
+    }
 }
 
 Scope sc_create(char * funcName) {
@@ -361,7 +406,7 @@ int getTamanhoBlocoMemoriaEscopoGlobal(void) {
 		if (hashTable[j] != NULL) {
 			BucketList l = hashTable[j];
       		while (l != NULL) {
-                if(l->treeNode->kind.var.varKind == FUNCTIONK) {
+                if(l->treeNode->kind.var.varKind == IDK || l->treeNode->kind.var.varKind == VECTORK) {
                     tamanho += l->tamanho;
                 }
                 l = l->next;
@@ -443,10 +488,8 @@ void printSymTab(FILE * listing) {
             fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Nº parametros  Tipo parametros  Origem Variavel  Tamanho  MemLoC  Numero das linhas\n");
       		fprintf(listing, "----------------  --------  ----------  -------------  ---------------  ---------------  -------  ------  -----------------\n");
             printSymTabRows(hashTable, listing, ESCOPO_GLOBAL);
+            fprintf(listing, "\n");
 		} else {
-            if(!strcmp(scope->funcName, "input") || !strcmp(scope->funcName, "output")) {
-                continue;
-            }
             fprintf(listing, "Nome da função: %s\n", scope->funcName);
             fprintf(listing, "Nome da variavel  Tipo ID   Tipo dados  Origem Variavel  Tamanho  MemLoc  Numero das linhas\n");
             fprintf(listing, "----------------  --------  ----------  ---------------  -------  ------  -----------------\n");

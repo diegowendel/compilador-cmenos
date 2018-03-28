@@ -25,6 +25,8 @@ const char * toBinaryRegister(RegisterName rn);
 
 void emitCode(const char * c);
 
+void emitBinary(const char * c);
+
 void emitComment(const char * c, int indent);
 
 void emitObjectCode(const char * c, int indent);

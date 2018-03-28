@@ -1,2 +1,0 @@
-- Fix negative numbers bug
-- Test logical and ; logical or

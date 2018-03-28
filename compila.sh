@@ -7,3 +7,4 @@ gcc -o cminus *.o -ly -lfl
 rm -rf *.o
 rm -rf *.yy.*
 rm -rf *.gch
+rm -rf *.tab.*

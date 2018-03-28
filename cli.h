@@ -9,12 +9,6 @@
 
 #include "globals.h"
 
-typedef struct codeInfo {
-    CodeType codeType;
-    char pgm[120];
-    int offset;
-} CodeInfo;
-
 /*
  * Mostra erro de passagem de argumentos
  */

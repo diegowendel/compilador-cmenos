@@ -51,6 +51,7 @@ int lineno = 0;
 FILE * source;
 FILE * listing;
 FILE * code;
+FILE * binary_file;
 
 /* allocate and set tracing flags */
 int EchoSource = FALSE;
@@ -95,7 +96,6 @@ int main(int argc, char * argv[]) {
     if (! Error) {
         char * codefile;
         int fnlen = strcspn(codeInfo.pgm, ".");
-        printf("\n\n\nalo: %s\n\n\n", codeInfo.pgm);
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
         strncpy(codefile, codeInfo.pgm, fnlen);
         strcat(codefile, ".txt");
@@ -105,7 +105,7 @@ int main(int argc, char * argv[]) {
             exit(1);
         }
         if (TraceCode) fprintf(listing, "\nGerando código intermediário...\n");
-        codeGen(syntaxTree, codefile);
+        codeGen(syntaxTree, codefile, codeInfo);
         fclose(code);
         if (TraceCode) fprintf(listing, "\nGeração de código intermediário concluída!\n");
         // Código intermediário gerado com sucesso
@@ -121,7 +121,7 @@ int main(int argc, char * argv[]) {
         code = fopen(codefile, "a+");
         Quadruple codigoIntermediario = getCodigoIntermediario();
         if (TraceTarget) fprintf(listing, "\nGerando código objeto...\n");
-        geraCodigoObjeto(codigoIntermediario, codeInfo.codeType);
+        geraCodigoObjeto(codigoIntermediario, codeInfo);
         fclose(code);
         if (TraceTarget) fprintf(listing, "\nGeração de código objeto concluída!\n");
         // Código objeto gerado com sucesso
@@ -130,6 +130,7 @@ int main(int argc, char * argv[]) {
 #if !NO_BINARY_CODE
     if(codigoObjetoGerado) {
         char * codefile;
+        char * binaryFile;
         int fnlen = strcspn(codeInfo.pgm, ".");
         codefile = (char *) calloc(fnlen + 4, sizeof(char));
         strncpy(codefile, codeInfo.pgm, fnlen);
@@ -137,8 +138,15 @@ int main(int argc, char * argv[]) {
         code = fopen(codefile, "a+");
         Objeto codigoObjeto = getCodigoObjeto();
         if (TraceBinary) fprintf(listing, "\nGerando código binário...\n");
-        geraCodigoBinarioComDeslocamento(codigoObjeto, codeInfo.codeType, codeInfo.offset);
+
+        binaryFile = (char *) calloc(fnlen + 4, sizeof(char));
+        strncpy(binaryFile, codeInfo.pgm, fnlen);
+        strcat(binaryFile, ".b");
+        binary_file = fopen(binaryFile, "w");
+
+        geraCodigoBinario(codigoObjeto, codeInfo);
         fclose(code);
+        fclose(binary_file);
         if (TraceBinary) fprintf(listing, "\nGeração de código binário concluída!\n\n");
     }
 #endif

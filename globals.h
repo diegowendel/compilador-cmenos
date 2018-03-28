@@ -55,6 +55,7 @@ typedef int TokenType;
 extern FILE* source; /* source code text file */
 extern FILE* listing; /* listing output text file */
 extern FILE* code; /* code text file for TM simulator */
+extern FILE* binary_file;
 
 extern int lineno; /* source line number for listing */
 
@@ -62,10 +63,16 @@ extern int lineno; /* source line number for listing */
 /***********   Syntax tree for parsing ************/
 /**************************************************/
 
-typedef enum {STMTK, EXPK, VARK} NodeKind;
+typedef enum {STMTK, EXPK, VARK, SYSK} NodeKind;
 typedef enum {INTEGERK, VOIDK, IFK, WHILEK, RETURNK, COMPK} StmtKind;
 typedef enum {ATRIBK, RELK, ARITHK, LOGICK, UNARYK} ExpKind;
 typedef enum {IDK, VECTORK, CONSTK, FUNCTIONK, CALLK} VarKind;
+typedef enum {INPUT, OUTPUT, LDK, SDK, LIM, SIM,
+    MMULOWERIM, MMUUPPERIM, MMULOWERDM, MMUUPPERDM,
+    MMUSELECT, EXEC, LCD, LCD_PGMS, LCD_CURR,
+    GIC, CIC, GIP, EXEC_AGAIN,
+    SAVE_REGS, LOAD_REGS, LDM, SDM,
+    GSP, GSPB, GGPB, SSPB, SGPB, RGNSP} SysCallKind;
 typedef enum {DECLK, ACCESSK} VarAccessK;
 typedef enum {LOCALK, PARAMK, GLOBALK, FUNCTION_MEM} VarMemK;
 
@@ -97,10 +104,17 @@ typedef struct treeNode {
         StmtKind stmt;
         ExpKind exp;
         struct Identifier var;
+        SysCallKind sys;
     } kind;
     TokenType op;
     ExpType type; /* for type checking of exps */
 } TreeNode;
+
+typedef struct codeInfo {
+    CodeType codeType;
+    char pgm[120];
+    int offset;
+} CodeInfo;
 
 /**************************************************/
 /***********   Flags for tracing       ************/

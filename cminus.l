@@ -14,12 +14,13 @@
     static int yylex(void);
 %}
 
-digit       [0-9]
-number      {digit}+
-letter      [a-zA-Z_]
-identifier  {letter}+
-newline     \n
-whitespace  [ \t\r]+
+digit           [0-9]
+number          {digit}+
+letter          [a-zA-Z_]
+letterOrNumber  [a-zA-Z_0-9]
+identifier      {letter}{letterOrNumber}*
+newline         \n
+whitespace      [ \t\r]+
 
 %%
 

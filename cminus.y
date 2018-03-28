@@ -13,23 +13,13 @@
     #include "parse.h"
 
     #define YYSTYPE TreeNode *
-    static char * savedName; /* for use in assignments */
-    static int savedLineNo;  /* ditto */
-    static TreeNode * savedTree; /* stores syntax tree for later return */
-    static int yylex(void);
-    static int yyerror(char * message);
-    static TreeNode * createInsert();
-    static TreeNode * createOutput();
-    static TreeNode * createLoadDisk();
-    static TreeNode * createStoreDisk();
-    static TreeNode * createLoadInstMem();
-    static TreeNode * createStoreInstMem();
-    static TreeNode * createCheckHardDisk();
-    static TreeNode * createCheckInstMem();
-    static TreeNode * createCheckDataMem();
-    static TreeNode * createExec();
-    static TreeNode * createAddProgramStart();
-    static TreeNode * createReadProgramStart();
+    char * savedName; /* for use in assignments */
+    int savedLineNo;  /* ditto */
+    TreeNode * savedTree; /* stores syntax tree for later return */
+    int yylex(void);
+    int yyerror(char * message);
+    TreeNode * createSysCall(ExpType type, SysCallKind syscall);
+    void insertNewNode(TreeNode * node);
 %}
 
 %token IF ELSE WHILE RETURN
@@ -49,19 +39,42 @@
 program
     : declarationList
         {
-            savedTree = createInsert();
-            savedTree->sibling = createOutput();
-            savedTree->sibling->sibling = createLoadDisk();
-            savedTree->sibling->sibling->sibling = createStoreDisk();
-            savedTree->sibling->sibling->sibling->sibling = createLoadInstMem();
-            savedTree->sibling->sibling->sibling->sibling->sibling = createStoreInstMem();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling = createCheckHardDisk();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createCheckInstMem();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createCheckDataMem();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createExec();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createAddProgramStart();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = createReadProgramStart();
-            savedTree->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling = $1;
+            insertNewNode(createSysCall(INTEGER_TYPE, INPUT));                  // Insert
+            insertNewNode(createSysCall(VOID_TYPE, OUTPUT));                    // Output
+            insertNewNode(createSysCall(INTEGER_TYPE, LDK));                    // LoadDisk
+            insertNewNode(createSysCall(VOID_TYPE, SDK));                       // StoreDisk
+            insertNewNode(createSysCall(INTEGER_TYPE, LIM));                    // LoadInstMem
+            insertNewNode(createSysCall(VOID_TYPE, SIM));                       // StoreInstMem
+            insertNewNode(createSysCall(VOID_TYPE, MMULOWERIM));                // MMULowerIM
+            insertNewNode(createSysCall(VOID_TYPE, MMUUPPERIM));                // MMUUpperIM
+            insertNewNode(createSysCall(VOID_TYPE, MMULOWERDM));                // MMULowerDM
+            insertNewNode(createSysCall(VOID_TYPE, MMUUPPERDM));                // MMUUpperDM
+            insertNewNode(createSysCall(VOID_TYPE, MMUSELECT));                 // MMUSelect
+            insertNewNode(createSysCall(VOID_TYPE, EXEC));                      // Exec
+            insertNewNode(createSysCall(VOID_TYPE, EXEC_AGAIN));                // ExecAgain
+            insertNewNode(createSysCall(VOID_TYPE, LCD));                       // LCD
+            insertNewNode(createSysCall(VOID_TYPE, LCD_PGMS));                  // LCD_PGMS
+            insertNewNode(createSysCall(VOID_TYPE, LCD_CURR));                  // LCD_CURR
+            insertNewNode(createSysCall(INTEGER_TYPE, GIC));                    // GetInterruptionCause
+            insertNewNode(createSysCall(VOID_TYPE, CIC));                       // ClearInterruptionCause
+            insertNewNode(createSysCall(INTEGER_TYPE, GIP));                    // GetInterruptionPC
+            insertNewNode(createSysCall(VOID_TYPE, SAVE_REGS));                 // SaveRegs
+            insertNewNode(createSysCall(VOID_TYPE, LOAD_REGS));                 // LoadRegs
+            insertNewNode(createSysCall(INTEGER_TYPE, LDM));                    // LoadDataMemory
+            insertNewNode(createSysCall(VOID_TYPE, SDM));                       // StoreDataMemory
+            insertNewNode(createSysCall(INTEGER_TYPE, GSP));                    // GetStackPointer
+            insertNewNode(createSysCall(INTEGER_TYPE, GSPB));                   // GetStackPointerBackup
+            insertNewNode(createSysCall(INTEGER_TYPE, GGPB));                   // GetGlobalPointerBackup
+            insertNewNode(createSysCall(VOID_TYPE, SSPB));                      // SetStackPointerBackup
+            insertNewNode(createSysCall(VOID_TYPE, SGPB));                      // SetGlobalPointerBackup
+            insertNewNode(createSysCall(VOID_TYPE, RGNSP));                     // RestoreGlobalN'StackPointers
+
+            TreeNode * temp;
+            temp = savedTree;
+            while (temp->sibling != NULL) {
+                temp = temp->sibling;
+            }
+            temp->sibling = $1;
         }
     ;
 
@@ -638,7 +651,7 @@ vazio
 
 %%
 
-static int yyerror(char * message) {
+int yyerror(char * message) {
     fprintf(listing,"Syntax error at line %d: %s\n",lineno,message);
     fprintf(listing,"Current token: ");
     printToken(yychar,tokenString);
@@ -649,7 +662,7 @@ static int yyerror(char * message) {
 /* yylex calls getToken to make Yacc/Bison output
  * compatible with ealier versions of the TINY scanner
  */
-static int yylex(void) {
+int yylex(void) {
     return getToken();
 }
 
@@ -674,122 +687,25 @@ TreeNode * getVoidNode(TreeNode * childNode) {
     return voidNode;
 }
 
-static TreeNode * createInsert() {
-    TreeNode * input = newVarNode(FUNCTIONK);
-    input->lineno = 0;
-    input->op = ID;
-    input->type = INTEGER_TYPE;
-    input->kind.var.mem = FUNCTION_MEM;
-    input->kind.var.attr.name = "input";
-    return getIntNode(input);
+TreeNode * createSysCall(ExpType type, SysCallKind syscall) {
+    TreeNode * function = newSysNode(syscall);
+    function->lineno = 0;
+    function->op = ID;
+    function->type = type;
+    return type == INTEGER_TYPE ? getIntNode(function) : getVoidNode(function);
 }
 
-static TreeNode * createOutput() {
-    TreeNode * output = newVarNode(FUNCTIONK);
-    output->lineno = 0;
-    output->op = ID;
-    output->type = VOID_TYPE;
-    output->kind.var.mem = FUNCTION_MEM;
-    output->kind.var.attr.name = "output";
-    return getVoidNode(output);
-}
-
-static TreeNode * createLoadDisk() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = INTEGER_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "ldk";
-    return getIntNode(node);
-}
-
-static TreeNode * createStoreDisk() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "sdk";
-    return getVoidNode(node);
-}
-
-static TreeNode * createLoadInstMem() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "lim";
-    return getVoidNode(node);
-}
-
-static TreeNode * createStoreInstMem() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "sim";
-    return getVoidNode(node);
-}
-
-static TreeNode * createCheckHardDisk() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "checkHD";
-    return getVoidNode(node);
-}
-
-static TreeNode * createCheckInstMem() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "checkIM";
-    return getVoidNode(node);
-}
-
-static TreeNode * createCheckDataMem() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "checkDM";
-    return getVoidNode(node);
-}
-
-static TreeNode * createExec() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "exec";
-    return getVoidNode(node);
-}
-
-static TreeNode * createAddProgramStart() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = VOID_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "addProgramStart";
-    return getVoidNode(node);
-}
-
-static TreeNode * createReadProgramStart() {
-    TreeNode * node = newVarNode(FUNCTIONK);
-    node->lineno = 0;
-    node->op = ID;
-    node->type = INTEGER_TYPE;
-    node->kind.var.mem = FUNCTION_MEM;
-    node->kind.var.attr.name = "readProgramStart";
-    return getIntNode(node);
+void insertNewNode(TreeNode * node) {
+    TreeNode * temp;
+    if (savedTree == NULL) {
+        savedTree = node;
+        savedTree->sibling = NULL;
+    } else {
+        temp = savedTree;
+        while (temp->sibling != NULL) {
+            temp = temp->sibling;
+        }
+        temp->sibling = node;
+        temp->sibling->sibling = NULL;
+    }
 }

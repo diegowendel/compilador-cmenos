@@ -453,40 +453,26 @@ static void genVar(TreeNode * tree) {
 
         case FUNCTIONK:
             verificaFimInstrucaoAnterior();
-            /* Se for função de biblioteca não gera código intermediário */
-            if(strcmp(tree->kind.var.attr.name, "input")
-                && strcmp(tree->kind.var.attr.name, "output")
-                && strcmp(tree->kind.var.attr.name, "ldk")
-                && strcmp(tree->kind.var.attr.name, "sdk")
-                && strcmp(tree->kind.var.attr.name, "lim")
-                && strcmp(tree->kind.var.attr.name, "sim")
-                && strcmp(tree->kind.var.attr.name, "checkHD")
-                && strcmp(tree->kind.var.attr.name, "checkIM")
-                && strcmp(tree->kind.var.attr.name, "checkDM")
-                && strcmp(tree->kind.var.attr.name, "exec")
-                && strcmp(tree->kind.var.attr.name, "addProgramStart")
-                && strcmp(tree->kind.var.attr.name, "readProgramStart")) {
-                op1 = createOperand();
-                op1->kind = String;
-                op1->contents.variable.name = tree->kind.var.attr.name;
-                op1->contents.variable.scope = tree->kind.var.scope;
-                insertQuad(createQuad(FUNC, op1, NULL, NULL));
+            op1 = createOperand();
+            op1->kind = String;
+            op1->contents.variable.name = tree->kind.var.attr.name;
+            op1->contents.variable.scope = tree->kind.var.scope;
+            insertQuad(createQuad(FUNC, op1, NULL, NULL));
 
-                /* list of parameters */
-                p1 = tree->child[0];
-                while(p1 != NULL) {
-                    op2 = createOperand();
-                    op2->kind = String;
-                    op2->contents.variable.name = p1->child[0]->kind.var.attr.name;
-                    op2->contents.variable.scope = p1->child[0]->kind.var.scope;
-                    insertQuad(createQuad(GET_PARAM, op2, NULL, NULL));
-                    p1 = p1->sibling;
-                }
-
-                /* build code for function block */
-                p2 = tree->child[1];
-                cGen(p2);
+            /* list of parameters */
+            p1 = tree->child[0];
+            while(p1 != NULL) {
+                op2 = createOperand();
+                op2->kind = String;
+                op2->contents.variable.name = p1->child[0]->kind.var.attr.name;
+                op2->contents.variable.scope = p1->child[0]->kind.var.scope;
+                insertQuad(createQuad(GET_PARAM, op2, NULL, NULL));
+                p1 = p1->sibling;
             }
+
+            /* build code for function block */
+            p2 = tree->child[1];
+            cGen(p2);
             break;
 
         case CALLK:
@@ -525,8 +511,6 @@ static void genVar(TreeNode * tree) {
                 /* Se for um chamado de OUTPUT, verifica o display de exibição */
                 if(!strcmp(tree->kind.var.attr.name, "output") && p1->sibling == NULL) {
                     display = p1->kind.var.attr.val;
-                } else if (!strcmp(tree->kind.var.attr.name, "addProgramStart") && operandoAtual->kind == IntConst) {
-                    offset = operandoAtual->contents.val;
                 }
                 p1 = p1->sibling;
             }
@@ -543,8 +527,6 @@ static void genVar(TreeNode * tree) {
             q = createQuad(instrucaoAtual, op1, op2, operandoAtual);
             if(display != -1) {
                 q->display = display;
-            } else if (!strcmp(tree->kind.var.attr.name, "addProgramStart")) {
-                q->offset = offset;
             }
             insertQuad(q);
             break;
@@ -565,6 +547,8 @@ static void cGen(TreeNode * tree) {
                 break;
             case VARK:
                 genVar(tree);
+                break;
+            default:
                 break;
         }
         /* Se a quantidade de parâmetros for maior que 0, cGen() será chamado automaticamente */
@@ -600,7 +584,7 @@ void verificaFimInstrucaoAnterior(void) {
  * of the code file, and is used to print the
  * file name as a comment in the code file
  */
-void codeGen(TreeNode * syntaxTree, char * codefile) {
+void codeGen(TreeNode * syntaxTree, char * codefile, CodeInfo codeInfo) {
     char * s = (char *) malloc(strlen(codefile) + 7);
     strcpy(s,"Arquivo: ");
     strcat(s,codefile);
@@ -609,7 +593,14 @@ void codeGen(TreeNode * syntaxTree, char * codefile) {
     cGen(syntaxTree);
     /* finish */
     emitComment("Fim da execução.", 0);
-    insertQuad(createQuad(HALT, NULL, NULL, NULL));
+
+    if (codeInfo.codeType != PROGRAMA) {
+        // Se for código do Kernel ou Bios, adiciona o HALT no fim do código
+        insertQuad(createQuad(HALT, NULL, NULL, NULL));
+    } else {
+        // Se for código de um Programa comum, adiciona o SYSCALL no fim do código
+        insertQuad(createQuad(SYSCALL, NULL, NULL, NULL));
+    }    
 
     emitCode("\n********** Código intermediário **********\n");
     printIntermediateCode();

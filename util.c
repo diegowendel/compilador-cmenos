@@ -126,6 +126,35 @@ TreeNode * newVarNode(VarKind kind) {
     return t;
 }
 
+TreeNode * newSysNode(SysCallKind kind) {
+    TreeNode * t = (TreeNode *) malloc(sizeof(TreeNode));
+    int i;
+    if (t == NULL) {
+        fprintf(listing,"Out of memory error at line %d\n",lineno);
+    } else {
+        for (i = 0; i < MAXCHILDREN; i++) {
+            t->child[i] = NULL;
+        }
+        t->sibling = NULL;
+        t->node = SYSK;
+        t->lineno = lineno;
+        t->kind.sys = kind;
+    }
+    return t;
+}
+
+char * toStringSysCall(SysCallKind syscall) {
+    char * strings[] = {
+        "input", "output", "ldk", "sdk", "lim", "sim",
+        "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM",
+        "mmuSelect", "exec", "lcd", "lcdPgms", "lcdCurr",
+        "gic", "cic", "gip", "execAgain",
+        "saveRegs", "loadRegs", "ldm", "sdm",
+        "gsp", "gspb", "ggpb", "sspb", "sgpb", "rgnsp"
+    };
+    return strings[syscall];
+}
+
 /* Function copyString allocates and makes a new
  * copy of an existing string
  */
@@ -151,14 +180,14 @@ char * copyString(char * s) {
 /* Variable indentno is used by printTree to
  * store current number of spaces to indent
  */
-static int indentno = 0;
+int indentno = 0;
 
 /* macros to increase/decrease indentation */
 #define INDENT indentno += 2
 #define UNINDENT indentno -= 2
 
 /* printSpaces indents by printing spaces */
-static void printSpaces(void) {
+void printSpaces(void) {
     int i;
     for (i = 0; i < indentno; i++) {
         fprintf(listing," ");
@@ -198,6 +227,8 @@ void printTree( TreeNode * tree ) {
                 case FUNCTIONK: fprintf(listing, "Function: %s\n", tree->kind.var.attr.name); break;
                 case CALLK: fprintf(listing, "Function call: %s\n", tree->kind.var.attr.name); break;
             }
+        } else if (tree->node == SYSK) {
+            fprintf(listing, "System call: %s\n", toStringSysCall(tree->kind.sys));
         }
         for (i = 0; i < MAXCHILDREN; i++) {
             printTree(tree->child[i]);
