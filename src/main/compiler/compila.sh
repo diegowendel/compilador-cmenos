@@ -1,10 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 
+# Verifica se foi passado um path do programa a ser compilado
+if [[ ! -z $1 ]] ; then
+    # Caminho do programa a ser compilado
+    PROG_PATH=$(realpath -q $1)
+fi
+
+# Compila o código
 flex cminus.l
 bison -d cminus.y
 gcc -c *.c
 gcc -o cminus *.o -ly -lfl
-rm -rf *.o
+
+# Executa a compilação
+./cminus ${PROG_PATH} $2
+
+# Limpa o ambiente após a compilação (Remove arquivos gerados)
+rm -rf *.tab.*
 rm -rf *.yy.*
 rm -rf *.gch
-rm -rf *.tab.*
+rm -rf *.o
+rm cminus
+
