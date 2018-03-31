@@ -1035,16 +1035,21 @@ void main(void) {
 			tamanhoStack -= 1;
 		}
 
-		saveRegistradores(pagina);
-		
-		PROC_ESTADO[PROC_ATUAL] = PRONTO;
-		ESTADO_LCD = KERNEL_MAIN_MENU;
-		lcd(ESTADO_LCD);
-		rgnsp();
-		cic();
+		if (PROC_ATUAL == PROTAGONISTA) {
+			// Processo bloqueado enquanto era executado em modo não preemptivo, ou seja, é o processo protagonista. Logo, é retomada a execução.
+			runAgain(PROC_ATUAL + 1);
+		} else {
+			saveRegistradores(pagina);
 
-		enqueuePronto(PROC_ATUAL + 1);
-		runPreemptivo();
+			PROC_ESTADO[PROC_ATUAL] = PRONTO;
+			ESTADO_LCD = KERNEL_MAIN_MENU;
+			lcd(ESTADO_LCD);
+			rgnsp();
+			cic();
+
+			enqueuePronto(PROC_ATUAL + 1);
+			runPreemptivo();
+		}
 
 		ESTADO_LCD = KERNEL_MAIN_MENU;
 		lcd(ESTADO_LCD);

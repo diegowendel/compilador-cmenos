@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "symtab.h": "c",
-        "cli.h": "c",
-        "target.h": "c"
-    }
-}

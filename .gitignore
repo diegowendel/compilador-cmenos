@@ -1,0 +1,10 @@
+# Executables
+src/main/compiler/cminus
+
+# Generated files
+*.b
+*.txt
+
+# VS Code
+.vscode
+
