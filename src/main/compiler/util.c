@@ -145,8 +145,8 @@ TreeNode * newSysNode(SysCallKind kind) {
 
 char * toStringSysCall(SysCallKind syscall) {
     char * strings[] = {
-        "input", "output", "ldk", "sdk", "lim", "sim",
-        "mmuLowerIM", "mmuUpperIM", "mmuLowerDM", "mmuUpperDM",
+        "input", "output", "ldk", "sdk", "sim",
+        "mmuLowerIM", "mmuUpperIM",
         "mmuSelect", "exec", "lcd", "lcdPgms", "lcdCurr",
         "gic", "cic", "gip", "execAgain",
         "saveRegs", "loadRegs", "ldm", "sdm",

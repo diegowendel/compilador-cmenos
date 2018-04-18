@@ -442,19 +442,12 @@ void geraCodigoChamadaFuncao(Quadruple q) {
         printCode(insertObjInst(createObjInst(_LW_DISK, TYPE_I, getTempReg(q->op3), getArgReg(0), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sdk")) {
         printCode(insertObjInst(createObjInst(_SW_DISK, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "lim")) {
-        printCode(insertObjInst(createObjInst(_LW_IM, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sim")) {
         printCode(insertObjInst(createObjInst(_SW_IM, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuLowerIM")) {
         printCode(insertObjInst(createObjInst(_MMU_LOWER_IM, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuUpperIM")) {
         printCode(insertObjInst(createObjInst(_MMU_UPPER_IM, TYPE_I, getArgReg(0), NULL, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "mmuLowerDM")) {
-        // printCode(insertObjInst(createObjInst(_MMU_LOWER, TYPE_I, getArgReg(0), NULL, NULL)));
-    } else if(!strcmp(q->op1->contents.variable.name, "mmuUpperDM")) {
-        // printCode(insertObjInst(createObjInst(_MMU_UPPER, TYPE_I, getArgReg(0), NULL, NULL)));
-        printCode(insertObjInst(createObjInst(_MOV, TYPE_I, getTempReg(q->op3), rtnAddrOp, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuSelect")) {
         // getArgReg(0) é o seletor da MMU que será alterado para o offset do programa que será executado
         printCode(insertObjInst(createObjInst(_MMU_SELECT, TYPE_I, NULL, getArgReg(0), NULL)));

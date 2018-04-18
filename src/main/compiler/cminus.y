@@ -43,12 +43,9 @@ program
             insertNewNode(createSysCall(VOID_TYPE, OUTPUT));                    // Output
             insertNewNode(createSysCall(INTEGER_TYPE, LDK));                    // LoadDisk
             insertNewNode(createSysCall(VOID_TYPE, SDK));                       // StoreDisk
-            insertNewNode(createSysCall(INTEGER_TYPE, LIM));                    // LoadInstMem
             insertNewNode(createSysCall(VOID_TYPE, SIM));                       // StoreInstMem
             insertNewNode(createSysCall(VOID_TYPE, MMULOWERIM));                // MMULowerIM
             insertNewNode(createSysCall(VOID_TYPE, MMUUPPERIM));                // MMUUpperIM
-            insertNewNode(createSysCall(VOID_TYPE, MMULOWERDM));                // MMULowerDM
-            insertNewNode(createSysCall(VOID_TYPE, MMUUPPERDM));                // MMUUpperDM
             insertNewNode(createSysCall(VOID_TYPE, MMUSELECT));                 // MMUSelect
             insertNewNode(createSysCall(VOID_TYPE, EXEC));                      // Exec
             insertNewNode(createSysCall(VOID_TYPE, EXEC_AGAIN));                // ExecAgain
