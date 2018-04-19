@@ -26,12 +26,11 @@ const char * toStringOpcode(Opcode op) {
         "slli", "srli",
         "mov", "lw", "li", "la", "sw",
         "in", "out", "jf",        
-        "ldk", "sdk", "sim",
+        "ldk", "sdk", "lam", "sam", "sim",
         "mmuLowerIM", "mmuUpperIM", "mmuSelect",
-        "syscall", "exec", "execAgain", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMBÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
         "lcd", "lcdPgms", "lcdCurr",
-        "gic", "cic", "gip",
-        "preIO",
+        "gic", "cic", "gip", "preIO",
+        "syscall", "exec", "execAgain", // AO ALTERAR AQUI, LEMBRAR DE ALTERAR TAMBÉM O CÓDIGO DO SO, QUE USA O OPCODE DO SYSCALL
         "j", "jtm", "jal", "halt",
         "rtype"
     };
@@ -72,18 +71,16 @@ const char * toBinaryOpcode(Opcode op) {
         "001110", "001111", "010000", "010001", "010010",
         // in,    out,      jf,
         "010011", "010100", "010101",
-        // ldk,   sdk,      sim,
-        "010110", "010111", "011001",
+        // ldk,   sdk,      lam,      sam,      sim,
+        "010110", "010111", "011000", "011001", "011010",
         // mmuLowerIM, mmuUpperIM, mmuSelect,
-        "011010", "011011", "011110",
-        // syscall, exec,   execAgain,
-        "011111", "100000", "100001",
+        "011011", "011100", "011101",
         // lcd,   lcdPgms,  lcdCurr,
         "100010", "100011", "100100",
-        // gic,   cic,      gip,
-        "100101", "100110", "100111",
-        // preIO,
-        "101000",
+        // gic,   cic,      gip,      preIO,
+        "100101", "100110", "100111", "101000",
+        // syscall, exec,   execAgain,
+        "111001", "111010", "111011",
         // j,     jtm,      jal,      halt
         "111100", "111101", "111110", "111111",
         // rtype

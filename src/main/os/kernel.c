@@ -444,7 +444,7 @@ void initConstantes(void) {
 	ENDERECO_FIM_HD = 4095;
 
 	// OPCODES
-	SYSCALL = 31;
+	SYSCALL = 57;
 	JTM = 61;
 	HALT = 63;
 }
