@@ -76,9 +76,9 @@ const char * toBinaryOpcode(Opcode op) {
         // mmuLowerIM, mmuUpperIM, mmuSelect,
         "011011", "011100", "011101",
         // lcd,   lcdPgms,  lcdCurr,
-        "100010", "100011", "100100",
+        "011110", "011111", "100000",
         // gic,   cic,      gip,      preIO,
-        "100101", "100110", "100111", "101000",
+        "100001", "100010", "100011", "100100",
         // syscall, exec,   execAgain,
         "111001", "111010", "111011",
         // j,     jtm,      jal,      halt
