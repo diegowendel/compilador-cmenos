@@ -43,6 +43,8 @@ program
             insertNewNode(createSysCall(VOID_TYPE, OUTPUT));                    // Output
             insertNewNode(createSysCall(INTEGER_TYPE, LDK));                    // LoadDisk
             insertNewNode(createSysCall(VOID_TYPE, SDK));                       // StoreDisk
+            insertNewNode(createSysCall(INTEGER_TYPE, LAM));                    // LoadArduinoModule
+            insertNewNode(createSysCall(VOID_TYPE, SAM));                       // StoreArduinoModule
             insertNewNode(createSysCall(VOID_TYPE, SIM));                       // StoreInstMem
             insertNewNode(createSysCall(VOID_TYPE, MMULOWERIM));                // MMULowerIM
             insertNewNode(createSysCall(VOID_TYPE, MMUUPPERIM));                // MMUUpperIM
