@@ -445,8 +445,7 @@ void geraCodigoChamadaFuncao(Quadruple q) {
     } else if(!strcmp(q->op1->contents.variable.name, "lam")) {
         printCode(insertObjInst(createObjInst(_LW_AM, TYPE_I, getTempReg(q->op3), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sam")) {
-        // TODO: Implementar
-        // printCode(insertObjInst(createObjInst(_SW_AM, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
+        printCode(insertObjInst(createObjInst(_SW_AM, TYPE_I, getArgReg(0), NULL, NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "sim")) {
         printCode(insertObjInst(createObjInst(_SW_IM, TYPE_I, getArgReg(0), getArgReg(1), NULL)));
     } else if(!strcmp(q->op1->contents.variable.name, "mmuLowerIM")) {
