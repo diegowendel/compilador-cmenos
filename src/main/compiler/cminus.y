@@ -54,6 +54,7 @@ program
             insertNewNode(createSysCall(VOID_TYPE, LCD));                       // LCD
             insertNewNode(createSysCall(VOID_TYPE, LCD_PGMS));                  // LCD_PGMS
             insertNewNode(createSysCall(VOID_TYPE, LCD_CURR));                  // LCD_CURR
+            insertNewNode(createSysCall(VOID_TYPE, LCD_DATA));                  // LCD_DATA
             insertNewNode(createSysCall(INTEGER_TYPE, GIC));                    // GetInterruptionCause
             insertNewNode(createSysCall(VOID_TYPE, CIC));                       // ClearInterruptionCause
             insertNewNode(createSysCall(INTEGER_TYPE, GIP));                    // GetInterruptionPC

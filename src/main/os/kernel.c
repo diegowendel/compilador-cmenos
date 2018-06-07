@@ -865,9 +865,6 @@ void runAgain(int programa) {
 	int indexMemory;
 	int tamanhoStack;
 
-	lcdCurr(programa);
-	lcd(PROG_INSERT);
-
 	STACK_PROG_INICIO = STACK_AREA_INICIO + 1;
 	PROC_ESTADO[PROC_ATUAL] = EXECUTANDO;
 	
@@ -903,6 +900,12 @@ void chooseAndRunProtagonista(int programa) {
     programa = PROC_ATUAL + 1;
 	PROTAGONISTA = PROC_ATUAL;
 	loadRegistradores();
+
+	// Atualiza o LCD
+	lcdCurr(programa);
+	lcd(PROG_INSERT);
+
+	// Executa o processo novamente
 	runAgain(programa);
 }
 
@@ -930,6 +933,12 @@ void runPreemptivo(void) {
 			run(processo);
 		} else {
 			loadRegistradores();
+
+			// Atualiza o LCD
+			lcdCurr(processo);
+			lcd(PROG_INSERT);
+
+			// Executa o processo novamente
 			runAgain(processo);
 		}
 		
