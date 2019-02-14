@@ -1,1 +1,52 @@
-gh-pages
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Compilador C-</title>
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?">
+
+    <!--[if lt IE 9]><script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="compiler.css">
+  </head>
+  <body>
+    <header>
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top" style="position: relative;">
+            <a class="navbar-brand" href="{{ '' | relative_url }}">C-</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbars" aria-controls="navbars" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav mr-auto"></div>
+            <form class="form-inline mt-2 mt-md-0">
+                <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+            </div>
+            <!-- <div class="collapse navbar-collapse" id="navbarCollapse">
+                <button id="btn-compile" class="btn btn-outline-success my-2 my-sm-0 navbar-right" type="button">Compilar</button>
+            </div> -->
+        </nav>
+    </header>
+
+    <div class="container">
+        <p>Entrada:</p>
+        <div id="editor-in" class="container-fluid editor"></div>
+        <p>Saída:</p>
+        <div id="editor-out" class="container-fluid editor"></div>
+    </div>
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <!-- Ace Code Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.2/ace.js"></script>
+    <!-- Using Ace Editor -->
+    <script src="compiler.js"></script>
+  </body>
+</html>
