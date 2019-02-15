@@ -2,7 +2,7 @@ const editorIn = ace.edit("editor-in");
 const editorOut = ace.edit("editor-out");
 
 $(function() {
-    editorIn.setTheme("ace/theme/monokai");
+    editorIn.setTheme("ace/theme/xcode");
     editorIn.session.setMode("ace/mode/c_cpp");
     editorIn.setOptions({
         enableBasicAutocompletion: true, // the editor completes the statement when you hit Ctrl + Space

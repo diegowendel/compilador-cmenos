@@ -1,5 +1,16 @@
+html, body {
+    height:100%;
+}
+
+.container-background {
+    background-color: #fff;
+}
+
 .editor {
-    min-width: 310px;
-    height: 400px;
-    margin-bottom: 40px;
+    border: 1px solid;
+    border-color: #000;
+    border-radius: 5px;
+    min-width: 250px;
+    min-height: 100%;
+    margin-bottom: 50px;
 }
