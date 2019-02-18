@@ -7,7 +7,7 @@ const compile = (evt) => {
   const codeInC = editorIn.getValue();
 
   $.ajax({
-    url: 'http://localhost:3000/compile',
+    url: 'http://18.228.220.249:3000/compile',
     type: 'POST',
     data: {code: codeInC},
     success: (response) => {
