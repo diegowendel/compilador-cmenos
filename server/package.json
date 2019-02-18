@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "C- compiler server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diegowendel/compilador-cmenos.git"
+  },
+  "author": "diegowendel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/diegowendel/compilador-cmenos/issues"
+  },
+  "homepage": "https://diegowendel.github.io/compilador-cmenos",
+  "dependencies": {
+    "bluebird": "^3.5.3",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.3",
+    "express-load": "^1.1.16",
+    "fs": "0.0.1-security",
+    "node-cmd": "^3.0.0"
+  }
+}

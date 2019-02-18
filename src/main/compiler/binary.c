@@ -54,7 +54,7 @@ void inserirJumpToMain(CodeType codeType, int linha) {
     strcat(temp, toBinaryOpcode(codeType == PROGRAMA ? _JTM : _J));
     strcat(temp, "_");
     strcat(temp, decimalToBinaryStr(getLinhaLabel((char*) "main"), 26));
-    strcat(temp, ";\t\t// Jump to Main");
+    strcat(temp, ";\t// Jump to Main");
     emitCode(temp);
     emitBinary(temp);
 }

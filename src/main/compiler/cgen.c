@@ -588,11 +588,11 @@ void codeGen(TreeNode * syntaxTree, char * codefile, CodeInfo codeInfo) {
     char * s = (char *) malloc(strlen(codefile) + 7);
     strcpy(s,"Arquivo: ");
     strcat(s,codefile);
-    emitComment("Compilação C- para código intermediário", 0);
-    emitComment(s, 0);
+    //emitComment("Compilação C- para código intermediário", 0);
+    //emitComment(s, 0);
     cGen(syntaxTree);
     /* finish */
-    emitComment("Fim da execução.", 0);
+    //("Fim da execução.", 0);
 
     if (codeInfo.codeType != PROGRAMA) {
         // Se for código do Kernel ou Bios, adiciona o HALT no fim do código
@@ -600,9 +600,9 @@ void codeGen(TreeNode * syntaxTree, char * codefile, CodeInfo codeInfo) {
     } else {
         // Se for código de um Programa comum, adiciona o SYSCALL no fim do código
         insertQuad(createQuad(SYSCALL, NULL, NULL, NULL));
-    }    
+    }
 
-    emitCode("\n********** Código intermediário **********\n");
+    emitCode("********** Código intermediário **********\n");
     printIntermediateCode();
 }
 
