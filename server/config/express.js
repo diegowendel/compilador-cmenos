@@ -1,6 +1,7 @@
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const express = require('express');
+const helmet = require('helmet');
 const load = require('express-load');
 
 module.exports = () => {
@@ -19,6 +20,8 @@ module.exports = () => {
     'methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
     'preflightContinue': false
   }));
+  // Helmet
+  app.use(helmet());
 
   load('controllers', {cwd: 'app'})
     .then('routes')
