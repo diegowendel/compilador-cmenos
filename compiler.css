@@ -2,8 +2,16 @@ html, body {
   height:100%;
 }
 
+.btn-limpar {
+  margin-left: 6px;
+}
+
 .container-background {
   background-color: #eee;
+}
+
+.container-conteudo {
+  margin-top: 15px;
 }
 
 .editor {

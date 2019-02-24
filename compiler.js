@@ -1,22 +1,47 @@
 const editorIn = ace.edit("editor-in");
 const editorOut = ace.edit("editor-out");
 
+jQuery.fn.extend({
+  disable: function (state) {
+      return this.each(function () {
+          var $this = $(this);
+          $this.toggleClass('disabled', state);
+      });
+  }
+});
+
+const limpar = (evt) => {
+  evt.preventDefault();
+  evt.stopPropagation();
+  const resultado = editorOut.getValue();
+
+  if (resultado) {
+    editorOut.setValue("");
+    $("#btn-limpar").disable(true);
+  }
+}
+
 const compile = (evt) => {
   evt.preventDefault();
   evt.stopPropagation();
   const codeInC = editorIn.getValue();
 
-  $.ajax({
-    url: 'https://diegowendel.com/compile',
-    type: 'POST',
-    data: {code: codeInC},
-    success: (response) => {
-      editorOut.setValue(response.code, 1);
-    },
-    error: () => {
-      console.log('Request failed');
-    },
-  });
+  if (codeInC) {
+    $.ajax({
+      url: 'https://diegowendel.com/compile',
+      type: 'POST',
+      data: {code: codeInC},
+      success: (response) => {
+        editorOut.setValue(response.code, 1);
+        $("#btn-limpar").disable(false);
+      },
+      error: () => {
+        console.log('Request failed');
+      },
+    });
+  } else {
+    alert("O editor não pode estar vazio!");
+  }
 };
 
 $(() => {
@@ -45,3 +70,4 @@ $(() => {
 });
 
 $("#btn-compile").click(compile);
+$("#btn-limpar").click(limpar);
