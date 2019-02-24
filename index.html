@@ -27,6 +27,8 @@
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <link data-require="fontawesome@*" data-semver="4.5.0" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.css" />
+
     <link rel="stylesheet" href="compiler.css">
   </head>
   <body class="container-background">
@@ -75,6 +77,14 @@ void main(void) {
         <div class="col-sm-6">
           <h4>Resultado:</h4>
           <div id="editor-out" class="editor"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade loading-modal-lg">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content" style="width: 48px">
+          <span class="fa fa-spinner fa-spin fa-3x" style="color: lightgreen"></span>
         </div>
       </div>
     </div>

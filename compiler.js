@@ -27,6 +27,7 @@ const compile = (evt) => {
   const codeInC = editorIn.getValue();
 
   if (codeInC) {
+    $('.modal').modal('show');
     $.ajax({
       url: 'https://diegowendel.com/compile',
       type: 'POST',
@@ -34,9 +35,11 @@ const compile = (evt) => {
       success: (response) => {
         editorOut.setValue(response.code, 1);
         $("#btn-limpar").disable(false);
+        $('.modal').modal('hide');
       },
       error: () => {
-        console.log('Request failed');
+        alert('Erro na requisição');
+        $('.modal').modal('hide');
       },
     });
   } else {
