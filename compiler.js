@@ -29,7 +29,7 @@ const compile = (evt) => {
   if (codeInC) {
     $('.modal').modal('show');
     $.ajax({
-      url: 'https://diegowendel.com/compile',
+      url: 'https://compiler.diegowendel.com/compile',
       type: 'POST',
       data: {code: codeInC},
       success: (response) => {
