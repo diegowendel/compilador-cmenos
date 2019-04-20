@@ -10,7 +10,7 @@ O resultado final do compilador em execução pode ser visualizado e testado no 
   <img src="docs/img/compilador.png" />
 </p>
 
-A aplicação retorna código intermediário, código objeto e código de máquina. Onde todos estes compilados foram desenvolvidos para a execução em um sistema operacional que roda sobre uma [máquina alvo](https://github.com/diegowendel/processador-mips) desenvolvida em verilog. Portanto, é possível escrever código, compilar e testar na máquina alvo compatível que executa sobre plataformas FPGA.
+A aplicação retorna código intermediário, código objeto e código de máquina. Onde todos estes compilados foram desenvolvidos para a execução em um sistema operacional que roda sobre uma [máquina alvo desenvolvida em verilog](https://github.com/diegowendel/processador-mips). Portanto, é possível escrever código, compilar e testar na máquina alvo compatível que executa sobre plataformas FPGA.
 
 ---
 
