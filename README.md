@@ -4,13 +4,13 @@
 
 Compilador desenvolvido para compilar a linguagem de programação C-. Tal linguagem, nada mais é que um subconjunto da linguagem C, onde as principais diferenças se dão no fato de permitir somente valores inteiros, não possuir ponteiros e não utilizar bibliotecas (especificações são listadas abaixo). A implementação deste compilador é baseada na teoria presente no livro [Compiler Construction: Principles and Practice - Kenneth C. Louden](https://www.goodreads.com/book/show/1760385.Compiler_Construction).
 
-O resultado final do compilador em execução pode ser visualizado e testado [neste site](https://diegowendel.github.io/compilador-cmenos). Nele é possível digitar código e compilar em tempo real, ~~além de selecionar as fases de compilação desejadas~~ (seleção de fases será adicionada em breve ao site).
+O resultado final do compilador em execução pode ser visualizado e testado no site. Nele é possível digitar código e compilar em tempo real, ~~além de selecionar as fases de compilação desejadas~~ (seleção de fases será adicionada em breve ao site).
 
 <p align="center">
   <img src="docs/img/compilador.png" />
 </p>
 
-A aplicação retorna código intermediário, código objeto e código de máquina. Onde todos estes compilados foram desenvolvidos para a execução em um sistema operacional que roda sobre uma [máquina alvo](https://github.com/diegowendel/processador-mips) desenvolvida em verilog. Portanto, é possível escrever código, compilar e testar na [máquina alvo](https://github.com/diegowendel/processador-mips) compatível que executa sobre plataformas FPGA.
+A aplicação retorna código intermediário, código objeto e código de máquina. Onde todos estes compilados foram desenvolvidos para a execução em um sistema operacional que roda sobre uma [máquina alvo](https://github.com/diegowendel/processador-mips) desenvolvida em verilog. Portanto, é possível escrever código, compilar e testar na máquina alvo compatível que executa sobre plataformas FPGA.
 
 ---
 
