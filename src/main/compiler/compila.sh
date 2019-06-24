@@ -9,7 +9,8 @@ fi
 # Compila o código
 flex cminus.l
 bison -d cminus.y
-gcc -c *.c
+# C_FLAGS - Variável para adicionar flags do ambiente na compilação (TravisCI)
+gcc -c $C_FLAGS *.c
 gcc -o cminus *.o -ly -lfl
 
 # Executa a compilação

@@ -1,9 +1,15 @@
 sudo: true
-
 language: c
+dist: trusty
 
 compiler:
   - gcc
+
+env:
+  - C_FLAGS="-std=c99"
+
+before_install:
+  - sudo apt-get -qq update
 
 install:
   # Needed to compiler
