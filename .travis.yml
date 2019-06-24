@@ -6,7 +6,7 @@ compiler:
   - gcc
 
 install:
-  - apt-get install flex bison
+  - sudo apt-get install flex bison
 
 before_script:
   - cd src/main/compiler
