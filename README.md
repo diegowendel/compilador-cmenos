@@ -1,4 +1,5 @@
 # Compilador C menos
+![CI status](https://travis-ci.com/diegowendel/compilador-cmenos.svg?branch=master)
 
 ### Compilador online: https://diegowendel.github.io/compilador-cmenos
 
