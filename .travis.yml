@@ -6,7 +6,10 @@ compiler:
   - gcc
 
 install:
+  # Needed to compiler
   - sudo apt-get install flex bison
+  # Needed to execute 'realpath' command inside 'compila.sh' script
+  - sudo apt-get install coreutils
 
 before_script:
   - cd src/main/compiler
