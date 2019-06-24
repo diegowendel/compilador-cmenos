@@ -1,0 +1,17 @@
+sudo: false
+
+language: c
+
+compiler:
+  - gcc
+
+install:
+  - sudo apt-get update
+  - sudo apt-get upgrade
+  - sudo apt-get install flex bison
+
+before_script:
+  - cd src/main/compiler
+
+script:
+  - ./compila.sh ../programs/programa1.c
