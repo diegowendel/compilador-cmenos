@@ -60,11 +60,9 @@ Quadruple * insertQuad(Quadruple q);
 
 Quadruple createQuad(InstructionKind instruction, Operand op1, Operand op2, Operand op3);
 
-void pushLocation(LocationStack ls);
+void pushLocation(Quadruple * quad);
 
 void popLocation();
-
-LocationStack createLocation(Quadruple * quad);
 
 void updateLocation(Operand op);
 
@@ -75,6 +73,11 @@ void popParam();
 void printIntermediateCode();
 
 Quadruple getCodigoIntermediario(void);
+
+/**
+ * Libera memória usada para montar o código intermediário
+ */
+void freeCodigoIntermediario(void);
 
 /* Procedure codeGen generates code to a code
  * file by traversal of the syntax tree. The

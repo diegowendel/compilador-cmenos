@@ -1,0 +1,188 @@
+********** Código intermediário **********
+
+1: (function, checarComponentes, _, _)
+2: (param_list, 1, _, _)
+3: (set_param, 20, _, _)
+4: (call, lcd, 1, t1)
+5: (param_list, 0, _, _)
+6: (call, input, 0, t2)
+7: (param_list, 1, _, _)
+8: (set_param, 21, _, _)
+9: (call, lcd, 1, t3)
+10: (param_list, 0, _, _)
+11: (call, input, 0, t4)
+12: (param_list, 1, _, _)
+13: (set_param, 22, _, _)
+14: (call, lcd, 1, t5)
+15: (param_list, 0, _, _)
+16: (call, input, 0, t6)
+17: (param_list, 1, _, _)
+18: (set_param, 23, _, _)
+19: (call, lcd, 1, t7)
+20: (param_list, 0, _, _)
+21: (call, input, 0, t8)
+22: (return, _, _, _)
+23: (function, carregarKernel, _, _)
+24: (assign, HALT, 63, _)
+25: (assign, index, 0, _)
+26: (param_list, 1, _, _)
+27: (set_param, index, _, _)
+28: (call, ldk, 1, t9)
+29: (assign, instrucao, t9, _)
+30: (label, L1, _, _)
+31: (shift_right, instrucao, 26, t10)
+32: (not_equal, t10, HALT, t11)
+33: (jump_if_false, t11, L2, _)
+34: (param_list, 2, _, _)
+35: (set_param, instrucao, _, _)
+36: (set_param, index, _, _)
+37: (call, sim, 2, t12)
+38: (addition, index, 1, t13)
+39: (assign, index, t13, _)
+40: (param_list, 1, _, _)
+41: (set_param, index, _, _)
+42: (call, ldk, 1, t14)
+43: (assign, instrucao, t14, _)
+44: (goto, L1, _, _)
+45: (label, L2, _, _)
+46: (param_list, 2, _, _)
+47: (set_param, instrucao, _, _)
+48: (set_param, index, _, _)
+49: (call, sim, 2, t15)
+50: (return, _, _, _)
+51: (function, main, _, _)
+52: (param_list, 0, _, _)
+53: (call, checarComponentes, 0, t16)
+54: (param_list, 0, _, _)
+55: (call, carregarKernel, 0, t17)
+56: (halt, _, _, _)
+
+********** Código objeto **********
+
+checarComponentes:
+    0:	addi	$sp, $sp, 2
+    1:	li	$a0, 20
+    2:	lcd	$a0
+    3:	in	$t0
+    4:	li	$a0, 21
+    5:	lcd	$a0
+    6:	in	$t1
+    7:	li	$a0, 22
+    8:	lcd	$a0
+    9:	in	$t2
+    10:	li	$a0, 23
+    11:	lcd	$a0
+    12:	in	$t3
+    13:	jr	$ra
+
+carregarKernel:
+    14:	addi	$sp, $sp, 5
+    15:	li	$t0, 63
+    16:	sw	$t0, 0($sp)
+    17:	li	$t1, 0
+    18:	sw	$t1, -1($sp)
+    19:	lw	$s0, -1($sp)
+    20:	mov	$a0, $s0
+    21:	ldk	$t2, $a0
+    22:	sw	$t2, -2($sp)
+.L1	
+    23:	lw	$s0, -2($sp)
+    24:	srli	$t3, $s0, 26
+    25:	lw	$s1, 0($sp)
+    26:	ne	$t4, $t3, $s1
+    27:	jf	$t4, L2
+    28:	mov	$a0, $s0
+    29:	lw	$s2, -1($sp)
+    30:	mov	$a1, $s2
+    31:	sim	$a0, $a1
+    32:	addi	$t5, $s2, 1
+    33:	sw	$t5, -1($sp)
+    34:	lw	$s2, -1($sp)
+    35:	mov	$a0, $s2
+    36:	ldk	$t6, $a0
+    37:	sw	$t6, -2($sp)
+    38:	lw	$s0, -2($sp)
+    39:	j	L1
+.L2	
+    40:	lw	$s0, -2($sp)
+    41:	mov	$a0, $s0
+    42:	lw	$s1, -1($sp)
+    43:	mov	$a1, $s1
+    44:	sim	$a0, $a1
+    45:	jr	$ra
+
+main:
+    46:	addi	$sp, $sp, 1
+    47:	sw	$ra, 0($sp)
+    48:	jal	checarComponentes
+    49:	subi	$sp, $sp, 2
+    50:	lw	$ra, 0($sp)
+    51:	mov	$s0, $v0
+    52:	sw	$ra, 0($sp)
+    53:	jal	carregarKernel
+    54:	subi	$sp, $sp, 5
+    55:	lw	$ra, 0($sp)
+    56:	mov	$s0, $v0
+    57:	halt	
+
+********** Código binário **********
+
+assign bios[0] = 32'b111100_00000000000000000000101111;		// Jump to Main
+assign bios[1] = 32'b000001_11110_11110_0000000000000010; 	// addi
+assign bios[2] = 32'b010000_00000_00001_0000000000010100; 	// li
+assign bios[3] = 32'b011110_00000_00001_0000000000000000; 	// lcd
+assign bios[4] = 32'b010011_00000_01111_0000000000000000; 	// in
+assign bios[5] = 32'b010000_00000_00001_0000000000010101; 	// li
+assign bios[6] = 32'b011110_00000_00001_0000000000000000; 	// lcd
+assign bios[7] = 32'b010011_00000_10000_0000000000000000; 	// in
+assign bios[8] = 32'b010000_00000_00001_0000000000010110; 	// li
+assign bios[9] = 32'b011110_00000_00001_0000000000000000; 	// lcd
+assign bios[10] = 32'b010011_00000_10001_0000000000000000; 	// in
+assign bios[11] = 32'b010000_00000_00001_0000000000010111; 	// li
+assign bios[12] = 32'b011110_00000_00001_0000000000000000; 	// lcd
+assign bios[13] = 32'b010011_00000_10010_0000000000000000; 	// in
+assign bios[14] = 32'b000000_11111_00000_00000_00000_010010; 	// jr
+assign bios[15] = 32'b000001_11110_11110_0000000000000101; 	// addi
+assign bios[16] = 32'b010000_00000_01111_0000000000111111; 	// li
+assign bios[17] = 32'b010010_11110_01111_0000000000000000; 	// sw
+assign bios[18] = 32'b010000_00000_10000_0000000000000000; 	// li
+assign bios[19] = 32'b010010_11110_10000_1111111111111111; 	// sw
+assign bios[20] = 32'b001111_11110_00101_1111111111111111; 	// lw
+assign bios[21] = 32'b001110_00101_00001_0000000000000000; 	// mov
+assign bios[22] = 32'b010110_00001_10001_0000000000000000; 	// ldk
+assign bios[23] = 32'b010010_11110_10001_1111111111111110; 	// sw
+assign bios[24] = 32'b001111_11110_00101_1111111111111110; 	// lw
+assign bios[25] = 32'b001101_00101_10010_0000000000011010; 	// srli
+assign bios[26] = 32'b001111_11110_00110_0000000000000000; 	// lw
+assign bios[27] = 32'b000000_10010_00110_10011_00000_001101; 	// ne
+assign bios[28] = 32'b010101_10011_00000_0000000000101001; 	// jf
+assign bios[29] = 32'b001110_00101_00001_0000000000000000; 	// mov
+assign bios[30] = 32'b001111_11110_00111_1111111111111111; 	// lw
+assign bios[31] = 32'b001110_00111_00010_0000000000000000; 	// mov
+assign bios[32] = 32'b011010_00010_00001_0000000000000000; 	// sim
+assign bios[33] = 32'b000001_00111_10100_0000000000000001; 	// addi
+assign bios[34] = 32'b010010_11110_10100_1111111111111111; 	// sw
+assign bios[35] = 32'b001111_11110_00111_1111111111111111; 	// lw
+assign bios[36] = 32'b001110_00111_00001_0000000000000000; 	// mov
+assign bios[37] = 32'b010110_00001_10101_0000000000000000; 	// ldk
+assign bios[38] = 32'b010010_11110_10101_1111111111111110; 	// sw
+assign bios[39] = 32'b001111_11110_00101_1111111111111110; 	// lw
+assign bios[40] = 32'b111100_00000000000000000000011000; 	// j
+assign bios[41] = 32'b001111_11110_00101_1111111111111110; 	// lw
+assign bios[42] = 32'b001110_00101_00001_0000000000000000; 	// mov
+assign bios[43] = 32'b001111_11110_00110_1111111111111111; 	// lw
+assign bios[44] = 32'b001110_00110_00010_0000000000000000; 	// mov
+assign bios[45] = 32'b011010_00010_00001_0000000000000000; 	// sim
+assign bios[46] = 32'b000000_11111_00000_00000_00000_010010; 	// jr
+assign bios[47] = 32'b000001_11110_11110_0000000000000001; 	// addi
+assign bios[48] = 32'b010010_11110_11111_0000000000000000; 	// sw
+assign bios[49] = 32'b111110_00000000000000000000000001; 	// jal
+assign bios[50] = 32'b000010_11110_11110_0000000000000010; 	// subi
+assign bios[51] = 32'b001111_11110_11111_0000000000000000; 	// lw
+assign bios[52] = 32'b001110_11000_00101_0000000000000000; 	// mov
+assign bios[53] = 32'b010010_11110_11111_0000000000000000; 	// sw
+assign bios[54] = 32'b111110_00000000000000000000001111; 	// jal
+assign bios[55] = 32'b000010_11110_11110_0000000000000101; 	// subi
+assign bios[56] = 32'b001111_11110_11111_0000000000000000; 	// lw
+assign bios[57] = 32'b001110_11000_00101_0000000000000000; 	// mov
+assign bios[58] = 32'b111111_00000000000000000000000000; 	// halt
