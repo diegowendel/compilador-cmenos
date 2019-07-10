@@ -1,5 +1,9 @@
 # Compilador C menos
 ![CI status](https://travis-ci.com/diegowendel/compilador-cmenos.svg?branch=master)
+![Website](https://img.shields.io/website/https/compiler.diegowendel.com.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/diegowendel/compilador-cmenos.svg)
+![GitHub repo size](https://img.shields.io/github/repo-size/diegowendel/compilador-cmenos.svg)
+![GitHub top language](https://img.shields.io/github/languages/top/diegowendel/compilador-cmenos.svg)
 
 ### Compilador online: https://diegowendel.github.io/compilador-cmenos
 
