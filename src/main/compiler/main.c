@@ -54,13 +54,12 @@ FILE * code;
 FILE * binary_file;
 
 /* allocate and set tracing flags */
-int EchoSource = FALSE;
-int TraceScan = TRUE;
-int TraceParse = TRUE;
-int TraceAnalyze = TRUE;
-int TraceCode = TRUE;
-int TraceTarget = TRUE;
-int TraceBinary = TRUE;
+int TraceScan = FALSE;
+int TraceParse = FALSE;
+int TraceAnalyze = FALSE;
+int TraceCode = FALSE;
+int TraceTarget = FALSE; // TODO: put on globals.h
+int TraceBinary = FALSE; // TODO: put on globals.h
 
 int Error = FALSE;
 int codigoIntermediarioGerarado = FALSE;
@@ -73,9 +72,9 @@ int main(int argc, char * argv[]) {
         mostrarErroArgumentos(argv[0]);
     }
 
-    CodeInfo codeInfo = interpretar(argc, argv);    
+    CodeInfo codeInfo = interpretar(argc, argv);
     listing = stdout; /* send listing to screen */
-    fprintf(listing, "\nCOMPILAÇÃO C MENOS: %s\n", codeInfo.pgm);
+    fprintf(listing, "\nCompilação C Menos: %s\n", codeInfo.pgm);
 #if NO_PARSE
     while (getToken() != ENDFILE);
 #else

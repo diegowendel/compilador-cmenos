@@ -216,7 +216,7 @@ TargetOperand getArgReg(int i) {
     // FIXME
     printf("FIXME - MAIS DE 4 PARAMETROS NA FUNÇÃO\n");
     exit(1);
-    
+
     operando->enderecamento.registrador = regNames[REG_ZERO];
     Registrador reg = registradores[REG_ZERO];
     reg.targetOp = operando;
@@ -416,7 +416,7 @@ void saveRegistradores(void) {
 void loadRegistradores(void) {
     int i;
     int index = ULTIMA_PARTICAO_MEM_DADOS * TAMANHO_PARTICAO;
-    
+
     for(i = 0; i < REG_KERNEL_0; i++) {
         Registrador reg = registradores[i];
         printCode(insertObjInst(createObjInst(_LW, TYPE_I, reg.targetOp, getStackZeroOperandLocation(index), NULL)));
@@ -845,6 +845,9 @@ void geraCodigoObjeto(Quadruple q, CodeInfo codeInfo) {
         }
         q = q->next;
     }
+
+    // Libera memória do código intermediário
+    freeCodigoIntermediario();
 }
 
 void printCode(Objeto instrucao) {

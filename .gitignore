@@ -8,3 +8,6 @@ src/main/compiler/cminus
 # VS Code
 .vscode
 
+# Whitelist
+!src/main/test/**
+

@@ -101,7 +101,7 @@ static void genStmt(TreeNode * tree) {
             /* Cria e insere uma nova representação em código intermediário */
             q = insertQuad(createQuad(instrucaoAtual, op1, NULL, NULL));
             /* Salva a IR do if para atualizar com o label que representa o fim do bloco then */
-            pushLocation(createLocation(q));
+            pushLocation(q);
             /* Gera código para o bloco then */
             cGen(p2);
             /* set second operand */
@@ -115,7 +115,7 @@ static void genStmt(TreeNode * tree) {
 
             if(p3 != NULL) {
                 q = insertQuad(createQuad(GOTO, NULL, NULL, NULL));
-                pushLocation(createLocation(q));
+                pushLocation(q);
             }
 
             /* Label usado para marcar o fim do bloco then */
@@ -154,7 +154,7 @@ static void genStmt(TreeNode * tree) {
             /* Cria e insere uma nova representação em código intermediário */
             q = insertQuad(createQuad(instrucaoAtual, op2, NULL, NULL));
             /* Salva a IR do if para atualizar com o label que representa o fim do bloco then */
-            pushLocation(createLocation(q));
+            pushLocation(q);
             /* build code for while block */
             cGen(p2);
             /* go back to while test expression */
@@ -585,14 +585,7 @@ void verificaFimInstrucaoAnterior(void) {
  * file name as a comment in the code file
  */
 void codeGen(TreeNode * syntaxTree, char * codefile, CodeInfo codeInfo) {
-    char * s = (char *) malloc(strlen(codefile) + 7);
-    strcpy(s,"Arquivo: ");
-    strcat(s,codefile);
-    emitComment("Compilação C- para código intermediário", 0);
-    emitComment(s, 0);
     cGen(syntaxTree);
-    /* finish */
-    emitComment("Fim da execução.", 0);
 
     if (codeInfo.codeType != PROGRAMA) {
         // Se for código do Kernel ou Bios, adiciona o HALT no fim do código
@@ -600,9 +593,9 @@ void codeGen(TreeNode * syntaxTree, char * codefile, CodeInfo codeInfo) {
     } else {
         // Se for código de um Programa comum, adiciona o SYSCALL no fim do código
         insertQuad(createQuad(SYSCALL, NULL, NULL, NULL));
-    }    
+    }
 
-    emitCode("\n********** Código intermediário **********\n");
+    emitCode("********** Código intermediário **********\n");
     printIntermediateCode();
 }
 
@@ -650,7 +643,12 @@ void printIntermediateCode() {
     }
 }
 
-void pushLocation(LocationStack ls) {
+void pushLocation(Quadruple * quad) {
+    // createLocation
+    LocationStack ls = (LocationStack) malloc(sizeof(struct Location));
+    ls->quad = quad;
+    ls->next = NULL;
+
     if(locationHead == NULL) {
         locationHead = ls;
         locationHead->next = NULL;
@@ -667,13 +665,6 @@ void popLocation() {
         free(ls);
         ls = NULL;
     }
-}
-
-LocationStack createLocation(Quadruple * quad) {
-    LocationStack ls = (LocationStack) malloc(sizeof(struct Location));
-    ls->quad = quad;
-    ls->next = NULL;
-    return ls;
 }
 
 void updateLocation(Operand op) {
@@ -738,4 +729,17 @@ Quadruple * insertQuad(Quadruple q) {
 
 Quadruple getCodigoIntermediario(void) {
     return head;
+}
+
+void freeCodigoIntermediario(void) {
+    if (head == NULL) {
+        return;
+    }
+
+    Quadruple temp;
+    while (head != NULL) {
+        temp = head;
+        head = head->next;
+        free(temp);
+    }
 }

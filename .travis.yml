@@ -19,4 +19,8 @@ before_script:
   - cd src/main/compiler
 
 script:
-  - ./compila.sh ../programs/programa1.c
+  - ./compile_all.sh
+  - cd ../test
+  - ./test_os.sh
+  - ./test_programs.sh
+
