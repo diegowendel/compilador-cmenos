@@ -1,5 +1,5 @@
-const editorIn = ace.edit("editor-in");
-const editorOut = ace.edit("editor-out");
+const editorIn = ace.edit('editor-in');
+const editorOut = ace.edit('editor-out');
 
 jQuery.fn.extend({
   disable: function (state) {
@@ -16,8 +16,8 @@ const limpar = (evt) => {
   const resultado = editorOut.getValue();
 
   if (resultado) {
-    editorOut.setValue("");
-    $("#btn-limpar").disable(true);
+    editorOut.setValue('');
+    $('#btn-limpar').disable(true);
   }
 }
 
@@ -27,44 +27,47 @@ const compile = (evt) => {
   const codeInC = editorIn.getValue();
 
   if (codeInC) {
-    $('.modal').modal('show');
+    $('.custom-spinner').css('visibility', 'visible');
     $.ajax({
-      url: 'https://compiler.diegowendel.com/compile',
-      type: 'POST',
-      data: {code: codeInC},
+      url: 'https://whoiy2ra6e.execute-api.sa-east-1.amazonaws.com/dev/compile',
+      cache: false,
+      method: 'POST',
+      contentType : 'application/json',
+      data: JSON.stringify({ code: codeInC }),
       success: (response) => {
-        editorOut.setValue(response.code, 1);
-        $("#btn-limpar").disable(false);
-        $('.modal').modal('hide');
+        console.log('response', response);
+        editorOut.setValue(response.message, 1);
+        $('#btn-limpar').disable(false);
+        $('.custom-spinner').css('visibility', 'hidden');
       },
       error: () => {
+        $('.custom-spinner').css('visibility', 'hidden');
         alert('Erro na requisição');
-        $('.modal').modal('hide');
       },
     });
   } else {
-    alert("O editor não pode estar vazio!");
+    alert('O editor não pode estar vazio!');
   }
 };
 
 $(() => {
-  editorIn.setTheme("ace/theme/xcode");
-  editorIn.session.setMode("ace/mode/c_cpp");
+  editorIn.setTheme('ace/theme/xcode');
+  editorIn.session.setMode('ace/mode/c_cpp');
   editorIn.setOptions({
     enableBasicAutocompletion: true, // the editor completes the statement when you hit Ctrl + Space
     enableLiveAutocompletion: true, // the editor completes the statement while you are typing
     showPrintMargin: true, // hides the vertical limiting strip
-    fontSize: "100%" // ensures that the editor fits in the environment
+    fontSize: '100%' // ensures that the editor fits in the environment
   });
 
-  editorOut.setTheme("ace/theme/monokai");
-  editorOut.session.setMode("ace/mode/c_cpp");
+  editorOut.setTheme('ace/theme/monokai');
+  editorOut.session.setMode('ace/mode/c_cpp');
   editorOut.setReadOnly(true);
-  editorOut.renderer.$cursorLayer.element.style.display = "none"
+  editorOut.renderer.$cursorLayer.element.style.display = 'none'
   editorOut.setOptions({
     enableBasicAutocompletion: true,
     enableLiveAutocompletion: true,
-    fontSize: "100%",
+    fontSize: '100%',
     highlightActiveLine: false,
     highlightGutterLine: false,
     readOnly: true,
@@ -72,5 +75,5 @@ $(() => {
   });
 });
 
-$("#btn-compile").click(compile);
-$("#btn-limpar").click(limpar);
+$('#btn-compile').click(compile);
+$('#btn-limpar').click(limpar);

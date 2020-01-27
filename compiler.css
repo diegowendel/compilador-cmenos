@@ -34,3 +34,24 @@ html, body {
   background-color: transparent;
   border: none;
 }
+
+/********************** SPINNER **********************/
+.custom-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 9999;
+  cursor: wait;
+  background-color: rgba(0,0,0,0.6);
+  visibility: hidden;
+}
+
+.spinner-size {
+  width: 5rem;
+  height: 5rem;
+}
