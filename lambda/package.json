@@ -1,0 +1,24 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "C- compiler server",
+  "scripts": {
+    "predeploy": "npm install",
+    "deploy": "serverless deploy -v"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diegowendel/compilador-cmenos.git"
+  },
+  "author": "diegowendel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/diegowendel/compilador-cmenos/issues"
+  },
+  "homepage": "https://diegowendel.github.io/compilador-cmenos",
+  "dependencies": {
+    "bluebird": "^3.7.2",
+    "fs": "0.0.1-security",
+    "node-cmd": "^3.0.0"
+  }
+}
