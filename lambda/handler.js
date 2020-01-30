@@ -8,12 +8,14 @@ module.exports.compile = async event => {
   const params = event.body;
   const paramsJSON = JSON.parse(params);
   const code = paramsJSON.code;
-  console.log('code:', code);
-
   const getAsync = promise.promisify(cmd.get, { multiArgs: true, context: cmd });
 
-  // Para escrever no filesystem usando lambda functions é obrigatório utilizar o diretório /tmp
-  const commands = await getAsync(`
+  /**
+   * Compila o código recebido e armazena o resultado em um arquivo temporário.
+   *
+   * Obs: Para escrever no filesystem usando lambda functions é obrigatório utilizar o diretório /tmp
+   */
+  const commandsResult = await getAsync(`
     touch /tmp/temp.c
     echo '${code}' > /tmp/temp.c
     cp ./compiler/cminus /tmp/cminus
@@ -21,12 +23,22 @@ module.exports.compile = async event => {
     ls /tmp > /tmp/ls_temp.txt
   `);
 
-  // TODO: handle error cases
+  let compiledCode;
 
-  console.log('commands', commands);
-  const lsTemp = fs.readFileSync('/tmp/ls_temp.txt').toString();
-  console.log('lsTemp', lsTemp);
-  const compiledCode = fs.readFileSync('/tmp/temp.txt').toString();
+  try {
+    compiledCode = fs.readFileSync('/tmp/temp.txt').toString();
+    console.log('Compilation Success!');
+  } catch(err) {
+    console.error('Compilation Error:', err);
+    const commandsErrorArray = commandsResult;
+    compiledCode = `Compilation Error!
+    ${commandsErrorArray[0]}`;
+  }
+
+  /**
+   * Limpa os arquivos temporários após a compilação.
+   */
+  await getAsync('rm /tmp/*');
 
   const response = {
     statusCode: 200,
